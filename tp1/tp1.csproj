@@ -11,4 +11,10 @@
     <ProjectReference Include="..\SimulationBase\SimulationBase.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Examples\Static100.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

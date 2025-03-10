@@ -1,9 +1,11 @@
 ﻿using System;
-using SimulationBase;
 using tp1;
+using tp1.Simulation;
 
 Console.WriteLine("Starting up...");
 
-new Window().Run();
+var config = SimulationConfig.FromFile("Examples/Static100.txt");
+
+// new Window().Run();
 
 Console.WriteLine("Goodbye!");
