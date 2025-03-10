@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Input.Common" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.Input.Glfw" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.Windowing.Common" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.Windowing.Glfw" Version="2.22.0" />
+    <PackageReference Include="TrippyGL" Version="1.2.2" />
+    <PackageReference Include="TrippyGL.Fonts" Version="1.2.2" />
+    <PackageReference Include="TrippyGL.Fonts.Building" Version="1.2.2" />
+    <PackageReference Include="TrippyGL.Fonts.Extensions" Version="1.2.2" />
+    <PackageReference Include="TrippyGL.ImageSharp" Version="1.2.2" />
+  </ItemGroup>
+
+</Project>
