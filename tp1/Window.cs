@@ -26,6 +26,7 @@ namespace tp1
         private void resetSimulation()
         {
             var config = SimulationConfig.FromFile("Examples/Static100.txt");
+            config.M = 16;
             simulation = new Simulation(config);
             simulation.Initialize();
         }
@@ -76,14 +77,14 @@ namespace tp1
                 vertexBuffer.RecreateStorage((uint)Math.Max(primitiveBatcher.TriangleVertexCapacity, primitiveBatcher.LineVertexCapacity));
             }
 
-            Vector2 simBorderSize = new Vector2(1, 1);
+            Vector2 simBorderSize = new Vector2(0.25f);
             Color4b borderColor = new Color4b(64, 64, 64);
             primitiveBatcher.AddRectangle(-simBorderSize, new Vector2(simSize.X + simBorderSize.X, 0), borderColor);
             primitiveBatcher.AddRectangle(new Vector2(-simBorderSize.X, simSize.Y), new Vector2(simSize.X + simBorderSize.X, simSize.Y + simBorderSize.Y), borderColor);
             primitiveBatcher.AddRectangle(new Vector2(-simBorderSize.X, 0), new Vector2(0, simSize.Y), borderColor);
             primitiveBatcher.AddRectangle(new Vector2(simSize.X, 0), new Vector2(simSize.X + simBorderSize.X, simSize.Y), borderColor);
 
-            shaderProgram.View = Matrix4x4.CreateTranslation(5, 5, 0) * Matrix4x4.CreateScale(10);
+            shaderProgram.View = Matrix4x4.CreateTranslation(5, 5, 0) * Matrix4x4.CreateScale(40);
 
             Color4b gridColor = new Color4b(96, 96, 96);
             for (float x = 0; x < simSize.X; x += binSize.X)

@@ -15,8 +15,8 @@ namespace tp1.Simulate
         public Neighbors Neighbors { get; private set; }
         public Dictionary<Particle, HashSet<Particle>> NeighborsDictionary { get; private set; }
         public float NeighborRadius { get; private set; }
-        public int M;
-        
+        public Vector2D<int> BinCount { get; private set; }
+
         private List<Particle> particles;
         public IReadOnlyList<Particle> Particles => particles;
 
@@ -26,7 +26,7 @@ namespace tp1.Simulate
             particles = config.Particles;
             Size = config.Size;
             NeighborRadius = 1;
-            M = config.M;
+            BinCount = new Vector2D<int>(config.M);
         }
 
         public void Initialize()
@@ -35,7 +35,7 @@ namespace tp1.Simulate
             Console.Write("Calculating neighbors...");
             stopwatch.Start();
 
-            Neighbors = new Neighbors(Size, new Vector2D<int>(M, M), true, particles);
+            Neighbors = new Neighbors(Size, BinCount, true, particles);
             NeighborsDictionary = Neighbors.FindAllNeighbors(NeighborRadius);
             stopwatch.Stop();
             Console.WriteLine(" Done! Took {0}", stopwatch.Elapsed);
@@ -47,13 +47,13 @@ namespace tp1.Simulate
 
         public void Step()
         {
-            /*Random random = new Random(123);
+            Random random = new Random(123);
             foreach (Particle particle in particles)
             {
-                particle.Position += new Vector2(random.NextFloat(), random.NextFloat()) * 0.2f;
+                particle.Position += new Vector2(random.NextFloat(), random.NextFloat()) * 0.1f - new Vector2(0.05f);
                 particle.Position = new Vector2((particle.Position.X + Size.X) % Size.X, (particle.Position.Y + Size.Y) % Size.Y);
-            }*/
-            
+            }
+
             Neighbors.Recalculate();
             NeighborsDictionary = Neighbors.FindAllNeighbors(NeighborRadius);
         }
