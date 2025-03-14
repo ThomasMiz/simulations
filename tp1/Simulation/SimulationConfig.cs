@@ -44,7 +44,8 @@ namespace tp1.Simulation
 
                 // Get the width and height of the simulation. If only width is specified, use that as height.
                 line = streamReader.ReadLine() ?? throw new Exception("The file has no simulation size header line");
-                string[] split = line.Split(WhitespaceSeparatorChars, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                string[] split = line.Split(WhitespaceSeparatorChars,
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (split.Length == 0) throw new Exception("The file has no simulation size header line");
                 float width = float.Parse(split[0]);
                 float height = split.Length == 1 ? width : float.Parse(split[1]);
@@ -57,7 +58,8 @@ namespace tp1.Simulation
                 {
                     if (string.IsNullOrWhiteSpace(line)) continue;
 
-                    split = line.Split(WhitespaceSeparatorChars, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    split = line.Split(WhitespaceSeparatorChars,
+                        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
                     float radius = float.Parse(split[0]);
                     float property = split.Length > 1 && split[1] != "-" ? float.Parse(split[1]) : 0;
