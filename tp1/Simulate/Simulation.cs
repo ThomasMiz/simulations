@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using Silk.NET.Maths;
@@ -14,7 +15,8 @@ namespace tp1.Simulate
         public Neighbors Neighbors { get; private set; }
         public Dictionary<Particle, HashSet<Particle>> NeighborsDictionary { get; private set; }
         public float NeighborRadius { get; private set; }
-
+        public int M;
+        
         private List<Particle> particles;
         public IReadOnlyList<Particle> Particles => particles;
 
@@ -23,7 +25,8 @@ namespace tp1.Simulate
         {
             particles = config.Particles;
             Size = config.Size;
-            NeighborRadius = 10;
+            NeighborRadius = 1;
+            M = config.M;
         }
 
         public void Initialize()
@@ -31,7 +34,8 @@ namespace tp1.Simulate
             Stopwatch stopwatch = new Stopwatch();
             Console.Write("Calculating neighbors...");
             stopwatch.Start();
-            Neighbors = new Neighbors(Size, new Vector2D<int>(16, 16), true, particles);
+
+            Neighbors = new Neighbors(Size, new Vector2D<int>(M, M), true, particles);
             NeighborsDictionary = Neighbors.FindAllNeighbors(NeighborRadius);
             stopwatch.Stop();
             Console.WriteLine(" Done! Took {0}", stopwatch.Elapsed);

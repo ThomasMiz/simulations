@@ -7,14 +7,13 @@ using Silk.NET.Maths;
 using SimulationBase;
 using tp1.Simulate;
 using TrippyGL;
-using TrippyGL.Utils;
 
 namespace tp1
 {
     class Window : WindowBase
     {
         private Simulation simulation;
-
+        private int M;
         private PrimitiveBatcher<VertexColor> primitiveBatcher;
         private VertexBuffer<VertexColor> vertexBuffer;
         private SimpleShaderProgram shaderProgram;

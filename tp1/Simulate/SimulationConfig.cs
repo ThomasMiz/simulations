@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using TrippyGL.Utils;
+using System.Globalization;
 
 namespace tp1.Simulate
 {
@@ -17,7 +18,7 @@ namespace tp1.Simulate
 
         public Vector2 Size { get; set; }
         public List<Particle> Particles { get; set; }
-
+        public int M { get; set; }
         public static SimulationConfig FromFile(string file)
         {
             using FileStream fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -47,8 +48,8 @@ namespace tp1.Simulate
                 string[] split = line.Split(WhitespaceSeparatorChars,
                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (split.Length == 0) throw new Exception("The file has no simulation size header line");
-                float width = float.Parse(split[0]);
-                float height = split.Length == 1 ? width : float.Parse(split[1]);
+                float width = float.Parse(split[0], CultureInfo.InvariantCulture);
+                float height = split.Length == 1 ? width : float.Parse(split[1], CultureInfo.InvariantCulture);
 
                 lineNumber++;
 
@@ -61,10 +62,10 @@ namespace tp1.Simulate
                     split = line.Split(WhitespaceSeparatorChars,
                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                    float radius = float.Parse(split[0]);
-                    float property = split.Length > 1 && split[1] != "-" ? float.Parse(split[1]) : 0;
-                    float x = split.Length > 2 && split[2] != "-" ? float.Parse(split[2]) : random.NextFloat(width);
-                    float y = split.Length > 3 && split[3] != "-" ? float.Parse(split[3]) : random.NextFloat(height);
+                    float radius = float.Parse(split[0], CultureInfo.InvariantCulture);
+                    float property = split.Length > 1 && split[1] != "-" ? float.Parse(split[1], CultureInfo.InvariantCulture) : 0;
+                    float x = split.Length > 2 && split[2] != "-" ? float.Parse(split[2], CultureInfo.InvariantCulture) : random.NextFloat(width);
+                    float y = split.Length > 3 && split[3] != "-" ? float.Parse(split[3], CultureInfo.InvariantCulture) : random.NextFloat(height);
 
                     particles.Add(new Particle(particleId++)
                     {
@@ -89,6 +90,12 @@ namespace tp1.Simulate
             {
                 throw new Exception("Error at line " + lineNumber + ": " + e.Message, e);
             }
+        }
+        
+        public static SimulationConfig ReadM(SimulationConfig config, int m)
+        {
+            config.M = m;
+            return config;
         }
     }
 }

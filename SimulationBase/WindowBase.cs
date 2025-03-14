@@ -155,7 +155,7 @@ namespace SimulationBase
 
             graphicsDevice = new GraphicsDevice(Silk.NET.OpenGL.GL.GetApi(Window))
             {
-                DebugMessagingEnabled = true
+                DebugMessagingEnabled = false
             };
             graphicsDevice.DebugMessageReceived += OnDebugMessage;
             graphicsDevice.ShaderCompiled += GraphicsDevice_ShaderCompiled;
