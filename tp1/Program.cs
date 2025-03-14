@@ -1,5 +1,4 @@
 ﻿using System;
-using tp1;
 using tp1.Simulation;
 
 Console.WriteLine("Starting up...");

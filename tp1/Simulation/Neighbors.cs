@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Numerics;
 
 namespace tp1.Simulation;
@@ -95,7 +94,15 @@ public class Neighbors
         int maxCellX = (int)((position.X + radius) / BinSize.X);
         int maxCellY = (int)((position.Y + radius) / BinSize.Y);
 
-        HashSet<Particle> result = new();
+        if (!LoopsAround)
+        {
+            minCellX = Math.Max(0, minCellX);
+            maxCellX = Math.Min(gridWidth - 1, maxCellX);
+            minCellY = Math.Max(0, minCellY);
+            maxCellY = Math.Min(gridHeight - 1, maxCellY);
+        }
+
+        HashSet<Particle> result = [];
         for (int gridX = minCellX; gridX <= maxCellX; gridX++)
         {
             int x = (gridX + gridWidth) % gridWidth;
@@ -122,11 +129,63 @@ public class Neighbors
 
     public Dictionary<Particle, HashSet<Particle>> FindAllNeighbors(float radius)
     {
-        Dictionary<Particle, HashSet<Particle>> result = new();
+        Dictionary<Particle, HashSet<Particle>> result = new(particles.Count);
+        foreach (Particle particle in particles)
+        {
+            result.Add(particle, new());
+        }
 
         foreach (Particle particle in particles)
         {
-            result.Add(particle, FindWithinRadius(particle, radius));
+            HashSet<Particle> currentResult = result[particle];
+
+            int centerCellX = (int)(particle.Position.X / BinSize.X);
+            int centerCellY = (int)(particle.Position.Y / BinSize.Y);
+
+            int minCellX = (int)((particle.Position.X - radius) / BinSize.X);
+            int minCellY = (int)((particle.Position.Y - radius) / BinSize.Y);
+            int maxCellX = (int)((particle.Position.X + radius) / BinSize.X);
+            int maxCellY = (int)((particle.Position.Y + radius) / BinSize.Y);
+
+            if (!LoopsAround)
+            {
+                minCellX = Math.Max(0, minCellX);
+                maxCellX = Math.Min(gridWidth - 1, maxCellX);
+                minCellY = Math.Max(0, minCellY);
+                maxCellY = Math.Min(gridHeight - 1, maxCellY);
+            }
+
+            for (int gridX = minCellX; gridX <= maxCellX; gridX++)
+            {
+                for (int gridY = minCellY; gridY <= maxCellY; gridY++)
+                {
+                    if (!(gridX > centerCellX || (gridX == centerCellX && gridY >= centerCellY)))
+                    {
+                        continue;
+                    }
+
+                    int y = (gridY + gridHeight) % gridHeight;
+                    int x = (gridX + gridWidth) % gridWidth;
+
+                    if (grid[x, y] == null) continue;
+
+                    foreach (Particle candidate in grid[x, y])
+                    {
+                        if (ReferenceEquals(candidate, particle))
+                        {
+                            continue;
+                        }
+
+                        Vector2 v = particle.Position - candidate.Position;
+                        float maxRadius = radius + candidate.Radius;
+                        if (v.LengthSquared() <= maxRadius * maxRadius)
+                        {
+                            currentResult.Add(candidate);
+                            result[candidate].Add(particle);
+                        }
+                    }
+                }
+            }
         }
 
         return result;
