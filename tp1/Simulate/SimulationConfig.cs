@@ -4,7 +4,7 @@ using System.IO;
 using System.Numerics;
 using TrippyGL.Utils;
 
-namespace tp1.Simulation
+namespace tp1.Simulate
 {
     /// <summary>
     /// A formatted text file for describing a simulation's starting point, specifying the simulation's size and particles.

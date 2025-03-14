@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace tp1.Simulation;
+namespace tp1.Simulate;
 
 public static class NeighborsFile
 {

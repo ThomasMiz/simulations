@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace tp1.Simulation
+namespace tp1.Simulate
 {
     public class Particle
     {
