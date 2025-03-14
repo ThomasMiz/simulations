@@ -57,7 +57,13 @@ namespace tp1
             Particle selected = simulation.Particles.First();
             HashSet<Particle> selectedNeighbors = simulation.NeighborsDictionary[selected];
 
-            primitiveBatcher.AddCirclePrecise(selected.Position, selected.Radius + simulation.NeighborRadius, new Color4b(255, 0, 0, 96));
+            for (int x = -1; x <= 1; x++)
+            {
+                for (int y = -1; y <= 1; y++)
+                {
+                    primitiveBatcher.AddCirclePrecise(selected.Position + new Vector2(x, y) * simSize, selected.Radius + simulation.NeighborRadius, new Color4b(255, 0, 0, 96));
+                }
+            }
 
             foreach (Particle particle in simulation.Particles)
             {

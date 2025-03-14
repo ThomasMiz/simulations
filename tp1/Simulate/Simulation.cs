@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using Silk.NET.Maths;
 using TrippyGL.Utils;
 
 namespace tp1.Simulate
@@ -30,7 +31,7 @@ namespace tp1.Simulate
             Stopwatch stopwatch = new Stopwatch();
             Console.Write("Calculating neighbors...");
             stopwatch.Start();
-            Neighbors = new Neighbors(Size, Size / 16, true, particles);
+            Neighbors = new Neighbors(Size, new Vector2D<int>(16, 16), true, particles);
             NeighborsDictionary = Neighbors.FindAllNeighbors(NeighborRadius);
             stopwatch.Stop();
             Console.WriteLine(" Done! Took {0}", stopwatch.Elapsed);

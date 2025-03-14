@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Silk.NET.Maths;
 
 namespace tp1.Simulate;
 
 public class Neighbors
 {
     public Vector2 SimulationSize { get; private set; }
-    public Vector2 BinSize { get; set; }
+    public Vector2D<int> BinCount { get; set; }
+    public Vector2 BinSize => SimulationSize / BinCount.As<float>().ToSystem();
     public bool LoopsAround { get; set; }
 
     private readonly ICollection<Particle> particles;
@@ -15,10 +17,10 @@ public class Neighbors
     private List<Particle>?[,]? grid;
     private int gridWidth, gridHeight;
 
-    public Neighbors(Vector2 simulationSize, Vector2 binSize, bool loopsAround, ICollection<Particle> particles)
+    public Neighbors(Vector2 simulationSize, Vector2D<int> binCount, bool loopsAround, ICollection<Particle> particles)
     {
         SimulationSize = simulationSize;
-        BinSize = binSize;
+        BinCount = binCount;
         LoopsAround = loopsAround;
         this.particles = particles;
         Recalculate();
@@ -27,8 +29,9 @@ public class Neighbors
     public void Recalculate()
     {
         // Clear the grid and ensure it has enough size
-        gridWidth = (int)MathF.Ceiling(SimulationSize.X / BinSize.X);
-        gridHeight = (int)MathF.Ceiling(SimulationSize.Y / BinSize.Y);
+        Vector2 binSize = BinSize;
+        gridWidth = (int)MathF.Ceiling(SimulationSize.X / binSize.X);
+        gridHeight = (int)MathF.Ceiling(SimulationSize.Y / binSize.Y);
         if (grid == null || grid.GetLength(0) < gridWidth || grid.GetLength(1) < gridHeight)
         {
             grid = new List<Particle>[gridWidth, gridHeight];
@@ -47,10 +50,10 @@ public class Neighbors
         // Iterate through all the particles and add each one to the cells it intersects
         foreach (Particle p in particles)
         {
-            int minCellX = (int)((p.Position.X - p.Radius) / BinSize.X);
-            int minCellY = (int)((p.Position.Y - p.Radius) / BinSize.Y);
-            int maxCellX = (int)((p.Position.X + p.Radius) / BinSize.X);
-            int maxCellY = (int)((p.Position.Y + p.Radius) / BinSize.Y);
+            int minCellX = (int)((p.Position.X - p.Radius) / binSize.X);
+            int minCellY = (int)((p.Position.Y - p.Radius) / binSize.Y);
+            int maxCellX = (int)((p.Position.X + p.Radius) / binSize.X);
+            int maxCellY = (int)((p.Position.Y + p.Radius) / binSize.Y);
 
             if (!LoopsAround)
             {
@@ -66,7 +69,7 @@ public class Neighbors
                 for (int gridY = minCellY; gridY <= maxCellY; gridY++)
                 {
                     int y = (gridY + gridHeight) % gridHeight;
-                    Vector2 v = Vector2.Clamp(p.Position, new Vector2(x, y) * BinSize, new Vector2(x + 1, y + 1) * BinSize);
+                    Vector2 v = Vector2.Clamp(p.Position, new Vector2(x, y) * binSize, new Vector2(x + 1, y + 1) * binSize);
                     Vector2 d = p.Position - v;
                     float ds = d.LengthSquared();
 
@@ -89,10 +92,11 @@ public class Neighbors
 
     public HashSet<Particle> FindWithinRadius(Vector2 position, float radius)
     {
-        int minCellX = (int)((position.X - radius) / BinSize.X);
-        int minCellY = (int)((position.Y - radius) / BinSize.Y);
-        int maxCellX = (int)((position.X + radius) / BinSize.X);
-        int maxCellY = (int)((position.Y + radius) / BinSize.Y);
+        Vector2 binSize = BinSize;
+        int minCellX = (int)((position.X - radius) / binSize.X);
+        int minCellY = (int)((position.Y - radius) / binSize.Y);
+        int maxCellX = (int)((position.X + radius) / binSize.X);
+        int maxCellY = (int)((position.Y + radius) / binSize.Y);
 
         if (!LoopsAround)
         {
@@ -129,6 +133,7 @@ public class Neighbors
 
     public Dictionary<Particle, HashSet<Particle>> FindAllNeighbors(float radius)
     {
+        Vector2 binSize = BinSize;
         Dictionary<Particle, HashSet<Particle>> result = new(particles.Count);
         foreach (Particle particle in particles)
         {
@@ -139,13 +144,13 @@ public class Neighbors
         {
             HashSet<Particle> currentResult = result[particle];
 
-            int centerCellX = (int)(particle.Position.X / BinSize.X);
-            int centerCellY = (int)(particle.Position.Y / BinSize.Y);
+            int centerCellX = (int)(particle.Position.X / binSize.X);
+            int centerCellY = (int)(particle.Position.Y / binSize.Y);
 
-            int minCellX = (int)((particle.Position.X - radius) / BinSize.X);
-            int minCellY = (int)((particle.Position.Y - radius) / BinSize.Y);
-            int maxCellX = (int)((particle.Position.X + radius) / BinSize.X);
-            int maxCellY = (int)((particle.Position.Y + radius) / BinSize.Y);
+            int minCellX = (int)((particle.Position.X - radius) / binSize.X);
+            int minCellY = (int)((particle.Position.Y - radius) / binSize.Y);
+            int maxCellX = (int)((particle.Position.X + radius) / binSize.X);
+            int maxCellY = (int)((particle.Position.Y + radius) / binSize.Y);
 
             if (!LoopsAround)
             {
@@ -164,8 +169,10 @@ public class Neighbors
                         continue;
                     }
 
-                    int y = (gridY + gridHeight) % gridHeight;
                     int x = (gridX + gridWidth) % gridWidth;
+                    int y = (gridY + gridHeight) % gridHeight;
+
+                    Vector2 candidateOffset = new Vector2((gridX - x) / BinCount.X, (gridY - y) / BinCount.Y) * SimulationSize;
 
                     if (grid[x, y] == null) continue;
 
@@ -176,7 +183,7 @@ public class Neighbors
                             continue;
                         }
 
-                        Vector2 v = particle.Position - candidate.Position;
+                        Vector2 v = particle.Position - (candidate.Position + candidateOffset);
                         float maxRadius = radius + candidate.Radius;
                         if (v.LengthSquared() <= maxRadius * maxRadius)
                         {

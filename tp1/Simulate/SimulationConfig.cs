@@ -75,6 +75,10 @@ namespace tp1.Simulate
                     lineNumber++;
                 }
 
+                particles[0].Position = new Vector2(0.1f, 0.1f);
+                particles[1].Position = new Vector2(0.2f, 0.2f);
+                particles[2].Position = new Vector2(width - 0.1f, height - 0.1f);
+
                 return new SimulationConfig
                 {
                     Size = new Vector2(width, height),
