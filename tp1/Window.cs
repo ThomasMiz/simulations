@@ -13,7 +13,6 @@ namespace tp1
     class Window : WindowBase
     {
         private Simulation simulation;
-        private int M;
         private PrimitiveBatcher<VertexColor> primitiveBatcher;
         private VertexBuffer<VertexColor> vertexBuffer;
         private SimpleShaderProgram shaderProgram;
@@ -29,6 +28,7 @@ namespace tp1
             config.M = 16;
             simulation = new Simulation(config);
             simulation.Initialize();
+            NeighborsFile.WriteToFile("neighbors.txt", simulation.Particles.Select(p => (p, (ICollection<Particle>)simulation.NeighborsDictionary[p])));
         }
 
         protected override void OnLoad()

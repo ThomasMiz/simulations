@@ -31,18 +31,8 @@ namespace tp1.Simulate
 
         public void Initialize()
         {
-            Stopwatch stopwatch = new Stopwatch();
-            Console.Write("Calculating neighbors...");
-            stopwatch.Start();
-
             Neighbors = new Neighbors(Size, BinCount, true, particles);
             NeighborsDictionary = Neighbors.FindAllNeighbors(NeighborRadius);
-            stopwatch.Stop();
-            Console.WriteLine(" Done! Took {0}", stopwatch.Elapsed);
-
-            Console.Write("Writing neighbors file...");
-            NeighborsFile.WriteToFile("neighbors.txt", particles.Select(p => (p, (ICollection<Particle>)NeighborsDictionary[p])));
-            Console.WriteLine(" Done!");
         }
 
         public void Step()

@@ -92,11 +92,5 @@ namespace tp1.Simulate
                 throw new Exception("Error at line " + lineNumber + ": " + e.Message, e);
             }
         }
-        
-        public static SimulationConfig ReadM(SimulationConfig config, int m)
-        {
-            config.M = m;
-            return config;
-        }
     }
 }

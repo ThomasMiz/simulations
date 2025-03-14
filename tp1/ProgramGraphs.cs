@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using tp1.Simulate;
 
@@ -9,6 +10,8 @@ public static class ProgramGraphs
 {
     public static void RunSimulations()
     {
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        
         Console.WriteLine("Starting up...");
 
         int[] MValues = { 1, 2, 3, 4, 8, 12, 16, 20, 24 };
@@ -21,7 +24,7 @@ public static class ProgramGraphs
             foreach (int m in MValues)
             {
                 var config = SimulationConfig.FromFile("Examples/Static100.txt");
-                config = SimulationConfig.ReadM(config, m);
+                config.M = m;
 
                 var simulation = new Simulation(config);
 
