@@ -4,10 +4,10 @@ using tp1.Simulate;
 
 Console.WriteLine("Starting up...");
 
-var config = SimulationConfig.FromFile("Examples/Static100.txt");
-Simulation simulation = new Simulation(config);
-simulation.Initialize();
+// var config = SimulationConfig.FromFile("Examples/Static100.txt");
+// Simulation simulation = new Simulation(config);
+// simulation.Initialize();
 
-new Window(simulation).Run();
+new Window().Run();
 
 Console.WriteLine("Goodbye!");

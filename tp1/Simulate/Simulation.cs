@@ -42,12 +42,12 @@ namespace tp1.Simulate
 
         public void Step()
         {
-            Random random = new Random(123);
+            /*Random random = new Random(123);
             foreach (Particle particle in particles)
             {
                 particle.Position += new Vector2(random.NextFloat(), random.NextFloat()) * 0.2f;
                 particle.Position = new Vector2((particle.Position.X + Size.X) % Size.X, (particle.Position.Y + Size.Y) % Size.Y);
-            }
+            }*/
             
             Neighbors.Recalculate();
             NeighborsDictionary = Neighbors.FindAllNeighbors(NeighborRadius);
