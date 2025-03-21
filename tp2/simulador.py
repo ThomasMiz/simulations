@@ -44,11 +44,13 @@ def monte_carlo_step(grid, p):
         i = np.random.randint(0, N)
         j = np.random.randint(0, N)
         majority = get_majority(grid, i, j)
-        if majority is not None:
-            if np.random.rand() < p:
-                grid[i, j] = -majority  # Invierte el estado en {-1,1}
-            else:
-                grid[i, j] = majority
+        if majority is None:
+            majority = grid[i, j]
+
+        if np.random.rand() < p:
+            grid[i, j] = -majority  # Invierte el estado en {-1,1}
+        else:
+            grid[i, j] = majority
     return grid
 
 # Calcular consenso M(t)
