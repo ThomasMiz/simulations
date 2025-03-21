@@ -3,7 +3,7 @@ import numpy as np
 # Parámetros de simulación
 N = 50                # Tamaño de la grilla
 p = 0.01               # Probabilidad de oponerse a la mayoría
-max_steps = 10000      # Paso máximo (por si nunca se estabiliza)
+max_steps = 1000      # Paso máximo (por si nunca se estabiliza)
 output_file = "output.txt"
 consenso_file = "consenso.txt"
 semilla_file = "semilla.txt"
@@ -16,7 +16,7 @@ window = 10           # Cantidad de pasos consecutivos estables requeridos
 def load_seed(file_path, N):
     with open(file_path, "r") as f:
         lines = [line.strip() for line in f.readlines()]
-    grid = np.array([[int(char) for char in line] for line in lines])
+    grid = np.array([list(map(int, line.split())) for line in lines])
     assert grid.shape == (N, N), f"La semilla no tiene tamaño {N}x{N}"
     return grid
 
@@ -30,11 +30,11 @@ def get_majority(grid, i, j):
     right = grid[i, (j + 1) % N]
     neighbors = [up, down, left, right]
     ones = neighbors.count(1)
-    zeros = neighbors.count(0)
+    zeros = neighbors.count(-1)
     if ones > zeros:
         return 1
     elif zeros > ones:
-        return 0
+        return -1
     else:
         return None
 
@@ -46,7 +46,7 @@ def monte_carlo_step(grid, p):
         majority = get_majority(grid, i, j)
         if majority is not None:
             if np.random.rand() < p:
-                grid[i, j] = 1 - majority
+                grid[i, j] = -majority  # Invierte el estado en {-1,1}
             else:
                 grid[i, j] = majority
     return grid
@@ -64,7 +64,7 @@ for step in range(max_steps):
 
     # Guardar estado aplanado (para animación)
     flat = grid.flatten()
-    line = ''.join(map(str, flat))
+    line = ' '.join(map(str, flat))  # Ahora con espacios entre valores
     output_lines.append(line)
 
     # Calcular y guardar consenso
