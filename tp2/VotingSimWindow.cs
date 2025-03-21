@@ -11,7 +11,8 @@ namespace tp2
 {
     class VotingSimWindow : WindowBase
     {
-        const uint SimulationWidth = 2500, SimulationHeight = 2500;
+        const uint SimulationWidth = 50, SimulationHeight = 50;
+        const float P = 0.01f;
 
         VertexBuffer<VertexTexture> vertexBuffer;
 
@@ -32,15 +33,16 @@ namespace tp2
         float scaleExponent;
         float scale;
 
-        Random r;
+        int steps = 0;
+        int randomSeed = 124;
 
-        private int steps = 0;
+        private StreamWriter fileWriter = new StreamWriter("output.txt");
 
         public VotingSimWindow() : base()
         {
-            
+            Window.FramesPerSecond = -1;
         }
-        
+
         protected override void OnLoad()
         {
             Span<VertexTexture> vertices = stackalloc VertexTexture[]
@@ -65,15 +67,13 @@ namespace tp2
             fboTmp.Texture.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
             fboTmp.Texture.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
 
-            r = new Random();
-
             simProgram = ShaderProgram.FromFiles<VertexTexture>(graphicsDevice, "data/sim_vs.glsl", "data/sim_fs_voting.glsl", new string[] { "vPosition", "vTexCoords" });
             drawProgram = SimpleShaderProgram.Create<VertexTexture>(graphicsDevice);
 
             simProgram.Uniforms["pixelDelta"].SetValueVec2(1f / SimulationWidth, 1f / SimulationHeight);
             simPrevUniform = simProgram.Uniforms["previous"];
 
-            simProgram.Uniforms["p"].SetValueFloat(0.1f);
+            simProgram.Uniforms["p"].SetValueFloat(P);
 
             sumProgram = ShaderProgram.FromFiles<VertexTexture>(graphicsDevice, "data/sim_vs.glsl", "data/fs_column_sum.glsl", new string[] { "vPosition", "vTexCoords" });
 
@@ -112,8 +112,8 @@ namespace tp2
 
                     steps++;
                     (fbo1, fbo2) = (fbo2, fbo1);
-                    
-                    Console.WriteLine("{0},{1}", steps, m);
+
+                    fileWriter.WriteLine("{0},{1}", steps, m);
                 }
             }
             else
@@ -155,6 +155,9 @@ namespace tp2
             fboTmp.Dispose();
             simProgram.Dispose();
             drawProgram.Dispose();
+
+            fileWriter.Flush();
+            fileWriter.Close();
         }
 
         protected override void OnMouseMove(IMouse sender, Vector2 position)
@@ -203,9 +206,11 @@ namespace tp2
 
                 case Key.R:
                     Color4b[] noise = new Color4b[fbo1.Width * fbo1.Height];
+                    Random r = new Random(randomSeed);
                     for (int i = 0; i < noise.Length; i++)
                         noise[i] = r.NextBool() ? Color4b.Black : Color4b.White;
                     fbo1.Texture.SetData<Color4b>(noise);
+                    randomSeed++;
                     break;
             }
         }
