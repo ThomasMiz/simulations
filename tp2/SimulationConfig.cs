@@ -5,7 +5,6 @@ public class SimulationConfig
     const float DefaultConsensusEpsilon = 0.04f;
     const float DefaultStationaryEpsilon = 0.001f;
     const uint DefaultStationaryWindowSize = 10;
-    const uint DefaultSpatialCorrelationR = 1;
     const uint DefaultContinueAfterStationary = 0;
 
     public string? GridFile { get; set; } = null;

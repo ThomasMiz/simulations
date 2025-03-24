@@ -2,9 +2,11 @@ namespace tp2;
 
 public class Simulation : IDisposable
 {
-    public int Steps { get; private set; } = 0;
-    public bool ConsensusReached { get; private set; } = false;
-    public bool StationaryReached { get; private set; } = false;
+    public uint Steps { get; private set; } = 0;
+    public uint? ConsensusReachStep { get; private set; } = null;
+    public bool ConsensusReached => ConsensusReachStep != null;
+    public uint? StationaryReachStep { get; private set; } = null;
+    public bool StationaryReached => StationaryReachStep != null;
     public uint RemainingStationarySteps { get; private set; }
 
     public sbyte[,] Grid { get; }
@@ -14,7 +16,9 @@ public class Simulation : IDisposable
     public float StationaryEpsilon { get; }
     public uint StationaryWindowSize { get; }
 
-    private Queue<float> consensusHistoryQueue;
+    private List<float> consensusHistory = new();
+
+    public IReadOnlyList<float> ConsensusHistory => consensusHistory;
 
     private readonly Random random;
 
@@ -31,8 +35,6 @@ public class Simulation : IDisposable
         StationaryWindowSize = stationaryWindowSize;
 
         RemainingStationarySteps = continueAfterStationary;
-
-        consensusHistoryQueue = new Queue<float>((int)stationaryWindowSize);
 
         this.random = random;
 
@@ -94,20 +96,23 @@ public class Simulation : IDisposable
 
             if (Steps % 1000 == 0) Console.WriteLine("Ran {0} steps...", Steps);
 
-            if (consensusHistoryQueue.Count == StationaryWindowSize) consensusHistoryQueue.Dequeue();
-            consensusHistoryQueue.Enqueue(m);
+            consensusHistory.Add(m);
 
             if (!ConsensusReached && m >= 1 - ConsensusEpsilon)
             {
-                ConsensusReached = true;
-                StationaryReached = true;
+                ConsensusReachStep = Steps;
+                StationaryReachStep ??= Steps;
                 Console.WriteLine("Consensus reached after {0} steps", Steps);
             }
 
-            if (!StationaryReached && consensusHistoryQueue.Count == StationaryWindowSize && consensusHistoryQueue.Max() - consensusHistoryQueue.Min() < StationaryEpsilon)
+            if (!StationaryReached && consensusHistory.Count >= StationaryWindowSize)
             {
-                StationaryReached = true;
-                Console.WriteLine("Stationary state reached after {0} steps", Steps);
+                var window = consensusHistory.TakeLast((int)StationaryWindowSize);
+                if (window.Max() - window.Min() < StationaryEpsilon)
+                {
+                    StationaryReachStep = Steps;
+                    Console.WriteLine("Stationary state reached after {0} steps", Steps);
+                }
             }
 
             if (MaxSteps.HasValue && Steps >= MaxSteps)
@@ -118,6 +123,17 @@ public class Simulation : IDisposable
         }
 
         Console.WriteLine("Simulation ended after {0} steps", Steps);
+    }
+
+    public float CalculateSusceptibility()
+    {
+        if (!StationaryReached)
+            throw new Exception("Susceptibility cannot be calculated before a stationary state is reached");
+
+        float mSquaredAverage = consensusHistory.Skip((int)StationaryReachStep).Select(m => m * m).Average();
+        float mAverageSquared = Math2.Square(consensusHistory.Skip((int)StationaryReachStep).Average());
+        int cellCount = Grid.GetLength(0) * Grid.GetLength(1);
+        return cellCount * (mSquaredAverage - mAverageSquared);
     }
 
     public void Dispose()
