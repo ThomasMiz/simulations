@@ -6,7 +6,8 @@ public class Simulation : IDisposable
     public sbyte[,] Grid { get; }
     public float Probability { get; }
     public uint? MaxSteps { get; }
-    public float Epsilon { get; }
+    public float ConsensusEpsilon { get; }
+    public float StationaryEpsilon { get; }
     public uint StationaryWindowSize { get; }
 
     private Queue<float> consensusHistoryQueue;
@@ -16,12 +17,13 @@ public class Simulation : IDisposable
     private readonly StreamWriter? outputStream;
     private readonly StreamWriter? consensoStream;
 
-    public Simulation(sbyte[,] grid, float probability, uint? maxSteps, float epsilon, uint stationaryWindowSize, Random random, string? outputFile, string? consensoFile)
+    public Simulation(sbyte[,] grid, float probability, uint? maxSteps, float consensusEpsilon, float stationaryEpsilon, uint stationaryWindowSize, Random random, string? outputFile, string? consensoFile)
     {
         Grid = grid;
         Probability = probability;
         MaxSteps = maxSteps;
-        Epsilon = epsilon;
+        ConsensusEpsilon = consensusEpsilon;
+        StationaryEpsilon = stationaryEpsilon;
         StationaryWindowSize = stationaryWindowSize;
 
         consensusHistoryQueue = new Queue<float>((int)stationaryWindowSize);
@@ -86,9 +88,15 @@ public class Simulation : IDisposable
             if (consensusHistoryQueue.Count == StationaryWindowSize) consensusHistoryQueue.Dequeue();
             consensusHistoryQueue.Enqueue(m);
 
-            if (consensusHistoryQueue.Count == StationaryWindowSize && consensusHistoryQueue.Max() - consensusHistoryQueue.Min() < Epsilon)
+            if (m >= 1 - ConsensusEpsilon)
             {
                 Console.WriteLine("Consensus reached after {0} steps", Steps);
+                break;
+            }
+
+            if (consensusHistoryQueue.Count == StationaryWindowSize && consensusHistoryQueue.Max() - consensusHistoryQueue.Min() < StationaryEpsilon)
+            {
+                Console.WriteLine("Stationary state reached after {0} steps", Steps);
                 break;
             }
 

@@ -2,14 +2,16 @@ namespace tp2;
 
 public class SimulationConfig
 {
-    const float DefaultEpsilon = 0.001f;
+    const float DefaultConsensusEpsilon = 0.04f;
+    const float DefaultStationaryEpsilon = 0.001f;
     const uint DefaultStationaryWindowSize = 10;
 
     private sbyte[,]? grid;
     private float? probability;
 
     private uint? maxSteps;
-    private float epsilon = DefaultEpsilon;
+    private float consensusEpsilon = DefaultConsensusEpsilon;
+    private float stationaryEpsilon = DefaultStationaryEpsilon;
     private uint stationaryWindowSize = DefaultStationaryWindowSize;
 
     private Random? random;
@@ -53,12 +55,21 @@ public class SimulationConfig
         return this;
     }
 
-    public SimulationConfig WithEpsilon(float epsilon)
+    public SimulationConfig WithConsensusEpsilon(float epsilon)
     {
         if (epsilon < 0)
-            throw new Exception("Epsilon must be greater than 0");
+            throw new Exception("Consensus epsilon must be greater than 0");
 
-        this.epsilon = epsilon;
+        consensusEpsilon = epsilon;
+        return this;
+    }
+
+    public SimulationConfig WithStationaryEpsilon(float epsilon)
+    {
+        if (epsilon < 0)
+            throw new Exception("Stationary epsilon must be greater than 0");
+
+        stationaryEpsilon = epsilon;
         return this;
     }
 
@@ -95,7 +106,8 @@ public class SimulationConfig
             grid ?? throw new Exception("No grid specified"),
             probability ?? throw new Exception("No probability specified"),
             maxSteps,
-            epsilon,
+            consensusEpsilon,
+            stationaryEpsilon,
             stationaryWindowSize,
             random ?? new Random(),
             outputFile,
