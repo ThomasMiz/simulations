@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tp1", "tp1\tp1.csproj", "{3
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimulationBase", "SimulationBase\SimulationBase.csproj", "{65E3B56D-A601-414E-BAA3-3A1811A63AA5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tp2", "tp2\tp2.csproj", "{1C774AE3-D45A-4573-B13B-1116CAFEBCB8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tp2-gpu", "tp2-gpu\tp2-gpu.csproj", "{1C774AE3-D45A-4573-B13B-1116CAFEBCB8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
