@@ -3,6 +3,10 @@ namespace tp2;
 public class Simulation : IDisposable
 {
     public int Steps { get; private set; } = 0;
+    public bool ConsensusReached { get; private set; } = false;
+    public bool StationaryReached { get; private set; } = false;
+    public uint RemainingStationarySteps { get; private set; }
+
     public sbyte[,] Grid { get; }
     public float Probability { get; }
     public uint? MaxSteps { get; }
@@ -17,7 +21,7 @@ public class Simulation : IDisposable
     private readonly StreamWriter? outputStream;
     private readonly StreamWriter? consensoStream;
 
-    public Simulation(sbyte[,] grid, float probability, uint? maxSteps, float consensusEpsilon, float stationaryEpsilon, uint stationaryWindowSize, Random random, string? outputFile, string? consensoFile)
+    public Simulation(sbyte[,] grid, float probability, uint? maxSteps, float consensusEpsilon, float stationaryEpsilon, uint stationaryWindowSize, uint continueAfterStationary, Random random, string? outputFile, string? consensoFile)
     {
         Grid = grid;
         Probability = probability;
@@ -25,6 +29,8 @@ public class Simulation : IDisposable
         ConsensusEpsilon = consensusEpsilon;
         StationaryEpsilon = stationaryEpsilon;
         StationaryWindowSize = stationaryWindowSize;
+
+        RemainingStationarySteps = continueAfterStationary;
 
         consensusHistoryQueue = new Queue<float>((int)stationaryWindowSize);
 
@@ -58,7 +64,7 @@ public class Simulation : IDisposable
 
     public void Run()
     {
-        while (true)
+        while (!StationaryReached || RemainingStationarySteps > 0)
         {
             monteCarloStep();
             int totalSum = 0;
@@ -84,33 +90,34 @@ public class Simulation : IDisposable
             }
 
             Steps++;
+            if (StationaryReached) RemainingStationarySteps--;
+
+            if (Steps % 1000 == 0) Console.WriteLine("Ran {0} steps...", Steps);
 
             if (consensusHistoryQueue.Count == StationaryWindowSize) consensusHistoryQueue.Dequeue();
             consensusHistoryQueue.Enqueue(m);
 
-            if (m >= 1 - ConsensusEpsilon)
+            if (!ConsensusReached && m >= 1 - ConsensusEpsilon)
             {
+                ConsensusReached = true;
+                StationaryReached = true;
                 Console.WriteLine("Consensus reached after {0} steps", Steps);
-                break;
             }
 
-            if (consensusHistoryQueue.Count == StationaryWindowSize && consensusHistoryQueue.Max() - consensusHistoryQueue.Min() < StationaryEpsilon)
+            if (!StationaryReached && consensusHistoryQueue.Count == StationaryWindowSize && consensusHistoryQueue.Max() - consensusHistoryQueue.Min() < StationaryEpsilon)
             {
+                StationaryReached = true;
                 Console.WriteLine("Stationary state reached after {0} steps", Steps);
-                break;
             }
 
-            if (Steps % 500 == 0)
-            {
-                Console.WriteLine("Ran {0} steps...", Steps);
-            }
-
-            if (Steps >= MaxSteps)
+            if (MaxSteps.HasValue && Steps >= MaxSteps)
             {
                 Console.WriteLine("Stopping simulation; max steps reached");
                 break;
             }
         }
+
+        Console.WriteLine("Simulation ended after {0} steps", Steps);
     }
 
     public void Dispose()
@@ -118,6 +125,4 @@ public class Simulation : IDisposable
         outputStream.Dispose();
         consensoStream.Dispose();
     }
-
-    public static SimulationConfig Builder() => new();
 }
