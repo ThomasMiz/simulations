@@ -16,16 +16,21 @@ public class Simulation : IDisposable
     public float StationaryEpsilon { get; }
     public uint StationaryWindowSize { get; }
 
-    private List<float> consensusHistory = new();
+    private readonly ClusterCalculator clusterCalculator;
+
+    private readonly List<float> consensusHistory = new();
+    private readonly List<ClusterStats> clusterStatsHistory = new();
 
     public IReadOnlyList<float> ConsensusHistory => consensusHistory;
+    public IReadOnlyList<ClusterStats> ClusterStatsHistory => clusterStatsHistory;
 
     private readonly Random random;
 
     private readonly StreamWriter? outputStream;
     private readonly StreamWriter? consensoStream;
+    private readonly StreamWriter? clusterStatsStream;
 
-    public Simulation(sbyte[,] grid, float probability, uint? maxSteps, float consensusEpsilon, float stationaryEpsilon, uint stationaryWindowSize, uint continueAfterStationary, Random random, string? outputFile, string? consensoFile)
+    public Simulation(sbyte[,] grid, float probability, uint? maxSteps, float consensusEpsilon, float stationaryEpsilon, uint stationaryWindowSize, uint continueAfterStationary, Random random, string? outputFile, string? consensoFile, string? clusterStatsFile)
     {
         Grid = grid;
         Probability = probability;
@@ -36,10 +41,13 @@ public class Simulation : IDisposable
 
         RemainingStationarySteps = continueAfterStationary;
 
+        clusterCalculator = new(grid);
+
         this.random = random;
 
         outputStream = outputFile == null ? null : File.CreateText(outputFile);
         consensoStream = consensoFile == null ? null : File.CreateText(consensoFile);
+        clusterStatsStream = clusterStatsFile == null ? null : File.CreateText(clusterStatsFile);
     }
 
     private void monteCarloStep()
@@ -83,6 +91,10 @@ public class Simulation : IDisposable
             outputStream?.WriteLine();
 
             float m = Math.Abs(totalSum) / (float)(Grid.GetLength(0) * Grid.GetLength(1));
+            consensusHistory.Add(m);
+
+            ClusterStats clusterStats = clusterCalculator.Calculate();
+            clusterStatsHistory.Add(clusterStats);
 
             if (consensoStream != null)
             {
@@ -91,12 +103,23 @@ public class Simulation : IDisposable
                 consensoStream.WriteLine(m);
             }
 
+            if (clusterStatsStream != null)
+            {
+                clusterStatsStream.Write(Steps);
+                clusterStatsStream.Write(',');
+                clusterStatsStream.Write(clusterStats.ClusterCount);
+                clusterStatsStream.Write(',');
+                clusterStatsStream.Write(clusterStats.MinClusterSize);
+                clusterStatsStream.Write(',');
+                clusterStatsStream.Write(clusterStats.MaxClusterSize);
+                clusterStatsStream.Write(',');
+                clusterStatsStream.WriteLine(clusterStats.AverageClusterSize);
+            }
+
             Steps++;
             if (StationaryReached) RemainingStationarySteps--;
 
             if (Steps % 1000 == 0) Console.WriteLine("Ran {0} steps...", Steps);
-
-            consensusHistory.Add(m);
 
             if (!ConsensusReached && m >= 1 - ConsensusEpsilon)
             {
@@ -138,7 +161,8 @@ public class Simulation : IDisposable
 
     public void Dispose()
     {
-        outputStream.Dispose();
-        consensoStream.Dispose();
+        outputStream?.Dispose();
+        consensoStream?.Dispose();
+        clusterStatsStream?.Dispose();
     }
 }

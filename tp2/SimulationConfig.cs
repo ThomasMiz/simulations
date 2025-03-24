@@ -21,6 +21,7 @@ public class SimulationConfig
 
     public string? OutputFile { get; set; } = null;
     public string? ConsensoFile { get; set; } = null;
+    public string? ClusterStatsFile { get; set; } = null;
 
     private static sbyte[,] loadGridFromFile(string file)
     {
@@ -56,7 +57,8 @@ public class SimulationConfig
             ContinueAfterStationary,
             RandomSeed.HasValue ? new Random(RandomSeed.Value) : new Random(),
             OutputFile,
-            ConsensoFile
+            ConsensoFile,
+            ClusterStatsFile
         );
     }
 }
