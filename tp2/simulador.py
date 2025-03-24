@@ -36,7 +36,7 @@ def get_majority(grid, i, j):
     elif zeros > ones:
         return -1
     else:
-        return None
+        return grid[i, j]
 
 # Un paso de Monte Carlo
 def monte_carlo_step(grid, p):
@@ -44,14 +44,10 @@ def monte_carlo_step(grid, p):
         i = np.random.randint(0, N)
         j = np.random.randint(0, N)
         majority = get_majority(grid, i, j)
-        if majority is None:
-            majority = grid[i, j]
-
         if np.random.rand() < p:
             grid[i, j] = -majority  # Invierte el estado en {-1,1}
         else:
             grid[i, j] = majority
-    return grid
 
 # Calcular consenso M(t)
 def compute_M(grid):
@@ -62,7 +58,10 @@ consensus_history = []
 output_lines = []
 
 for step in range(max_steps):
-    grid = monte_carlo_step(grid, p)
+    monte_carlo_step(grid, p)
+
+    if (step + 1) % 100 == 0:
+        print(f"Completados {step + 1} pasos")
 
     # Guardar estado aplanado (para animación)
     flat = grid.flatten()
@@ -80,6 +79,8 @@ for step in range(max_steps):
             print(f"Estado estacionario alcanzado en el paso {step}")
             break
 
+print(f"Simulación finalizada, guardando archivos...")
+
 # Guardar archivo de grillas
 with open(output_file, "w") as f:
     for line in output_lines:
@@ -90,4 +91,4 @@ with open(consenso_file, "w") as f:
     for step, M in consensus_history:
         f.write(f"{step},{M}\n")
 
-print(f"Simulación finalizada. Se guardaron {len(consensus_history)} pasos en '{output_file}' y '{consenso_file}'")
+print(f"Se guardaron {len(consensus_history)} pasos en '{output_file}' y '{consenso_file}'")
