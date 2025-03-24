@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimulationBase", "Simulatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tp2-gpu", "tp2-gpu\tp2-gpu.csproj", "{1C774AE3-D45A-4573-B13B-1116CAFEBCB8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tp2", "tp2\tp2.csproj", "{F5B2E570-A4CE-46C8-8F8A-C310DA16AC2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{1C774AE3-D45A-4573-B13B-1116CAFEBCB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C774AE3-D45A-4573-B13B-1116CAFEBCB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C774AE3-D45A-4573-B13B-1116CAFEBCB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5B2E570-A4CE-46C8-8F8A-C310DA16AC2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5B2E570-A4CE-46C8-8F8A-C310DA16AC2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5B2E570-A4CE-46C8-8F8A-C310DA16AC2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5B2E570-A4CE-46C8-8F8A-C310DA16AC2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

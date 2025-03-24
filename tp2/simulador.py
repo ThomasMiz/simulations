@@ -4,9 +4,9 @@ import numpy as np
 N = 50                # Tamaño de la grilla
 p = 0.01               # Probabilidad de oponerse a la mayoría
 max_steps = 1000      # Paso máximo (por si nunca se estabiliza)
-output_file = "output.txt"
-consenso_file = "consenso.txt"
-semilla_file = "semilla.txt"
+output_file = "./bin/Debug/net8.0/output.txt"
+consenso_file = "./bin/Debug/net8.0/consenso.txt"
+semilla_file = "./data/semilla.txt"
 
 # Parámetros para detectar estado estacionario
 epsilon = 0.001       # Tolerancia para considerar M estable

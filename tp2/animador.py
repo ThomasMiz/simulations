@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 
 # Parámetros de la grilla
 N = 50                    # Tamaño de la grilla (debe coincidir con el usado en la simulación)
-input_file = "output.txt"  # Archivo generado por simulador.py
+input_file = "./bin/Debug/net8.0/output.txt"  # Archivo generado por simulador.py
 
 # Leer las grillas desde el archivo
 grids = []
@@ -23,7 +23,7 @@ def update(frame):
     ax.set_title(f"Paso {frame}")
     return [im]
 
-ani = animation.FuncAnimation(fig, update, frames=len(grids), interval=100, blit=True)
+ani = animation.FuncAnimation(fig, update, frames=len(grids), interval=1, blit=True)
 
 plt.tight_layout()
 plt.show()

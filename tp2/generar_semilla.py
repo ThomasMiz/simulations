@@ -1,7 +1,7 @@
 import numpy as np
 
 N = 50  # Tamaño de la grilla
-semilla_file = "semilla.txt"
+semilla_file = "./data/semilla.txt"
 
 # Generar semilla con valores {-1,1}
 grid = np.random.choice([-1, 1], size=(N, N))
