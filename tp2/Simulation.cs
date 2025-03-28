@@ -153,8 +153,16 @@ public class Simulation : IDisposable
         if (!StationaryReached)
             throw new Exception("Susceptibility cannot be calculated before a stationary state is reached");
 
-        float mSquaredAverage = consensusHistory.Skip((int)StationaryReachStep).Select(m => m * m).Average();
-        float mAverageSquared = Math2.Square(consensusHistory.Skip((int)StationaryReachStep).Average());
+        return CalculateSusceptibility((int)StationaryReachStep);
+    }
+
+    public float CalculateSusceptibility(int fromStep, int? toStep = null)
+    {
+        int toStep2 = toStep ?? consensusHistory.Count;
+
+        var sublist = consensusHistory[fromStep..toStep2];
+        float mSquaredAverage = sublist.Select(m => m * m).Average();
+        float mAverageSquared = Math2.Square(sublist.Average());
         int cellCount = Grid.GetLength(0) * Grid.GetLength(1);
         return cellCount * (mSquaredAverage - mAverageSquared);
     }

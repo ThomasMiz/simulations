@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 # Los índices de los fotogramas a mostrar (inclusive ambos)
-from_frame = 0
-to_frame = None
+from_frame = 4800
+to_frame = 4920
 
 # No dibujar todos los fotogramas, mostrar por ej uno de cada 10 (desactivar con skip_frames=1)
 skip_frames = 1
