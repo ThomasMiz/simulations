@@ -16,7 +16,9 @@ public class Simulation : IDisposable
     public float StationaryEpsilon { get; }
     public uint StationaryWindowSize { get; }
 
-    private readonly ClusterCalculator clusterCalculator;
+    public bool IncludeClusterStats { get; }
+
+    private readonly ClusterCalculator? clusterCalculator;
 
     private readonly List<float> consensusHistory = new();
     private readonly List<ClusterStats> clusterStatsHistory = new();
@@ -30,7 +32,7 @@ public class Simulation : IDisposable
     private readonly StreamWriter? consensoStream;
     private readonly StreamWriter? clusterStatsStream;
 
-    public Simulation(sbyte[,] grid, float probability, uint? maxSteps, float consensusEpsilon, float stationaryEpsilon, uint stationaryWindowSize, uint continueAfterStationary, Random random, string? outputFile, string? consensoFile, string? clusterStatsFile)
+    public Simulation(sbyte[,] grid, float probability, uint? maxSteps, float consensusEpsilon, float stationaryEpsilon, uint stationaryWindowSize, uint continueAfterStationary, Random random, string? outputFile, string? consensoFile, string? clusterStatsFile, bool includeClusterStats)
     {
         Grid = grid;
         Probability = probability;
@@ -40,8 +42,9 @@ public class Simulation : IDisposable
         StationaryWindowSize = stationaryWindowSize;
 
         RemainingStationarySteps = continueAfterStationary;
+        IncludeClusterStats = includeClusterStats;
 
-        clusterCalculator = new(grid);
+        clusterCalculator = includeClusterStats ? new(grid) : null;
 
         this.random = random;
 
@@ -93,8 +96,8 @@ public class Simulation : IDisposable
             float m = Math.Abs(totalSum) / (float)(Grid.GetLength(0) * Grid.GetLength(1));
             consensusHistory.Add(m);
 
-            ClusterStats clusterStats = clusterCalculator.Calculate();
-            clusterStatsHistory.Add(clusterStats);
+            ClusterStats? clusterStats = clusterCalculator?.Calculate();
+            if (clusterStats != null) clusterStatsHistory.Add(clusterStats.Value);
 
             if (consensoStream != null)
             {
@@ -103,17 +106,17 @@ public class Simulation : IDisposable
                 consensoStream.WriteLine(m);
             }
 
-            if (clusterStatsStream != null)
+            if (clusterStatsStream != null && clusterStats != null)
             {
                 clusterStatsStream.Write(Steps);
                 clusterStatsStream.Write(',');
-                clusterStatsStream.Write(clusterStats.ClusterCount);
+                clusterStatsStream.Write(clusterStats.Value.ClusterCount);
                 clusterStatsStream.Write(',');
-                clusterStatsStream.Write(clusterStats.MinClusterSize);
+                clusterStatsStream.Write(clusterStats.Value.MinClusterSize);
                 clusterStatsStream.Write(',');
-                clusterStatsStream.Write(clusterStats.MaxClusterSize);
+                clusterStatsStream.Write(clusterStats.Value.MaxClusterSize);
                 clusterStatsStream.Write(',');
-                clusterStatsStream.WriteLine(clusterStats.AverageClusterSize);
+                clusterStatsStream.WriteLine(clusterStats.Value.AverageClusterSize);
             }
 
             Steps++;

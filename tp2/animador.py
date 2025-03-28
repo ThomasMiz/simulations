@@ -3,18 +3,18 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 # Los índices de los fotogramas a mostrar (inclusive ambos)
-from_frame = 4800
-to_frame = 4920
+from_frame = 0
+to_frame = 10
 
 # No dibujar todos los fotogramas, mostrar por ej uno de cada 10 (desactivar con skip_frames=1)
 skip_frames = 1
 
 # Tiempo entre fotogramas
-interval = 1
+interval = 1000
 
 # Parámetros de la grilla
 N = 50                    # Tamaño de la grilla (debe coincidir con el usado en la simulación)
-input_file = "./bin/Debug/net8.0/output.txt"  # Archivo generado por simulador.py
+input_file = "./bin/Debug/net8.0/output-0.txt"  # Archivo generado por simulador.py
 
 # Leer las grillas desde el archivo
 grids = []
