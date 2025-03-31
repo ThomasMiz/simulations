@@ -17,11 +17,13 @@ consensos_map = {}
 #p_filter = None
 p_filter = ["0.01", "0.1", "0.9"]
 
-for file in glob.glob("./bin/Debug/net8.0/consenso-*.txt"):
-    p = re.search(r"consenso-(\d+(\.\d+)?)\.txt", file).group(1)
+for file in glob.glob("./bin/Debug/net8.0/consenso-*-*.txt"):
+    searchy = re.search(r"consenso-(\d+)-(\d+(\.\d+)?)\.txt", file)
+    n = searchy.group(1)
+    p = searchy.group(2)
     if p_filter is not None and not p in p_filter:
         continue
-    print(f"Picked up file {file}")
+    print(f"Picked up file {file} with N={n} and p={p}")
     with open(file, "r") as f:
         steps = []
         consensos = []

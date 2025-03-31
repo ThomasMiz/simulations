@@ -8,7 +8,7 @@ window = 10
 steps = []
 consensos = []
 
-with open("./bin/Debug/net8.0/consenso.txt", "r") as f:
+with open("./bin/Debug/net8.0/consenso-50-0.01.txt", "r") as f:
     for line in f:
         step, M = line.strip().split(",")
         steps.append(int(step))

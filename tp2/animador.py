@@ -14,7 +14,7 @@ interval = 10
 
 # Parámetros de la grilla
 N = 50                    # Tamaño de la grilla (debe coincidir con el usado en la simulación)
-input_file = "./bin/Debug/net8.0/output-0.9.txt"  # Archivo generado por simulador.py
+input_file = "./bin/Debug/net8.0/output-50-0.9.txt"  # Archivo generado por simulador.py
 
 # Leer las grillas desde el archivo
 grids = []

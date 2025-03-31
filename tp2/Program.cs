@@ -11,7 +11,7 @@ public static class Program
 
         var config = new SimulationConfig()
         {
-            GridFile = "data/semilla.txt",
+            GridFile = "data/semilla-50.txt",
             Probability = 0.02f,
             RandomSeed = 1234,
             MaxSteps = 50000,

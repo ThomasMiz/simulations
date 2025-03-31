@@ -11,7 +11,7 @@ cluster_mins = []
 cluster_maxs = []
 cluster_avgs = []
 
-with open("./bin/Debug/net8.0/clusterstats.txt", "r") as f:
+with open("./bin/Debug/net8.0/clusterstats-50-0.01.txt", "r") as f:
     for line in f:
         step, count, cmin, cmax, cavg = line.strip().split(",")
         steps.append(int(step))
