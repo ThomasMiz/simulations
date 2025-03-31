@@ -6,20 +6,32 @@ import matplotlib.pyplot as plt
 epsilon = 0.001
 window = 10
 
+from_step = 0
+to_step = None
+
 # Leer archivo consenso-*.txt
 steps_map = {}
 consensos_map = {}
 
+# Filtro de qué archivos levantar
+#p_filter = None
+p_filter = ["0.01", "0.1", "0.9"]
+
 for file in glob.glob("./bin/Debug/net8.0/consenso-*.txt"):
+    p = re.search(r"consenso-(\d+(\.\d+)?)\.txt", file).group(1)
+    if p_filter is not None and not p in p_filter:
+        continue
     print(f"Picked up file {file}")
-    p = re.search(r"consenso-(\d+\.\d+)\.txt", file).group(1)
     with open(file, "r") as f:
         steps = []
         consensos = []
+        step_index = 0
         for line in f:
-            step, M = line.strip().split(",")
-            steps.append(int(step))
-            consensos.append(float(M))
+            if step_index >= from_step and (to_step is None or step_index <= to_step):
+                step, M = line.strip().split(",")
+                steps.append(int(step))
+                consensos.append(float(M))
+            step_index += 1
         steps_map[p] = steps
         consensos_map[p] = consensos
 
