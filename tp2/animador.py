@@ -4,17 +4,17 @@ import matplotlib.animation as animation
 
 # Los índices de los fotogramas a mostrar (inclusive ambos)
 from_frame = 0
-to_frame = 10
+to_frame = None
 
 # No dibujar todos los fotogramas, mostrar por ej uno de cada 10 (desactivar con skip_frames=1)
 skip_frames = 1
 
 # Tiempo entre fotogramas
-interval = 1000
+interval = 10
 
 # Parámetros de la grilla
 N = 50                    # Tamaño de la grilla (debe coincidir con el usado en la simulación)
-input_file = "./bin/Debug/net8.0/output-0.txt"  # Archivo generado por simulador.py
+input_file = "./bin/Debug/net8.0/output-0.9.txt"  # Archivo generado por simulador.py
 
 # Leer las grillas desde el archivo
 grids = []
@@ -31,7 +31,9 @@ with open(input_file, "r") as f:
 fig, ax = plt.subplots()
 im = ax.imshow(grids[0][1], cmap='gray', vmin=-1, vmax=1)  # Ajuste de colores para {-1,1}
 
+initialdelay = 300
 def update(frame):
+    frame = max(frame - initialdelay, 0)
     im.set_data(grids[frame][1])
     ax.set_title(f"Paso {grids[frame][0]}")
     return [im]

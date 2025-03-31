@@ -19,7 +19,7 @@ public class ProbabilityGraphProgram
         ConcurrentDictionary<float, float> consensusAverageMap = new();
         ConcurrentDictionary<float, float> susceptibilityAverageMap = new();
 
-        Parallel.ForEach([0], probability =>
+        Parallel.ForEach(probabilityValues, probability =>
         {
             var config = new SimulationConfig()
             {

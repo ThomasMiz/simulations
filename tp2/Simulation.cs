@@ -77,47 +77,26 @@ public class Simulation : IDisposable
 
     public void Run()
     {
+        float m = Math.Abs(Grid.Cast<sbyte>().Select(s => (int)s).Sum()) / (float)(Grid.GetLength(0) * Grid.GetLength(1));
+        consensusHistory.Add(m);
+
+        ClusterStats? clusterStats = clusterCalculator?.Calculate();
+        if (clusterStats != null) clusterStatsHistory.Add(clusterStats.Value);
+
+        SaveDataToFiles(m, clusterStats);
+
         while (!StationaryReached || RemainingStationarySteps > 0)
         {
             monteCarloStep();
-            int totalSum = 0;
-            for (int y = 0; y < Grid.GetLength(1); y++)
-            {
-                for (int x = 0; x < Grid.GetLength(0); x++)
-                {
-                    if (x != 0 || y != 0) outputStream?.Write(' ');
-                    outputStream?.Write(Grid[x, y]);
-                    totalSum += Grid[x, y];
-                }
-            }
+            int totalSum = Grid.Cast<sbyte>().Select(s => (int)s).Sum();
 
-            outputStream?.WriteLine();
-
-            float m = Math.Abs(totalSum) / (float)(Grid.GetLength(0) * Grid.GetLength(1));
+            m = Math.Abs(totalSum) / (float)(Grid.GetLength(0) * Grid.GetLength(1));
             consensusHistory.Add(m);
 
-            ClusterStats? clusterStats = clusterCalculator?.Calculate();
+            clusterStats = clusterCalculator?.Calculate();
             if (clusterStats != null) clusterStatsHistory.Add(clusterStats.Value);
 
-            if (consensoStream != null)
-            {
-                consensoStream.Write(Steps);
-                consensoStream.Write(',');
-                consensoStream.WriteLine(m);
-            }
-
-            if (clusterStatsStream != null && clusterStats != null)
-            {
-                clusterStatsStream.Write(Steps);
-                clusterStatsStream.Write(',');
-                clusterStatsStream.Write(clusterStats.Value.ClusterCount);
-                clusterStatsStream.Write(',');
-                clusterStatsStream.Write(clusterStats.Value.MinClusterSize);
-                clusterStatsStream.Write(',');
-                clusterStatsStream.Write(clusterStats.Value.MaxClusterSize);
-                clusterStatsStream.Write(',');
-                clusterStatsStream.WriteLine(clusterStats.Value.AverageClusterSize);
-            }
+            SaveDataToFiles(m, clusterStats);
 
             Steps++;
             if (StationaryReached) RemainingStationarySteps--;
@@ -149,6 +128,40 @@ public class Simulation : IDisposable
         }
 
         Console.WriteLine("Simulation ended after {0} steps", Steps);
+    }
+
+    private void SaveDataToFiles(float m, in ClusterStats? clusterStats)
+    {
+        for (int y = 0; y < Grid.GetLength(1); y++)
+        {
+            for (int x = 0; x < Grid.GetLength(0); x++)
+            {
+                if (x != 0 || y != 0) outputStream?.Write(' ');
+                outputStream?.Write(Grid[x, y]);
+            }
+        }
+
+        outputStream?.WriteLine();
+
+        if (consensoStream != null)
+        {
+            consensoStream.Write(Steps);
+            consensoStream.Write(',');
+            consensoStream.WriteLine(m);
+        }
+
+        if (clusterStatsStream != null && clusterStats != null)
+        {
+            clusterStatsStream.Write(Steps);
+            clusterStatsStream.Write(',');
+            clusterStatsStream.Write(clusterStats.Value.ClusterCount);
+            clusterStatsStream.Write(',');
+            clusterStatsStream.Write(clusterStats.Value.MinClusterSize);
+            clusterStatsStream.Write(',');
+            clusterStatsStream.Write(clusterStats.Value.MaxClusterSize);
+            clusterStatsStream.Write(',');
+            clusterStatsStream.WriteLine(clusterStats.Value.AverageClusterSize);
+        }
     }
 
     public float CalculateSusceptibility()
