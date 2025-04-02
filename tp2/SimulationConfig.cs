@@ -7,6 +7,8 @@ public class SimulationConfig
 
     public string? GridFile { get; set; } = null;
 
+    public (int, int)? GridSize { get; set; } = null;
+
     public float? Probability { get; set; } = null;
 
     public uint? MaxSteps { get; set; } = null;
@@ -18,7 +20,7 @@ public class SimulationConfig
     public string? OutputFile { get; set; } = null;
     public string? ConsensoFile { get; set; } = null;
     public string? ClusterStatsFile { get; set; } = null;
-    
+
     public bool IncludeClusterStats { get; set; } = true;
 
     private static sbyte[,] loadGridFromFile(string file)
@@ -45,13 +47,36 @@ public class SimulationConfig
 
     public Simulation Build()
     {
+        Random random = RandomSeed.HasValue ? new Random(RandomSeed.Value) : new Random();
+
+        sbyte[,] grid;
+        if (GridFile != null)
+        {
+            grid = loadGridFromFile(GridFile);
+        }
+        else if (GridSize.HasValue)
+        {
+            grid = new sbyte[GridSize.Value.Item1, GridSize.Value.Item2];
+            byte[] randbytes = new byte[grid.GetLength(0) * grid.GetLength(1)];
+            random.NextBytes(randbytes);
+
+            int i = 0;
+            for (int x = 0; x < grid.GetLength(0); x++)
+            for (int y = 0; y < grid.GetLength(1); y++)
+                grid[x, y] = randbytes[i++] < 128 ? (sbyte)(-1) : (sbyte)1;
+        }
+        else
+        {
+            throw new Exception("No grid file nor size specified");
+        }
+
         return new Simulation(
-            loadGridFromFile(GridFile ?? throw new Exception("No grid file specified")),
+            grid,
             Probability ?? throw new Exception("No probability specified"),
             MaxSteps,
             ConsensusEpsilon,
             ContinueAfterConsensus,
-            RandomSeed.HasValue ? new Random(RandomSeed.Value) : new Random(),
+            random,
             OutputFile,
             ConsensoFile,
             ClusterStatsFile,

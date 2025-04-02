@@ -53,7 +53,7 @@ public class Simulation : IDisposable
         int gridHeight = Grid.GetLength(1);
 
         sbyte getWrapping(int x, int y) => Grid[(x + gridWidth) % gridWidth, (y + gridHeight) % gridHeight];
-        sbyte getMajority(int x, int y) => (sbyte)Math.Sign(getWrapping(x, y - 1) + getWrapping(x - 1, y) + getWrapping(x, y) + getWrapping(x + 1, y) + getWrapping(x, y + 1));
+        sbyte getMajority(int x, int y) => (sbyte)Math.Sign(getWrapping(x, y - 1) + getWrapping(x - 1, y) + getWrapping(x + 1, y) + getWrapping(x, y + 1));
 
         for (int i = gridWidth * gridHeight; i != 0; i--)
         {
@@ -61,6 +61,7 @@ public class Simulation : IDisposable
             int y = random.Next(gridHeight);
 
             sbyte majority = getMajority(x, y);
+            if (majority == 0) majority = Grid[x, y];
 
             int randomSign = Math.Sign(random.NextSingle() - Probability);
             majority *= (sbyte)randomSign;
