@@ -29,7 +29,7 @@ plt.plot(steps, cluster_avgs, label="Tamaño promedio", linewidth=1.8)
 
 plt.xlabel("Paso de simulación")
 # plt.ylabel("tuki")
-plt.title("Evolución de los clústeres en el tiempo")
+#plt.title("Evolución de los clústeres en el tiempo")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()

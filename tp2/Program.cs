@@ -15,10 +15,8 @@ public static class Program
             Probability = 0.02f,
             RandomSeed = 1234,
             MaxSteps = 50000,
-            StationaryWindowSize = 100,
             ConsensusEpsilon = 0,
-            StationaryEpsilon = 0,
-            ContinueAfterStationary = 1000,
+            ContinueAfterConsensus = 1000,
             OutputFile = "output.txt",
             ConsensoFile = "consenso.txt",
             ClusterStatsFile = "clusterstats.txt",
@@ -28,7 +26,7 @@ public static class Program
 
         simulation.Run();
 
-        if (simulation.StationaryReached)
+        if (simulation.ConsensusReached)
         {
             Console.WriteLine("Susceptibility is {0}", simulation.CalculateSusceptibility());
         }

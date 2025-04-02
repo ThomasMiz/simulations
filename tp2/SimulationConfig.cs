@@ -3,9 +3,7 @@ namespace tp2;
 public class SimulationConfig
 {
     const float DefaultConsensusEpsilon = 0.04f;
-    const float DefaultStationaryEpsilon = 0.001f;
-    const uint DefaultStationaryWindowSize = 10;
-    const uint DefaultContinueAfterStationary = 0;
+    const uint DefaultContinueAfterConsensus = 0;
 
     public string? GridFile { get; set; } = null;
 
@@ -13,9 +11,7 @@ public class SimulationConfig
 
     public uint? MaxSteps { get; set; } = null;
     public float ConsensusEpsilon { get; set; } = DefaultConsensusEpsilon;
-    public float StationaryEpsilon { get; set; } = DefaultStationaryEpsilon;
-    public uint StationaryWindowSize { get; set; } = DefaultStationaryWindowSize;
-    public uint ContinueAfterStationary { get; set; } = DefaultContinueAfterStationary;
+    public uint ContinueAfterConsensus { get; set; } = DefaultContinueAfterConsensus;
 
     public int? RandomSeed { get; set; } = null;
 
@@ -54,9 +50,7 @@ public class SimulationConfig
             Probability ?? throw new Exception("No probability specified"),
             MaxSteps,
             ConsensusEpsilon,
-            StationaryEpsilon,
-            StationaryWindowSize,
-            ContinueAfterStationary,
+            ContinueAfterConsensus,
             RandomSeed.HasValue ? new Random(RandomSeed.Value) : new Random(),
             OutputFile,
             ConsensoFile,

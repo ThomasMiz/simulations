@@ -31,8 +31,8 @@ if estacionario_step is not None:
     plt.axvline(x=estacionario_step, color='red', linestyle='--', label=f"Estacionario en paso {estacionario_step}")
 
 plt.xlabel("Paso de simulación")
-plt.ylabel("Consenso M(t)")
-plt.title("Evolución del Consenso en el tiempo")
+plt.ylabel("Consenso")
+#plt.title("Evolución del Consenso en el tiempo")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()

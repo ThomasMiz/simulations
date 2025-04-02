@@ -21,7 +21,6 @@ public class ProgramB
                 RandomSeed = 1234,
                 MaxSteps = 10000,
                 ConsensusEpsilon = 0,
-                StationaryEpsilon = 0,
                 OutputFile = $"output-b-{probability}.txt",
                 ConsensoFile = $"consenso-b-{probability}.txt",
                 ClusterStatsFile = $"clusterstats-b-{probability}.txt",

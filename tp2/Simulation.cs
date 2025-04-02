@@ -5,16 +5,12 @@ public class Simulation : IDisposable
     public uint Steps { get; private set; } = 0;
     public uint? ConsensusReachStep { get; private set; } = null;
     public bool ConsensusReached => ConsensusReachStep != null;
-    public uint? StationaryReachStep { get; private set; } = null;
-    public bool StationaryReached => StationaryReachStep != null;
-    public uint RemainingStationarySteps { get; private set; }
+    public uint RemainingConsensusSteps { get; private set; }
 
     public sbyte[,] Grid { get; }
     public float Probability { get; }
     public uint? MaxSteps { get; }
     public float ConsensusEpsilon { get; }
-    public float StationaryEpsilon { get; }
-    public uint StationaryWindowSize { get; }
 
     public bool IncludeClusterStats { get; }
 
@@ -32,16 +28,14 @@ public class Simulation : IDisposable
     private readonly StreamWriter? consensoStream;
     private readonly StreamWriter? clusterStatsStream;
 
-    public Simulation(sbyte[,] grid, float probability, uint? maxSteps, float consensusEpsilon, float stationaryEpsilon, uint stationaryWindowSize, uint continueAfterStationary, Random random, string? outputFile, string? consensoFile, string? clusterStatsFile, bool includeClusterStats)
+    public Simulation(sbyte[,] grid, float probability, uint? maxSteps, float consensusEpsilon, uint continueAfterConsensus, Random random, string? outputFile, string? consensoFile, string? clusterStatsFile, bool includeClusterStats)
     {
         Grid = grid;
         Probability = probability;
         MaxSteps = maxSteps;
         ConsensusEpsilon = consensusEpsilon;
-        StationaryEpsilon = stationaryEpsilon;
-        StationaryWindowSize = stationaryWindowSize;
 
-        RemainingStationarySteps = continueAfterStationary;
+        RemainingConsensusSteps = continueAfterConsensus;
         IncludeClusterStats = includeClusterStats;
 
         clusterCalculator = includeClusterStats ? new(grid) : null;
@@ -85,7 +79,7 @@ public class Simulation : IDisposable
 
         SaveDataToFiles(m, clusterStats);
 
-        while (!StationaryReached || RemainingStationarySteps > 0)
+        while (!ConsensusReached || RemainingConsensusSteps > 0)
         {
             monteCarloStep();
             int totalSum = Grid.Cast<sbyte>().Select(s => (int)s).Sum();
@@ -99,25 +93,14 @@ public class Simulation : IDisposable
             SaveDataToFiles(m, clusterStats);
 
             Steps++;
-            if (StationaryReached) RemainingStationarySteps--;
+            if (ConsensusReached) RemainingConsensusSteps--;
 
             if (Steps % 1000 == 0) Console.WriteLine("Ran {0} steps...", Steps);
 
             if (!ConsensusReached && m >= 1 - ConsensusEpsilon)
             {
                 ConsensusReachStep = Steps;
-                StationaryReachStep ??= Steps;
                 Console.WriteLine("Consensus reached after {0} steps", Steps);
-            }
-
-            if (!StationaryReached && consensusHistory.Count >= StationaryWindowSize)
-            {
-                var window = consensusHistory.TakeLast((int)StationaryWindowSize);
-                if (window.Max() - window.Min() < StationaryEpsilon)
-                {
-                    StationaryReachStep = Steps;
-                    Console.WriteLine("Stationary state reached after {0} steps", Steps);
-                }
             }
 
             if (MaxSteps.HasValue && Steps >= MaxSteps)
@@ -166,10 +149,10 @@ public class Simulation : IDisposable
 
     public float CalculateSusceptibility()
     {
-        if (!StationaryReached)
+        if (!ConsensusReached)
             throw new Exception("Susceptibility cannot be calculated before a stationary state is reached");
 
-        return CalculateSusceptibility((int)StationaryReachStep);
+        return CalculateSusceptibility((int)ConsensusReachStep);
     }
 
     public float CalculateSusceptibility(int fromStep, int? toStep = null)

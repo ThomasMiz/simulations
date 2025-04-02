@@ -1,0 +1,69 @@
+@startuml
+
+class ClusterCalculator {
+    - sbyte[,] grid
+    - int gridWidth
+    - int gridHeight
+    - bool[,] visited
+    - List<int> clusterSizes
+    - Stack<(int, int)> dfsStack
+    + ClusterCalculator(sbyte[,] grid)
+    - int visitClusterReturnSize(int startX, int startY)
+    + ClusterStats Calculate()
+}
+
+class ClusterStats {
+    + int ClusterCount
+    + int MinClusterSize
+    + int MaxClusterSize
+    + float AverageClusterSize
+}
+
+class SimulationConfig {
+    - const float DefaultConsensusEpsilon = 0.04f
+    - const uint DefaultContinueAfterConsensus = 0
+    + string? GridFile
+    + float? Probability
+    + uint? MaxSteps
+    + float ConsensusEpsilon
+    + uint ContinueAfterConsensus
+    + int? RandomSeed
+    + string? OutputFile
+    + string? ConsensoFile
+    + string? ClusterStatsFile
+    + bool IncludeClusterStats
+    - static sbyte[,] loadGridFromFile(string file)
+    + Simulation Build()
+}
+
+class Simulation {
+    - uint Steps
+    - uint? ConsensusReachStep
+    - uint RemainingConsensusSteps
+    - sbyte[,] Grid
+    - float Probability
+    - uint? MaxSteps
+    - float ConsensusEpsilon
+    - bool IncludeClusterStats
+    - ClusterCalculator? clusterCalculator
+    - List<float> consensusHistory
+    - List<ClusterStats> clusterStatsHistory
+    - Random random
+    - StreamWriter? outputStream
+    - StreamWriter? consensoStream
+    - StreamWriter? clusterStatsStream
+    + IReadOnlyList<float> ConsensusHistory
+    + IReadOnlyList<ClusterStats> ClusterStatsHistory
+    + Simulation(SimulationConfig config)
+    - void monteCarloStep()
+    + void Run()
+    - void SaveDataToFiles(float m, in ClusterStats? clusterStats)
+    + float CalculateSusceptibility()
+}
+
+SimulationConfig -- Simulation
+Simulation -- ClusterStats
+ClusterCalculator -- Simulation
+ClusterCalculator -- ClusterStats
+
+@enduml
