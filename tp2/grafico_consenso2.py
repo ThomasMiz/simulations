@@ -12,9 +12,9 @@ consensos_map = {}
 # Filtro de qué archivos levantar
 #p_filter = None
 #n = "*"
-n=75
-p_filter = None#["0.01", "0.1", "0.9"]
-#p_filter = ["0.01", "0.1", "0.9"]
+n=100
+p_filter = None
+#p_filter = ["0.015", "0.1", "0.9"]
 #p_filter = ["0.01", "0.04", "0.06", "0.8", "0.1", "0.2", "0.3", "0.5", "0.7", "0.9"]
 
 
