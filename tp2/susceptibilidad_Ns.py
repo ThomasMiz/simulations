@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 # Parámetros del experimento
 valores_N = [25, 50, 75, 100]
-valores_p = [0.01, 0.04, 0.08, 0.085, 0.09, 0.1, 0.11, 0.115,0.012, 0.5, 0.9]
+valores_p = [0.01, 0.012, 0.015, 0.04, 0.06, 0.08, 0.085, 0.09, 0.1, 0.11, 0.115, 0.12, 0.13, 0.2, 0.3, 0.5, 0.9]
 max_steps = 40000
 ultimos = 10000
 
@@ -45,11 +45,10 @@ for N in valores_N:
     chis = [x[1] for x in datos]
     plt.plot(ps, chis, marker='o', label=f'N = {N}')
 
-plt.xlabel('Probabilidad p')
-plt.ylabel('Susceptibilidad χ')
-plt.title('Susceptibilidad χ vs. p para distintos N')
+plt.xlabel('p')
+plt.ylabel('Susceptibilidad')
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-#plt.savefig("susceptibilidad_vs_p.png", dpi=300)
+plt.savefig("susceptibilidad_vs_p.png", dpi=300)
 plt.show()

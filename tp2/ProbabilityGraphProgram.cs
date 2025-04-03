@@ -19,7 +19,7 @@ public class ProbabilityGraphProgram
 
         //List<float> probabilityValues = [0.01f, 0.02f, 0.03f, 0.04f, 0.05f, 0.06f, 0.07f, 0.08f, 0.085f, 0.09f, 0.095f, 0.1f, 0.105f, 0.1f, 0.15f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f];
 
-        List<float> probabilityValues = [0.015f, 0.04f, 0.07f, 0.08f, 0.09f, 0.1f, 0.125f, 0.15f, 0.2f, 0.3f, 0.5f, 0.9f];
+        List<float> probabilityValues =[0.01f, 0.012f, 0.015f, 0.04f, 0.06f, 0.08f, 0.085f, 0.09f, 0.1f, 0.11f, 0.115f, 0.12f, 0.13f, 0.2f, 0.3f, 0.5f, 0.9f];
 
         //List<float> probabilityValues = [0.01f, 0.02f, 0.03f, 0.04f, 0.05f, 0.06f, 0.07f, 0.08f, 0.85f, 0.09f, 0.091f, 0.092f, 0.093f, 0.094f, 0.095f, 0.096f, 0.097f, 0.098f, 0.099f, 0.1f, 0.101f, 0.102f, 0.103f, 0.104f, 0.105f, 0.1f, 0.15f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f];
         //List<float> probabilityValues = Enumerable.Range(1, 200).Select(x => x * 0.001f).ToList();
@@ -40,8 +40,8 @@ public class ProbabilityGraphProgram
                 //GridFile = $"data/semilla-{size}.txt",
                 GridSize = (size, size),
                 Probability = probability,
-                //RandomSeed = 1234,
-                MaxSteps = 40000,
+                RandomSeed = 1234,
+                MaxSteps = 30000,
                 ContinueAfterConsensus = int.MaxValue,
                 ConsensusEpsilon = 0,
                 OutputFile = $"output-{size}-{probability}.txt",
