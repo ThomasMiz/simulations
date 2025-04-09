@@ -1,11 +1,17 @@
 #version 330 core
 
+uniform float containerRadius;
+
 uniform sampler2D consts;
 uniform sampler2D previous;
 
 uniform float deltaTime;
 
-out vec4 FragColor;
+layout (location = 0) out vec4 nextPositionAndVelocity;
+
+float square(float v) {
+    return v * v;
+}
 
 void main() {
     ivec2 coords = ivec2(gl_FragCoord.xy);
@@ -20,8 +26,10 @@ void main() {
 
     position += velocity * deltaTime;
 
-    // use all the variables so they don't get optimized out xd
-    position.x += (mass - radius) * 0.00000000000001;
+    float distanceFromOriginSquared = position.x*position.x + position.y*position.y;
+    if (distanceFromOriginSquared > square(containerRadius - radius)) {
+        velocity = reflect(velocity, normalize(position));
+    }
 
-    FragColor = vec4(position, velocity);
+    nextPositionAndVelocity = vec4(position, velocity);
 }

@@ -12,7 +12,7 @@ namespace tp2
 {
     class ParticleSimulationWindow : WindowBase
     {
-        const int simSizeX = 100, simSizeY = 300;
+        const int simSizeX = 32, simSizeY = 8;
         const int particleCount = simSizeX * simSizeY;
 
         private readonly Vector2 simulationAreaMin = new Vector2(-0.1f, -0.1f);
@@ -82,8 +82,8 @@ namespace tp2
             graphicsDevice.VertexArray = simulationDrawArray;
             //simulationDrawProgram.Uniforms["view"].SetValueMat4(Matrix4x4.Identity);
             //simulationDrawProgram.Uniforms["projection"].SetValueMat4(Matrix4x4.Identity);
-            simulationDrawProgram.Uniforms["consts"].SetValueTexture(simulation.ParticleConstsBuffer);
-            simulationDrawProgram.Uniforms["particles"].SetValueTexture(simulation.ParticleVarsBuffer);
+            simulationDrawProgram.Uniforms["consts"].SetValueTexture(simulation.ParticleConstsTexture);
+            simulationDrawProgram.Uniforms["particles"].SetValueTexture(simulation.ParticleVarsTexture);
             graphicsDevice.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, circleSubset.StorageLength, particleCount);
         }
 
@@ -181,8 +181,8 @@ namespace tp2
                 case Key.G:
                     ParticleConsts[] consts = new ParticleConsts[particleCount];
                     ParticleVars[] vars = new ParticleVars[particleCount];
-                    simulation.ParticleConstsBuffer.GetData<ParticleConsts>(consts);
-                    simulation.ParticleVarsBuffer.GetData<ParticleVars>(vars);
+                    simulation.ParticleConstsTexture.GetData<ParticleConsts>(consts);
+                    simulation.ParticleVarsTexture.GetData<ParticleVars>(vars);
                     break;
             }
         }

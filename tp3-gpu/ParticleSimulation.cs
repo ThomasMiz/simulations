@@ -1,5 +1,10 @@
 using System.Numerics;
+using Silk.NET.OpenGL;
 using TrippyGL;
+using PrimitiveType = TrippyGL.PrimitiveType;
+using TextureMagFilter = TrippyGL.TextureMagFilter;
+using TextureMinFilter = TrippyGL.TextureMinFilter;
+using TextureWrapMode = TrippyGL.TextureWrapMode;
 
 namespace tp3_gpu;
 
@@ -18,14 +23,20 @@ public class ParticleSimulation : IDisposable
     private VertexBuffer<VertexPosition> vertexBuffer;
 
     private Framebuffer2D particleConstsBuffer;
-    private Framebuffer2D currentParticleBuffer, previousParticleBuffer;
+
+    private FramebufferObject currentParticleFramebuffer;
+    private Texture2D currentParticleTexture;
+    private FramebufferObject previousParticleFramebuffer;
+    private Texture2D previousParticleTexture;
+
     private Framebuffer2D aggregationBuffer;
 
     private ShaderProgram simulationProgram;
 
-    public Texture2D ParticleConstsBuffer => particleConstsBuffer.Texture;
-    public Texture2D ParticleVarsBuffer => currentParticleBuffer.Texture;
-    
+    public Texture2D ParticleConstsTexture => particleConstsBuffer.Texture;
+    public Texture2D ParticleVarsTexture => currentParticleTexture;
+    public Texture2D PreviousVarsTexture => previousParticleTexture;
+
     public ParticleSimulation(GraphicsDevice graphicsDevice, uint sizeX, uint sizeY, ReadOnlySpan<ParticleConsts> particleConsts, ReadOnlySpan<ParticleVars> particleVars)
     {
         if (sizeX <= 0) throw new ArgumentOutOfRangeException(nameof(sizeX));
@@ -48,62 +59,64 @@ public class ParticleSimulation : IDisposable
         vertexBuffer = new VertexBuffer<VertexPosition>(graphicsDevice, vertexBufferData, BufferUsage.StaticDraw);
 
         particleConstsBuffer = new Framebuffer2D(graphicsDevice, sizeX, sizeY, DepthStencilFormat.None, 0, TextureImageFormat.Float2);
-        currentParticleBuffer = new Framebuffer2D(graphicsDevice, sizeX, sizeY, DepthStencilFormat.None, 0, TextureImageFormat.Float4);
-        previousParticleBuffer = new Framebuffer2D(graphicsDevice, sizeX, sizeY, DepthStencilFormat.None, 0, TextureImageFormat.Float4);
         particleConstsBuffer.Texture.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
-        currentParticleBuffer.Texture.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
-        previousParticleBuffer.Texture.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
         particleConstsBuffer.Texture.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
-        currentParticleBuffer.Texture.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
-        previousParticleBuffer.Texture.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
+
+        currentParticleTexture = new Texture2D(this.graphicsDevice, SizeX, SizeY, false, 0, TextureImageFormat.Float4);
+        currentParticleTexture.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+        currentParticleTexture.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
+
+        previousParticleTexture = new Texture2D(this.graphicsDevice, SizeX, SizeY, false, 0, TextureImageFormat.Float4);
+        previousParticleTexture.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+        previousParticleTexture.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
+
+        currentParticleFramebuffer = new FramebufferObject(graphicsDevice);
+        currentParticleFramebuffer.Attach(currentParticleTexture, FramebufferAttachmentPoint.Color0);
+        currentParticleFramebuffer.UpdateFramebufferData();
+
+        previousParticleFramebuffer = new FramebufferObject(graphicsDevice);
+        previousParticleFramebuffer.Attach(previousParticleTexture, FramebufferAttachmentPoint.Color0);
+        previousParticleFramebuffer.UpdateFramebufferData();
 
         particleConstsBuffer.Texture.SetData(particleConsts);
-        currentParticleBuffer.Texture.SetData(particleVars);
+        currentParticleTexture.SetData(particleVars);
 
         aggregationBuffer = new Framebuffer2D(graphicsDevice, sizeX, 1, DepthStencilFormat.None, 0, TextureImageFormat.Float);
         aggregationBuffer.Texture.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
         aggregationBuffer.Texture.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
-        
+
         simulationProgram = ShaderProgram.FromFiles<VertexPosition>(graphicsDevice, "data/dum_vs.glsl", "data/sim_fs_particles.glsl", "vPosition");
     }
 
     public void Step()
     {
-        ParticleVars[] curr0 = new ParticleVars[ParticleCount];
-        ParticleVars[] prev0 = new ParticleVars[ParticleCount];
-        previousParticleBuffer.Texture.GetData<ParticleVars>(prev0);
-        currentParticleBuffer.Texture.GetData<ParticleVars>(curr0);
-        
-        
-        (previousParticleBuffer, currentParticleBuffer) = (currentParticleBuffer, previousParticleBuffer);
-        
-        graphicsDevice.Framebuffer = currentParticleBuffer;
+        (previousParticleFramebuffer, currentParticleFramebuffer) = (currentParticleFramebuffer, previousParticleFramebuffer);
+        (previousParticleTexture, currentParticleTexture) = (currentParticleTexture, previousParticleTexture);
+
+        graphicsDevice.Framebuffer = currentParticleFramebuffer;
+        // graphicsDevice.GL.DrawBuffers([DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1]);
         graphicsDevice.SetViewport(0, 0, SizeX, SizeY);
         graphicsDevice.BlendingEnabled = false;
         graphicsDevice.DepthTestingEnabled = false;
-        
+
         graphicsDevice.VertexArray = vertexBuffer;
         graphicsDevice.ShaderProgram = simulationProgram;
         simulationProgram.Uniforms["consts"].SetValueTexture(particleConstsBuffer);
-        simulationProgram.Uniforms["previous"].SetValueTexture(previousParticleBuffer);
+        simulationProgram.Uniforms["previous"].SetValueTexture(previousParticleTexture);
         simulationProgram.Uniforms["deltaTime"].SetValueFloat(0.001f);
+        simulationProgram.Uniforms["containerRadius"].SetValueFloat(0.1f);
         graphicsDevice.DrawArrays(PrimitiveType.TriangleStrip, 0, vertexBuffer.StorageLength);
-        
-        ParticleVars[] curr = new ParticleVars[ParticleCount];
-        ParticleVars[] prev = new ParticleVars[ParticleCount];
-        previousParticleBuffer.Texture.GetData<ParticleVars>(prev);
-        currentParticleBuffer.Texture.GetData<ParticleVars>(curr);
-        
-        Console.WriteLine("sad. :(");
     }
-    
+
     public void Dispose()
     {
         vertexBuffer.Dispose();
         simulationProgram.Dispose();
         particleConstsBuffer.Dispose();
-        currentParticleBuffer.Dispose();
-        previousParticleBuffer.Dispose();
+        currentParticleFramebuffer.Dispose();
+        currentParticleTexture.Dispose();
+        previousParticleFramebuffer.Dispose();
+        previousParticleTexture.Dispose();
         aggregationBuffer.Dispose();
     }
 }
