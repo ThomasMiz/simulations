@@ -61,10 +61,7 @@ namespace tp2
             simulationDrawArray = new VertexArray(graphicsDevice, attribSources);
 
             simulationDrawProgram = ShaderProgram.FromFiles<VertexColor>(graphicsDevice, "data/draw_sim_vs.glsl", "data/draw_sim_fs.glsl", "vPosition", "vColor");
-
-            graphicsDevice.BlendingEnabled = false;
-            graphicsDevice.DepthTestingEnabled = false;
-
+            
             OnKeyDown(null, Key.R, 0); // Simulation is initialized inside here
             OnKeyDown(null, Key.Home, 0);
         }
@@ -74,6 +71,8 @@ namespace tp2
             simulation.Step();
 
             graphicsDevice.Framebuffer = null;
+            graphicsDevice.BlendingEnabled = false;
+            graphicsDevice.DepthTestingEnabled = false;
             graphicsDevice.ClearColor = Color4b.Black;
             graphicsDevice.Clear(ClearBuffers.Color);
             graphicsDevice.SetViewport(0, 0, (uint)Window.Size.X, (uint)Window.Size.Y);
