@@ -12,7 +12,7 @@ namespace tp2
 {
     class ParticleSimulationWindow : WindowBase
     {
-        const int simSizeX = 1, simSizeY = 10;
+        const int simSizeX = 100, simSizeY = 300;
         const int particleCount = simSizeX * simSizeY;
 
         private readonly Vector2 simulationAreaMin = new Vector2(-0.1f, -0.1f);
@@ -71,15 +71,17 @@ namespace tp2
 
         protected override void OnRender(double dt)
         {
+            float deltaTime = (float)dt;
+            simulation.Step();
+            
             graphicsDevice.Framebuffer = null;
             graphicsDevice.ClearColor = Color4b.Black;
             graphicsDevice.Clear(ClearBuffers.Color);
-
             graphicsDevice.SetViewport(0, 0, (uint)Window.Size.X, (uint)Window.Size.Y);
             graphicsDevice.ShaderProgram = simulationDrawProgram;
             graphicsDevice.VertexArray = simulationDrawArray;
-            simulationDrawProgram.Uniforms["view"].SetValueMat4(Matrix4x4.Identity);
-            simulationDrawProgram.Uniforms["projection"].SetValueMat4(Matrix4x4.Identity);
+            //simulationDrawProgram.Uniforms["view"].SetValueMat4(Matrix4x4.Identity);
+            //simulationDrawProgram.Uniforms["projection"].SetValueMat4(Matrix4x4.Identity);
             simulationDrawProgram.Uniforms["consts"].SetValueTexture(simulation.ParticleConstsBuffer);
             simulationDrawProgram.Uniforms["particles"].SetValueTexture(simulation.ParticleVarsBuffer);
             graphicsDevice.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, circleSubset.StorageLength, particleCount);
@@ -164,8 +166,8 @@ namespace tp2
                     for (int i = 0; i < particleCount; i++)
                     {
                         float mass = 1;
-                        float radius = 0.1f;//0.0005f;
-                        Vector2 position = r.RandomDirection2() * 0.5f; //r.NextFloat(0.005f + radius, 0.05f - radius);
+                        float radius = 0.0005f;
+                        Vector2 position = r.RandomDirection2() * r.NextFloat(0.005f + radius, 0.05f - radius);
                         Vector2 velocity = r.RandomDirection2();
                         particleConsts[i] = new ParticleConsts(mass, radius);
                         particleVars[i] = new ParticleVars(position, velocity);
@@ -187,7 +189,7 @@ namespace tp2
 
         private void UpdateTransformMatrix()
         {
-            Matrix4x4 mat = Matrix4x4.CreateScale((simulationAreaMax.X - simulationAreaMin.X) / (simulationAreaMax.Y + simulationAreaMin.Y), 1f, 1f) * Matrix4x4.CreateTranslation(offset.X, offset.Y, 0) * Matrix4x4.CreateScale(scale);
+            Matrix4x4 mat = Matrix4x4.CreateScale((simulationAreaMax.X - simulationAreaMin.X) / (simulationAreaMax.Y - simulationAreaMin.Y), 1f, 1f) * Matrix4x4.CreateTranslation(offset.X, offset.Y, 0) * Matrix4x4.CreateScale(scale);
             simulationDrawProgram.Uniforms["view"].SetValueMat4(mat);
         }
     }

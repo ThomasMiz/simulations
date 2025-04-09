@@ -13,4 +13,9 @@ public struct ParticleConsts
         Mass = mass;
         Radius = radius;
     }
+
+    public override string ToString()
+    {
+        return $"Mass: {Mass}, Radius: {Radius}";
+    }
 }

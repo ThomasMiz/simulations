@@ -14,4 +14,9 @@ public struct ParticleVars
         Position = position;
         Velocity = velocity;
     }
+
+    public override string ToString()
+    {
+        return $"Position: {Position}, Velocity: {Velocity}";
+    }
 }
