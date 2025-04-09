@@ -12,7 +12,7 @@ namespace tp2
 {
     class ParticleSimulationWindow : WindowBase
     {
-        const int simSizeX = 32, simSizeY = 8;
+        const int simSizeX = 2, simSizeY = 2;
         const int particleCount = simSizeX * simSizeY;
 
         private readonly Vector2 simulationAreaMin = new Vector2(-0.1f, -0.1f);
@@ -158,7 +158,7 @@ namespace tp2
                     simulation?.Dispose();
 
                     ParticleConsts[] particleConsts = new ParticleConsts[particleCount];
-                    ParticleVars[] particleVars = new ParticleVars[particleCount];
+                    PositionAndVelocity[] particleVars = new PositionAndVelocity[particleCount];
                     Color4b[] particleColors = new Color4b[particleCount];
                     for (int i = 0; i < particleCount; i++)
                     {
@@ -167,11 +167,11 @@ namespace tp2
                         Vector2 position = r.RandomDirection2() * r.NextFloat(0.005f + radius, 0.05f - radius);
                         Vector2 velocity = r.RandomDirection2();
                         particleConsts[i] = new ParticleConsts(mass, radius);
-                        particleVars[i] = new ParticleVars(position, velocity);
+                        particleVars[i] = new PositionAndVelocity(position, velocity);
                         particleColors[i] = Color4b.FromHSV(i / (float)particleCount, 1, 1);
                     }
 
-                    simulation = new ParticleSimulation(graphicsDevice, simSizeX, simSizeY, 16, particleConsts, particleVars);
+                    simulation = new ParticleSimulation(graphicsDevice, simSizeX, simSizeY, 3, particleConsts, particleVars);
                     particleColorsSubset.SetData(particleColors);
                     break;
             }
