@@ -71,19 +71,16 @@ namespace tp2
 
         protected override void OnRender(double dt)
         {
-            float deltaTime = (float)dt;
             simulation.Step();
-            
+
             graphicsDevice.Framebuffer = null;
             graphicsDevice.ClearColor = Color4b.Black;
             graphicsDevice.Clear(ClearBuffers.Color);
             graphicsDevice.SetViewport(0, 0, (uint)Window.Size.X, (uint)Window.Size.Y);
             graphicsDevice.ShaderProgram = simulationDrawProgram;
             graphicsDevice.VertexArray = simulationDrawArray;
-            //simulationDrawProgram.Uniforms["view"].SetValueMat4(Matrix4x4.Identity);
-            //simulationDrawProgram.Uniforms["projection"].SetValueMat4(Matrix4x4.Identity);
-            simulationDrawProgram.Uniforms["consts"].SetValueTexture(simulation.ParticleConstsTexture);
-            simulationDrawProgram.Uniforms["particles"].SetValueTexture(simulation.ParticleVarsTexture);
+            simulationDrawProgram.Uniforms["constantsSampler"].SetValueTexture(simulation.ParticleConstsTexture);
+            simulationDrawProgram.Uniforms["previousPosAndVelSampler"].SetValueTexture(simulation.ParticleVarsBuffers[0].PositionAndVelocity);
             graphicsDevice.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, circleSubset.StorageLength, particleCount);
         }
 
@@ -174,15 +171,8 @@ namespace tp2
                         particleColors[i] = Color4b.FromHSV(i / (float)particleCount, 1, 1);
                     }
 
-                    simulation = new ParticleSimulation(graphicsDevice, simSizeX, simSizeY, particleConsts, particleVars);
+                    simulation = new ParticleSimulation(graphicsDevice, simSizeX, simSizeY, 16, particleConsts, particleVars);
                     particleColorsSubset.SetData(particleColors);
-                    break;
-
-                case Key.G:
-                    ParticleConsts[] consts = new ParticleConsts[particleCount];
-                    ParticleVars[] vars = new ParticleVars[particleCount];
-                    simulation.ParticleConstsTexture.GetData<ParticleConsts>(consts);
-                    simulation.ParticleVarsTexture.GetData<ParticleVars>(vars);
                     break;
             }
         }

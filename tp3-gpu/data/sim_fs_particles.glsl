@@ -2,8 +2,8 @@
 
 uniform float containerRadius;
 
-uniform sampler2D consts;
-uniform sampler2D previous;
+uniform sampler2D constantsSampler;
+uniform sampler2D previousPosAndVelSampler;
 
 uniform float deltaTime;
 
@@ -15,8 +15,8 @@ float square(float v) {
 
 void main() {
     ivec2 coords = ivec2(gl_FragCoord.xy);
-    vec2 cts = texelFetch(consts, coords, 0).xy;
-    vec4 vrs = texelFetch(previous, coords, 0);
+    vec2 cts = texelFetch(constantsSampler, coords, 0).xy;
+    vec4 vrs = texelFetch(previousPosAndVelSampler, coords, 0);
 
     float mass = cts.x;
     float radius = cts.y;
