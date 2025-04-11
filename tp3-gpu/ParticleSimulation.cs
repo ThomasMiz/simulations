@@ -35,7 +35,8 @@ public class ParticleSimulation : IDisposable
     private VertexArray aggregationVertexArray;
     private ShaderProgram aggregationProgram;
 
-    private ShaderProgram simulationProgram;
+    private ShaderProgram simulationAdvanceProgram;
+    private ShaderProgram simulationCalctimeProgram;
 
     public Texture2D ParticleConstsTexture => particleConstsBuffer.Texture;
     public IReadOnlyList<ParticleVarsBuffer> ParticleVarsBuffers => particleVarsBuffers;
@@ -95,49 +96,39 @@ public class ParticleSimulation : IDisposable
         aggregationProgram = aggregationProgramBuilder.Create(this.graphicsDevice);
 
         // Create simulation program
-        simulationProgram = ShaderProgram.FromFiles<VertexPosition>(graphicsDevice, "data/dum_vs.glsl", "data/sim_fs_particles.glsl", "vPosition");
+        simulationAdvanceProgram = ShaderProgram.FromFiles<VertexPosition>(graphicsDevice, "data/dum_vs.glsl", "data/sim_fs_advance.glsl", "vPosition");
+        simulationCalctimeProgram = ShaderProgram.FromFiles<VertexPosition>(graphicsDevice, "data/dum_vs.glsl", "data/sim_fs_calctime.glsl", "vPosition");
 
         // Set particle constants (mass & radius) and variables (position & velocity)
         particleConstsBuffer.Texture.SetData(particleConsts);
-        particleVarsBuffers[0].PositionAndVelocity.SetData(particleVars);
+        particleVarsBuffers[0].PositionAndVelocity.Texture.SetData(particleVars);
 
         TimeToCollisionAndCollidesWith[] tmpttcacw = new TimeToCollisionAndCollidesWith[ParticleCount];
         Array.Fill(tmpttcacw, new TimeToCollisionAndCollidesWith { TimeToCollision = -100 });
-        particleVarsBuffers[0].TimeToCollisionAndCollidesWith.SetData<TimeToCollisionAndCollidesWith>(tmpttcacw);
+        particleVarsBuffers[0].TimeToCollisionAndCollidesWith.Texture.SetData<TimeToCollisionAndCollidesWith>(tmpttcacw);
 
         // Calculate the initial time-to-collision and with-who for all particles
-        InitializeSim();
+        RecalculateMinTimeToCollision();
 
         // File saver :-)
         fileSaver = new SimulationFileSaver(containerRadius, particleConsts, "output.sim");
         fileSaver?.Save(Steps, SecondsElapsed, particleVarsBuffers[0]);
     }
 
-    private void InitializeSim()
+    private void RecalculateMinTimeToCollision()
     {
-        using ShaderProgram initializationProgram = ShaderProgram.FromFiles<VertexPosition>(graphicsDevice, "data/dum_vs.glsl", "data/sim_fs_initialize.glsl", "vPosition");
-
-        // Move the last buffer to the beginning of the list, we then draw on it so it becomes the current.
-        ParticleVarsBuffer oldest = particleVarsBuffers[^1];
-        particleVarsBuffers.RemoveAt(particleVarsBuffers.Count - 1);
-        particleVarsBuffers.Insert(0, oldest);
-
-        graphicsDevice.Framebuffer = particleVarsBuffers[0].Framebuffer;
+        // Calculate the time to next collision for all particles and store it in TimeToCollisionAndCollidesWith
+        graphicsDevice.Framebuffer = particleVarsBuffers[0].TimeToCollisionAndCollidesWith;
         graphicsDevice.SetViewport(0, 0, SizeX, SizeY);
         graphicsDevice.BlendingEnabled = false;
         graphicsDevice.DepthTestingEnabled = false;
         graphicsDevice.VertexArray = vertexBuffer;
-        graphicsDevice.ShaderProgram = initializationProgram;
-        initializationProgram.Uniforms["constantsSampler"].SetValueTexture(particleConstsBuffer);
-        initializationProgram.Uniforms["posAndVelSampler"].SetValueTexture(particleVarsBuffers[1].PositionAndVelocity);
-        initializationProgram.Uniforms["containerRadius"].SetValueFloat(ContainerRadius);
+        graphicsDevice.ShaderProgram = simulationCalctimeProgram;
+        simulationCalctimeProgram.Uniforms["containerRadius"].SetValueFloat(ContainerRadius);
+        simulationCalctimeProgram.Uniforms["constantsSampler"].SetValueTexture(particleConstsBuffer);
+        simulationCalctimeProgram.Uniforms["posAndVelSampler"].SetValueTexture(particleVarsBuffers[0].PositionAndVelocity);
         graphicsDevice.DrawArrays(PrimitiveType.TriangleStrip, 0, vertexBuffer.StorageLength);
-
-        RecalculateMinTimeToCollision();
-    }
-
-    private void RecalculateMinTimeToCollision()
-    {
+        
         graphicsDevice.Framebuffer = aggregationBuffer;
         graphicsDevice.SetViewport(0, 0, aggregationBuffer.Width, aggregationBuffer.Height);
 
@@ -160,7 +151,7 @@ public class ParticleSimulation : IDisposable
         if (TimeToNextCollision <= 0)
         {
             Console.WriteLine("Warning: TimeToNextCollision is <= 0: {0}", TimeToNextCollision);
-            TimeToNextCollision = 0.0001f;
+            TimeToNextCollision = 0.001f;
         }
     }
 
@@ -178,17 +169,16 @@ public class ParticleSimulation : IDisposable
         particleVarsBuffers.RemoveAt(particleVarsBuffers.Count - 1);
         particleVarsBuffers.Insert(0, oldest);
 
-        graphicsDevice.Framebuffer = particleVarsBuffers[0].Framebuffer;
+        graphicsDevice.Framebuffer = particleVarsBuffers[0].PositionAndVelocity;
         graphicsDevice.SetViewport(0, 0, SizeX, SizeY);
         graphicsDevice.BlendingEnabled = false;
         graphicsDevice.DepthTestingEnabled = false;
         graphicsDevice.VertexArray = vertexBuffer;
-        graphicsDevice.ShaderProgram = simulationProgram;
-        simulationProgram.Uniforms["constantsSampler"].SetValueTexture(particleConstsBuffer);
-        simulationProgram.Uniforms["posAndVelSampler"].SetValueTexture(particleVarsBuffers[1].PositionAndVelocity);
-        simulationProgram.Uniforms["timeToCollisionAndCollidesWithSampler"].SetValueTexture(particleVarsBuffers[1].TimeToCollisionAndCollidesWith);
-        simulationProgram.Uniforms["deltaTime"].SetValueFloat(TimeToNextCollision);
-        simulationProgram.Uniforms["containerRadius"].SetValueFloat(ContainerRadius);
+        graphicsDevice.ShaderProgram = simulationAdvanceProgram;
+        simulationAdvanceProgram.Uniforms["constantsSampler"].SetValueTexture(particleConstsBuffer);
+        simulationAdvanceProgram.Uniforms["posAndVelSampler"].SetValueTexture(particleVarsBuffers[1].PositionAndVelocity);
+        simulationAdvanceProgram.Uniforms["timeToCollisionAndCollidesWithSampler"].SetValueTexture(particleVarsBuffers[1].TimeToCollisionAndCollidesWith);
+        simulationAdvanceProgram.Uniforms["deltaTime"].SetValueFloat(TimeToNextCollision);
         graphicsDevice.DrawArrays(PrimitiveType.TriangleStrip, 0, vertexBuffer.StorageLength);
 
         Steps++;
@@ -209,7 +199,8 @@ public class ParticleSimulation : IDisposable
     {
         fileSaver.Dispose();
         vertexBuffer.Dispose();
-        simulationProgram.Dispose();
+        simulationAdvanceProgram.Dispose();
+        simulationCalctimeProgram.Dispose();
         particleConstsBuffer.Dispose();
         particleVarsBuffers.ForEach(particleVarsBuffer => particleVarsBuffer.Dispose());
         aggregationBuffer.Dispose();
@@ -218,31 +209,22 @@ public class ParticleSimulation : IDisposable
 
 public struct ParticleVarsBuffer : IDisposable
 {
-    public FramebufferObject Framebuffer { get; }
-    public Texture2D PositionAndVelocity { get; }
-    public Texture2D TimeToCollisionAndCollidesWith { get; }
+    public Framebuffer2D PositionAndVelocity { get; }
+    public Framebuffer2D TimeToCollisionAndCollidesWith { get; }
 
     public ParticleVarsBuffer(GraphicsDevice graphicsDevice, uint sizeX, uint sizeY)
     {
-        PositionAndVelocity = new Texture2D(graphicsDevice, sizeX, sizeY, false, 0, TextureImageFormat.Float4);
-        PositionAndVelocity.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
-        PositionAndVelocity.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
+        PositionAndVelocity = new Framebuffer2D(graphicsDevice, sizeX, sizeY, DepthStencilFormat.None, 0, TextureImageFormat.Float4);
+        PositionAndVelocity.Texture.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+        PositionAndVelocity.Texture.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
 
-        TimeToCollisionAndCollidesWith = new Texture2D(graphicsDevice, sizeX, sizeY, false, 0, TextureImageFormat.Float3);
-        TimeToCollisionAndCollidesWith.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
-        TimeToCollisionAndCollidesWith.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
-
-        Framebuffer = new FramebufferObject(graphicsDevice);
-        graphicsDevice.Framebuffer = Framebuffer;
-        Framebuffer.Attach(PositionAndVelocity, FramebufferAttachmentPoint.Color0);
-        Framebuffer.Attach(TimeToCollisionAndCollidesWith, FramebufferAttachmentPoint.Color1);
-        Framebuffer.UpdateFramebufferData();
-        Framebuffer.GraphicsDevice.GL.DrawBuffers([DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1]);
+        TimeToCollisionAndCollidesWith = new Framebuffer2D(graphicsDevice, sizeX, sizeY, DepthStencilFormat.None, 0, TextureImageFormat.Float3);
+        TimeToCollisionAndCollidesWith.Texture.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+        TimeToCollisionAndCollidesWith.Texture.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
     }
 
     public void Dispose()
     {
-        Framebuffer.Dispose();
         PositionAndVelocity.Dispose();
         TimeToCollisionAndCollidesWith.Dispose();
     }

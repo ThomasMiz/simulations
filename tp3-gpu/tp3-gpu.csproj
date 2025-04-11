@@ -16,7 +16,7 @@
       <None Update="data\dum_vs.glsl">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="data\sim_fs_particles.glsl">
+      <None Update="data\sim_fs_advance.glsl">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="data\draw_sim_fs.glsl">
@@ -31,7 +31,7 @@
       <None Update="data\sim_fs_aggregation.glsl">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="data\sim_fs_initialize.glsl">
+      <None Update="data\sim_fs_calctime.glsl">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>

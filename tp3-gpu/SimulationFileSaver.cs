@@ -44,7 +44,7 @@ public class SimulationFileSaver : IDisposable
         stream.Write(time);
         // Console.Write($"Step={step}, time={time}");
 
-        particleVarsBuffer.PositionAndVelocity.GetData<PositionAndVelocity>(tmpbuf);
+        particleVarsBuffer.PositionAndVelocity.Texture.GetData<PositionAndVelocity>(tmpbuf);
         for (int i = 0; i < tmpbuf.Length; ++i)
         {
             stream.Write(tmpbuf[i].Position.X);

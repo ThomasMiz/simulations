@@ -5,12 +5,8 @@ uniform float containerRadius;
 uniform sampler2D constantsSampler;
 
 uniform sampler2D posAndVelSampler;
-uniform sampler2D timeToCollisionAndCollidesWithSampler;
 
-uniform float deltaTime;
-
-layout (location = 0) out vec4 nextPositionAndVelocity;
-layout (location = 1) out vec3 nextTimeToCollisionAndCollidesWith;
+out vec3 nextTimeToCollisionAndCollidesWith;
 
 float square(float v) {
     return v * v;
@@ -71,7 +67,6 @@ void main() {
     ivec2 coords = ivec2(gl_FragCoord.xy);
     vec2 rawConstants = texelFetch(constantsSampler, coords, 0).xy;
     vec4 rawPosAndVel = texelFetch(posAndVelSampler, coords, 0);
-    vec3 rawTimeToCollisionAndCollidesWith = texelFetch(timeToCollisionAndCollidesWithSampler, coords, 0).xyz;
 
     float mass = rawConstants.x;
     float radius = rawConstants.y;
@@ -79,24 +74,5 @@ void main() {
     vec2 position = rawPosAndVel.xy;
     vec2 velocity = rawPosAndVel.zw;
 
-    position += velocity * deltaTime;
-
-    rawTimeToCollisionAndCollidesWith.x -= deltaTime;
-    if (rawTimeToCollisionAndCollidesWith.x <= 0) {
-        ivec2 otherParticleCoords = ivec2(rawTimeToCollisionAndCollidesWith.yz);
-        if (otherParticleCoords.x < 0) {
-            // Bounce against the wall
-            velocity = reflect(velocity, normalize(position));
-        } else {
-            // Bounce against another particle
-            vec4 otherRawPosAndVel = texelFetch(posAndVelSampler, coords, 0);
-            vec2 otherPosition = otherRawPosAndVel.xy;
-            velocity = reflect(velocity, normalize(position - otherPosition));
-        }
-    }
-
-    rawTimeToCollisionAndCollidesWith = findNextTimeToCollision(coords, position, radius, velocity);
-
-    nextPositionAndVelocity = vec4(position, velocity);
-    nextTimeToCollisionAndCollidesWith = rawTimeToCollisionAndCollidesWith;
+    nextTimeToCollisionAndCollidesWith = findNextTimeToCollision(coords, position, radius, velocity);
 }
