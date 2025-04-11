@@ -11,37 +11,38 @@ public class SimulationFileSaver : IDisposable
 
     private PositionAndVelocity[] tmpbuf;
 
-    public SimulationFileSaver(ReadOnlySpan<ParticleConsts> particleConsts, String filename)
+    public SimulationFileSaver(float containerRadius, ReadOnlySpan<ParticleConsts> particleConsts, String filename)
     {
         Filename = filename;
         stream = new BinaryWriter(new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.Read));
         tmpbuf = new PositionAndVelocity[particleConsts.Length];
-        WriteStart(particleConsts);
+        WriteStart(containerRadius, particleConsts);
     }
 
-    private void WriteStart(ReadOnlySpan<ParticleConsts> particleConsts)
+    private void WriteStart(float containerRadius, ReadOnlySpan<ParticleConsts> particleConsts)
     {
+        stream.Write(containerRadius);
         stream.Write((uint)particleConsts.Length);
-        Console.Write($"Particles={particleConsts.Length}");
+        // Console.Write($"ContainerRadius={containerRadius}, Particles={particleConsts.Length}");
 
         for (int i = 0; i < particleConsts.Length; ++i)
         {
             stream.Write(particleConsts[i].Mass);
             stream.Write(particleConsts[i].Radius);
-            Console.Write($" [mass={particleConsts[i].Mass} radius={particleConsts[i].Radius}]");
+            // Console.Write($", [mass={particleConsts[i].Mass} radius={particleConsts[i].Radius}]");
         }
-        
-        Console.WriteLine(";");
+
+        // Console.WriteLine(";");
     }
 
     public void Save(uint step, float time, in ParticleVarsBuffer particleVarsBuffer)
     {
         int particleCount = (int)(particleVarsBuffer.PositionAndVelocity.Width * particleVarsBuffer.PositionAndVelocity.Height);
         if (tmpbuf.Length != particleCount) throw new Exception("File saver was given a state buffer with different size than the initial buffer");
-        
+
         stream.Write(step);
         stream.Write(time);
-        Console.Write($"Step={step}, time={time}");
+        // Console.Write($"Step={step}, time={time}");
 
         particleVarsBuffer.PositionAndVelocity.GetData<PositionAndVelocity>(tmpbuf);
         for (int i = 0; i < tmpbuf.Length; ++i)
@@ -50,10 +51,10 @@ public class SimulationFileSaver : IDisposable
             stream.Write(tmpbuf[i].Position.Y);
             stream.Write(tmpbuf[i].Velocity.X);
             stream.Write(tmpbuf[i].Velocity.Y);
-            Console.Write($" Position={tmpbuf[i].Position} Velocity={tmpbuf[i].Velocity}");
+            // Console.Write($", [Position={tmpbuf[i].Position} Velocity={tmpbuf[i].Velocity}]");
         }
-        
-        Console.WriteLine(";");
+
+        // Console.WriteLine(";");
     }
 
     public void Dispose()

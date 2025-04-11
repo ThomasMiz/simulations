@@ -13,8 +13,9 @@ namespace tp2
 {
     class ParticleSimulationWindow : WindowBase
     {
-        const int simSizeX = 2, simSizeY = 2;
-        const int particleCount = simSizeX * simSizeY;
+        private const float SimulationSpeed = 0.15f;
+        const int SimSizeX = 2, SimSizeY = 2;
+        const int ParticleCount = SimSizeX * SimSizeY;
 
         private const float ContainerRadius = 0.05f;
         private readonly Vector2 simulationAreaMin = new Vector2(-ContainerRadius, -ContainerRadius);
@@ -42,6 +43,9 @@ namespace tp2
         private VertexBuffer<VertexColor> primitiveBuffer;
         private SimpleShaderProgram primitiveProgram;
 
+        private float simulationTime;
+        private float lastStepTime;
+
         protected override void OnLoad()
         {
             // Make circle buffer
@@ -54,7 +58,7 @@ namespace tp2
             circleSubset = new VertexDataBufferSubset<VertexPosition>(circleBuffer, circleVertices);
 
             // Make particle colors buffer
-            particleColorsBuffer = new BufferObject(graphicsDevice, DataBufferSubset.CalculateRequiredSizeInBytes<Color4b>(particleCount), BufferUsage.StaticDraw);
+            particleColorsBuffer = new BufferObject(graphicsDevice, DataBufferSubset.CalculateRequiredSizeInBytes<Color4b>(ParticleCount), BufferUsage.StaticDraw);
             particleColorsSubset = new VertexDataBufferSubset<Color4b>(particleColorsBuffer);
 
             // Make simulation draw array
@@ -79,7 +83,16 @@ namespace tp2
 
         protected override void OnRender(double dt)
         {
-            simulation.Step();
+            float deltaTime = (float)dt * SimulationSpeed;
+            simulationTime += deltaTime;
+            float nextCollisionTime = simulation.NextCollisionTime;
+            if (simulationTime >= nextCollisionTime)
+            {
+                simulationTime = nextCollisionTime;
+                lastStepTime = nextCollisionTime;
+                simulation.Step();
+                Console.WriteLine($"Ran step {simulation.Steps}");
+            }
 
             graphicsDevice.Framebuffer = null;
             graphicsDevice.SetViewport(0, 0, (uint)Window.Size.X, (uint)Window.Size.Y);
@@ -106,7 +119,8 @@ namespace tp2
             graphicsDevice.VertexArray = simulationDrawArray;
             simulationDrawProgram.Uniforms["constantsSampler"].SetValueTexture(simulation.ParticleConstsTexture);
             simulationDrawProgram.Uniforms["previousPosAndVelSampler"].SetValueTexture(simulation.ParticleVarsBuffers[0].PositionAndVelocity);
-            graphicsDevice.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, circleSubset.StorageLength, particleCount);
+            simulationDrawProgram.Uniforms["timeSinceLastStep"].SetValueFloat(simulationTime - lastStepTime);
+            graphicsDevice.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, circleSubset.StorageLength, ParticleCount);
 
             //if (simulation.Steps >= 10)
             //    Window.Close();
@@ -189,10 +203,12 @@ namespace tp2
                 case Key.R:
                     simulation?.Dispose();
 
-                    ParticleConsts[] particleConsts = new ParticleConsts[particleCount];
-                    PositionAndVelocity[] particleVars = new PositionAndVelocity[particleCount];
-                    Color4b[] particleColors = new Color4b[particleCount];
-                    for (int i = 0; i < particleCount; i++)
+                    simulationTime = 0;
+                    lastStepTime = 0;
+                    ParticleConsts[] particleConsts = new ParticleConsts[ParticleCount];
+                    PositionAndVelocity[] particleVars = new PositionAndVelocity[ParticleCount];
+                    Color4b[] particleColors = new Color4b[ParticleCount];
+                    for (int i = 0; i < ParticleCount; i++)
                     {
                         float mass = 1;
                         float radius = 0.0005f;
@@ -200,10 +216,10 @@ namespace tp2
                         Vector2 velocity = r.RandomDirection2();
                         particleConsts[i] = new ParticleConsts(mass, radius);
                         particleVars[i] = new PositionAndVelocity(position, velocity);
-                        particleColors[i] = Color4b.FromHSV(i / (float)particleCount, 1, 1);
+                        particleColors[i] = Color4b.FromHSV(i / (float)ParticleCount, 1, 1);
                     }
 
-                    simulation = new ParticleSimulation(graphicsDevice, simSizeX, simSizeY, 3, ContainerRadius, particleConsts, particleVars);
+                    simulation = new ParticleSimulation(graphicsDevice, SimSizeX, SimSizeY, 3, ContainerRadius, particleConsts, particleVars);
                     particleColorsSubset.SetData(particleColors);
                     break;
             }

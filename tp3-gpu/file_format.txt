@@ -1,0 +1,9 @@
+- 4 bytes: float R "radio del contenedor"
+- 4 bytes: int N "cantidad de partículas"
+- N*(4+4) bytes: N pares de floats (mass, radius)
+	- Las partículas siempre se guardan en el mismo orden
+- Repite hasta el final del archivo:
+	- 4 bytes: un int step "número de paso"
+	- 4 bytes: un float time "tiempo (en segundos) del paso"
+	- N*(4+4+4+4) bytes: (posX, posY, velX, velY) de cada partícula en este paso
+

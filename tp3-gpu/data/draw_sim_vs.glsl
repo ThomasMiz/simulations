@@ -6,6 +6,8 @@ uniform mat4 projection;
 uniform sampler2D constantsSampler;
 uniform sampler2D previousPosAndVelSampler;
 
+uniform float timeSinceLastStep;
+
 in vec3 vPosition;
 in vec4 vColor;
 
@@ -19,6 +21,9 @@ void main() {
 
     float radius = cts.y;
     vec2 position = vrs.xy;
+    vec2 velocity = vrs.zw;
+
+    position += velocity * timeSinceLastStep;
 
     gl_Position = projection * view * vec4(vec2(vPosition.xy * radius + position), vPosition.z, 1.0);
     fColor = vColor;

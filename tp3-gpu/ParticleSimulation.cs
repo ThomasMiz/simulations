@@ -14,13 +14,15 @@ public class ParticleSimulation : IDisposable
 {
     public uint SizeX { get; }
     public uint SizeY { get; }
+    public float ContainerRadius { get; }
 
     public uint ParticleCount => SizeX * SizeY;
 
     public uint Steps { get; private set; } = 0;
     public float SecondsElapsed { get; private set; } = 0;
 
-    public float ContainerRadius { get; }
+    public float TimeToNextCollision { get; private set; }
+    public float NextCollisionTime => SecondsElapsed + TimeToNextCollision;
 
     private readonly GraphicsDevice graphicsDevice;
 
@@ -105,9 +107,9 @@ public class ParticleSimulation : IDisposable
 
         // Calculate the initial time-to-collision and with-who for all particles
         InitializeSim();
-        
+
         // File saver :-)
-        fileSaver = new SimulationFileSaver(particleConsts, "output.sim");
+        fileSaver = new SimulationFileSaver(containerRadius, particleConsts, "output.sim");
         fileSaver?.Save(Steps, SecondsElapsed, particleVarsBuffers[0]);
     }
 
@@ -130,9 +132,11 @@ public class ParticleSimulation : IDisposable
         initializationProgram.Uniforms["posAndVelSampler"].SetValueTexture(particleVarsBuffers[1].PositionAndVelocity);
         initializationProgram.Uniforms["containerRadius"].SetValueFloat(ContainerRadius);
         graphicsDevice.DrawArrays(PrimitiveType.TriangleStrip, 0, vertexBuffer.StorageLength);
+
+        RecalculateMinTimeToCollision();
     }
 
-    private float calculateMinTimeToCollision()
+    private void RecalculateMinTimeToCollision()
     {
         graphicsDevice.Framebuffer = aggregationBuffer;
         graphicsDevice.SetViewport(0, 0, aggregationBuffer.Width, aggregationBuffer.Height);
@@ -151,14 +155,13 @@ public class ParticleSimulation : IDisposable
 
         Span<float> miny = stackalloc float[1];
         aggregationBuffer.Texture.GetData(miny);
-        return miny[0];
+        TimeToNextCollision = miny[0];
     }
 
     public void Step()
     {
-        float timeToNextCollision = calculateMinTimeToCollision();
         // Console.WriteLine("Minimum time to collision: " + minTimeToCollision);
-        
+
         // PositionAndVelocity[] posandvel0 = new PositionAndVelocity[ParticleCount];
         // TimeToCollisionAndCollidesWith[] timetocol0 = new TimeToCollisionAndCollidesWith[ParticleCount];
         // particleVarsBuffers[0].PositionAndVelocity.GetData<PositionAndVelocity>(posandvel0);
@@ -178,16 +181,18 @@ public class ParticleSimulation : IDisposable
         simulationProgram.Uniforms["constantsSampler"].SetValueTexture(particleConstsBuffer);
         simulationProgram.Uniforms["posAndVelSampler"].SetValueTexture(particleVarsBuffers[1].PositionAndVelocity);
         simulationProgram.Uniforms["timeToCollisionAndCollidesWithSampler"].SetValueTexture(particleVarsBuffers[1].TimeToCollisionAndCollidesWith);
-        simulationProgram.Uniforms["deltaTime"].SetValueFloat(timeToNextCollision);
+        simulationProgram.Uniforms["deltaTime"].SetValueFloat(TimeToNextCollision);
         simulationProgram.Uniforms["containerRadius"].SetValueFloat(ContainerRadius);
         graphicsDevice.DrawArrays(PrimitiveType.TriangleStrip, 0, vertexBuffer.StorageLength);
 
         Steps++;
-        SecondsElapsed += timeToNextCollision;
+        SecondsElapsed += TimeToNextCollision;
+
+        RecalculateMinTimeToCollision();
         
         // Save state to file
         fileSaver?.Save(Steps, SecondsElapsed, particleVarsBuffers[0]);
-        
+
         // PositionAndVelocity[] posandvel1 = new PositionAndVelocity[ParticleCount];
         // TimeToCollisionAndCollidesWith[] timetocol1 = new TimeToCollisionAndCollidesWith[ParticleCount];
         // particleVarsBuffers[0].PositionAndVelocity.GetData<PositionAndVelocity>(posandvel1);
@@ -226,11 +231,6 @@ public struct ParticleVarsBuffer : IDisposable
         Framebuffer.Attach(PositionAndVelocity, FramebufferAttachmentPoint.Color0);
         Framebuffer.Attach(TimeToCollisionAndCollidesWith, FramebufferAttachmentPoint.Color1);
         Framebuffer.UpdateFramebufferData();
-        CallGlDrawBuffers();
-    }
-
-    public void CallGlDrawBuffers()
-    {
         Framebuffer.GraphicsDevice.GL.DrawBuffers([DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1]);
     }
 
