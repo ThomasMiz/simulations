@@ -18,7 +18,7 @@ float square(float v) {
 
 const float InfiniteTime = 999999999999999.9;
 
-float timeToCollisionWithSphere(in vec2 pos0, in float rad0, in vec2 vel0, in vec2 pos1, in float rad1, in vec2 vel1) {
+float timeToCollisionWithOther(in vec2 pos0, in float rad0, in vec2 vel0, in vec2 pos1, in float rad1, in vec2 vel1) {
     vec2 deltaR = pos1 - pos0;
     vec2 deltaV = vel1 - vel0;
     float deltaVDotDeltaR = dot(deltaV, deltaR);
@@ -41,8 +41,30 @@ float timeToCollisionWithBorder(in vec2 pos, in float rad, in vec2 vel) {
     return t;
 }
 
-float findNextTimeToCollision(in vec2 pos, in float rad, in vec2 vel) {
-    return timeToCollisionWithBorder(pos, rad, vel);
+vec3 findNextTimeToCollision(in ivec2 myCoords, in vec2 pos, in float rad, in vec2 vel) {
+    float minTime = timeToCollisionWithBorder(pos, rad, vel);
+    ivec2 minCoords = ivec2(-1.0, -1.0);
+
+    ivec2 simSize = textureSize(posAndVelSampler, 0);
+    for (int x = 0; x < simSize.x; x++) {
+        for (int y = 0; y < simSize.y; y++) {
+            ivec2 coords = ivec2(x, y);
+            if (coords == myCoords) continue;
+            vec4 otherRawPosAndVel = texelFetch(posAndVelSampler, coords, 0);
+            vec2 otherRawConstants = texelFetch(constantsSampler, coords, 0).xy;
+            vec2 otherPosition = otherRawPosAndVel.xy;
+            vec2 otherVelocity = otherRawPosAndVel.zw;
+            float otherRadius = otherRawConstants.y;
+            float t = timeToCollisionWithOther(pos, rad, vel, otherPosition, otherRadius, otherVelocity);
+
+            if (t > 0 && t < minTime) {
+                minTime = t;
+                minCoords = coords;
+            }
+        }
+    }
+
+    return vec3(minTime, vec2(minCoords));
 }
 
 void main() {
@@ -57,17 +79,24 @@ void main() {
     vec2 position = rawPosAndVel.xy;
     vec2 velocity = rawPosAndVel.zw;
 
-    float timeToCollision = rawTimeToCollisionAndCollidesWith.x;
-    ivec2 destination = ivec2(rawTimeToCollisionAndCollidesWith.yz);
-
     position += velocity * deltaTime;
 
-    timeToCollision -= deltaTime;
-    if (timeToCollision <= 0) {
-        velocity = reflect(velocity, normalize(position));
-        timeToCollision = findNextTimeToCollision(position, radius, velocity);
+    rawTimeToCollisionAndCollidesWith.x -= deltaTime;
+    if (rawTimeToCollisionAndCollidesWith.x <= 0) {
+        ivec2 otherParticleCoords = ivec2(rawTimeToCollisionAndCollidesWith.yz);
+        if (otherParticleCoords.x < 0) {
+            // Bounce against the wall
+            velocity = reflect(velocity, normalize(position));
+        } else {
+            // Bounce against another particle
+            vec4 otherRawPosAndVel = texelFetch(posAndVelSampler, coords, 0);
+            vec2 otherPosition = otherRawPosAndVel.xy;
+            velocity = reflect(velocity, normalize(position - otherPosition));
+        }
     }
 
+    rawTimeToCollisionAndCollidesWith = findNextTimeToCollision(coords, position, radius, velocity);
+
     nextPositionAndVelocity = vec4(position, velocity);
-    nextTimeToCollisionAndCollidesWith = vec3(timeToCollision, vec2(destination));
+    nextTimeToCollisionAndCollidesWith = rawTimeToCollisionAndCollidesWith;
 }

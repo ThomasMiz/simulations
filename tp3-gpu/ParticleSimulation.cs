@@ -156,6 +156,12 @@ public class ParticleSimulation : IDisposable
         Span<float> miny = stackalloc float[1];
         aggregationBuffer.Texture.GetData(miny);
         TimeToNextCollision = miny[0];
+
+        if (TimeToNextCollision <= 0)
+        {
+            Console.WriteLine("Warning: TimeToNextCollision is <= 0: {0}", TimeToNextCollision);
+            TimeToNextCollision = 0.0001f;
+        }
     }
 
     public void Step()

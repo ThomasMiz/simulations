@@ -38,8 +38,8 @@ float timeToCollisionWithBorder(in vec2 pos, in float rad, in vec2 vel) {
     return t;
 }
 
-float findNextTimeToCollision(in vec2 pos, in float rad, in vec2 vel) {
-    return timeToCollisionWithBorder(pos, rad, vel);
+vec3 findNextTimeToCollision(in vec2 pos, in float rad, in vec2 vel) {
+    return vec3(timeToCollisionWithBorder(pos, rad, vel), -1.0, -1.0);
 }
 
 void main() {
@@ -54,5 +54,5 @@ void main() {
     vec2 velocity = rawPosAndVel.zw;
 
     nextPositionAndVelocity = rawPosAndVel;
-    nextTimeToCollisionAndCollidesWith = vec3(findNextTimeToCollision(position, radius, velocity), vec2(69, 420));
+    nextTimeToCollisionAndCollidesWith = findNextTimeToCollision(position, radius, velocity);
 }

@@ -13,11 +13,14 @@ namespace tp2
 {
     class ParticleSimulationWindow : WindowBase
     {
-        private const float SimulationSpeed = 0.15f;
+        private const float SimulationSpeed = 0.015f;
         const int SimSizeX = 2, SimSizeY = 2;
         const int ParticleCount = SimSizeX * SimSizeY;
+        const float ParticleMass = 1;
+        const float ParticleRadius = 0.005f;
 
         private const float ContainerRadius = 0.05f;
+        private const float InnerContainerRadius = 0.005f;
         private readonly Vector2 simulationAreaMin = new Vector2(-ContainerRadius, -ContainerRadius);
         private readonly Vector2 simulationAreaMax = new Vector2(ContainerRadius, ContainerRadius);
 
@@ -85,11 +88,11 @@ namespace tp2
         {
             float deltaTime = (float)dt * SimulationSpeed;
             simulationTime += deltaTime;
-            float nextCollisionTime = simulation.NextCollisionTime;
-            if (simulationTime >= nextCollisionTime)
+            //while (simulationTime >= simulation.NextCollisionTime)
+            if (simulationTime >= simulation.NextCollisionTime)
             {
-                simulationTime = nextCollisionTime;
-                lastStepTime = nextCollisionTime;
+                simulationTime = simulation.NextCollisionTime;
+                lastStepTime = simulation.NextCollisionTime;
                 simulation.Step();
                 Console.WriteLine($"Ran step {simulation.Steps}");
             }
@@ -210,11 +213,9 @@ namespace tp2
                     Color4b[] particleColors = new Color4b[ParticleCount];
                     for (int i = 0; i < ParticleCount; i++)
                     {
-                        float mass = 1;
-                        float radius = 0.0005f;
-                        Vector2 position = r.RandomDirection2() * r.NextFloat(0.005f + radius, 0.05f - radius);
+                        Vector2 position = r.RandomDirection2() * r.NextFloat(InnerContainerRadius + ParticleRadius, ContainerRadius - ParticleRadius);
                         Vector2 velocity = r.RandomDirection2();
-                        particleConsts[i] = new ParticleConsts(mass, radius);
+                        particleConsts[i] = new ParticleConsts(ParticleMass, ParticleRadius);
                         particleVars[i] = new PositionAndVelocity(position, velocity);
                         particleColors[i] = Color4b.FromHSV(i / (float)ParticleCount, 1, 1);
                     }
