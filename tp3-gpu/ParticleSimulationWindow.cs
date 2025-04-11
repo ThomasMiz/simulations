@@ -16,7 +16,7 @@ namespace tp2
         const int simSizeX = 2, simSizeY = 2;
         const int particleCount = simSizeX * simSizeY;
 
-        private const float ContainerRadius = 0.1f;
+        private const float ContainerRadius = 0.05f;
         private readonly Vector2 simulationAreaMin = new Vector2(-ContainerRadius, -ContainerRadius);
         private readonly Vector2 simulationAreaMax = new Vector2(ContainerRadius, ContainerRadius);
 
@@ -107,6 +107,9 @@ namespace tp2
             simulationDrawProgram.Uniforms["constantsSampler"].SetValueTexture(simulation.ParticleConstsTexture);
             simulationDrawProgram.Uniforms["previousPosAndVelSampler"].SetValueTexture(simulation.ParticleVarsBuffers[0].PositionAndVelocity);
             graphicsDevice.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, circleSubset.StorageLength, particleCount);
+
+            //if (simulation.Steps >= 10)
+            //    Window.Close();
         }
 
         protected override void OnResized(Vector2D<int> size)

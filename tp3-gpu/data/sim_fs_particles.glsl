@@ -62,11 +62,12 @@ void main() {
 
     position += velocity * deltaTime;
 
-    float distanceFromOriginSquared = position.x*position.x + position.y*position.y;
-    if (distanceFromOriginSquared > square(containerRadius - radius)) {
+    timeToCollision -= deltaTime;
+    if (timeToCollision <= 0) {
         velocity = reflect(velocity, normalize(position));
+        timeToCollision = findNextTimeToCollision(position, radius, velocity);
     }
 
     nextPositionAndVelocity = vec4(position, velocity);
-    nextTimeToCollisionAndCollidesWith = vec3(findNextTimeToCollision(position, radius, velocity), vec2(destination));
+    nextTimeToCollisionAndCollidesWith = vec3(timeToCollision, vec2(destination));
 }

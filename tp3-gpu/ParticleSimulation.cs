@@ -40,6 +40,8 @@ public class ParticleSimulation : IDisposable
 
     private static readonly BlendState minBlendState = new BlendState(false, BlendingMode.Min, BlendingFactor.One, BlendingFactor.One);
 
+    private SimulationFileSaver fileSaver;
+
     public ParticleSimulation(GraphicsDevice graphicsDevice, uint sizeX, uint sizeY, uint particleBuffersCount, float containerRadius, ReadOnlySpan<ParticleConsts> particleConsts, ReadOnlySpan<PositionAndVelocity> particleVars)
     {
         if (sizeX <= 0) throw new ArgumentOutOfRangeException(nameof(sizeX));
@@ -103,6 +105,10 @@ public class ParticleSimulation : IDisposable
 
         // Calculate the initial time-to-collision and with-who for all particles
         InitializeSim();
+        
+        // File saver :-)
+        fileSaver = new SimulationFileSaver(particleConsts, "output.sim");
+        fileSaver?.Save(Steps, SecondsElapsed, particleVarsBuffers[0]);
     }
 
     private void InitializeSim()
@@ -124,9 +130,6 @@ public class ParticleSimulation : IDisposable
         initializationProgram.Uniforms["posAndVelSampler"].SetValueTexture(particleVarsBuffers[1].PositionAndVelocity);
         initializationProgram.Uniforms["containerRadius"].SetValueFloat(ContainerRadius);
         graphicsDevice.DrawArrays(PrimitiveType.TriangleStrip, 0, vertexBuffer.StorageLength);
-
-        float minTimeToCollision = calculateMinTimeToCollision();
-        Console.WriteLine("Initial minimum time to collision: " + minTimeToCollision);
     }
 
     private float calculateMinTimeToCollision()
@@ -153,6 +156,9 @@ public class ParticleSimulation : IDisposable
 
     public void Step()
     {
+        float timeToNextCollision = calculateMinTimeToCollision();
+        // Console.WriteLine("Minimum time to collision: " + minTimeToCollision);
+        
         // PositionAndVelocity[] posandvel0 = new PositionAndVelocity[ParticleCount];
         // TimeToCollisionAndCollidesWith[] timetocol0 = new TimeToCollisionAndCollidesWith[ParticleCount];
         // particleVarsBuffers[0].PositionAndVelocity.GetData<PositionAndVelocity>(posandvel0);
@@ -172,13 +178,16 @@ public class ParticleSimulation : IDisposable
         simulationProgram.Uniforms["constantsSampler"].SetValueTexture(particleConstsBuffer);
         simulationProgram.Uniforms["posAndVelSampler"].SetValueTexture(particleVarsBuffers[1].PositionAndVelocity);
         simulationProgram.Uniforms["timeToCollisionAndCollidesWithSampler"].SetValueTexture(particleVarsBuffers[1].TimeToCollisionAndCollidesWith);
-        simulationProgram.Uniforms["deltaTime"].SetValueFloat(0.001f);
+        simulationProgram.Uniforms["deltaTime"].SetValueFloat(timeToNextCollision);
         simulationProgram.Uniforms["containerRadius"].SetValueFloat(ContainerRadius);
         graphicsDevice.DrawArrays(PrimitiveType.TriangleStrip, 0, vertexBuffer.StorageLength);
 
-        float minTimeToCollision = calculateMinTimeToCollision();
-        Console.WriteLine("Minimum time to collision: " + minTimeToCollision);
-
+        Steps++;
+        SecondsElapsed += timeToNextCollision;
+        
+        // Save state to file
+        fileSaver?.Save(Steps, SecondsElapsed, particleVarsBuffers[0]);
+        
         // PositionAndVelocity[] posandvel1 = new PositionAndVelocity[ParticleCount];
         // TimeToCollisionAndCollidesWith[] timetocol1 = new TimeToCollisionAndCollidesWith[ParticleCount];
         // particleVarsBuffers[0].PositionAndVelocity.GetData<PositionAndVelocity>(posandvel1);
@@ -187,6 +196,7 @@ public class ParticleSimulation : IDisposable
 
     public void Dispose()
     {
+        fileSaver.Dispose();
         vertexBuffer.Dispose();
         simulationProgram.Dispose();
         particleConstsBuffer.Dispose();
