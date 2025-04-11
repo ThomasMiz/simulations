@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Numerics;
 using Silk.NET.Input;
@@ -15,8 +16,9 @@ namespace tp2
         const int simSizeX = 2, simSizeY = 2;
         const int particleCount = simSizeX * simSizeY;
 
-        private readonly Vector2 simulationAreaMin = new Vector2(-0.1f, -0.1f);
-        private readonly Vector2 simulationAreaMax = new Vector2(0.1f, 0.1f);
+        private const float ContainerRadius = 0.1f;
+        private readonly Vector2 simulationAreaMin = new Vector2(-ContainerRadius, -ContainerRadius);
+        private readonly Vector2 simulationAreaMax = new Vector2(ContainerRadius, ContainerRadius);
 
         private Vector2 lastMousePos;
         private float mouseMoveScale;
@@ -35,6 +37,10 @@ namespace tp2
         private VertexDataBufferSubset<Color4b> particleColorsSubset;
         private VertexArray simulationDrawArray;
         private ShaderProgram simulationDrawProgram;
+
+        private PrimitiveBatcher<VertexColor> primitiveBatcher;
+        private VertexBuffer<VertexColor> primitiveBuffer;
+        private SimpleShaderProgram primitiveProgram;
 
         protected override void OnLoad()
         {
@@ -61,7 +67,12 @@ namespace tp2
             simulationDrawArray = new VertexArray(graphicsDevice, attribSources);
 
             simulationDrawProgram = ShaderProgram.FromFiles<VertexColor>(graphicsDevice, "data/draw_sim_vs.glsl", "data/draw_sim_fs.glsl", "vPosition", "vColor");
-            
+
+            // Make primitive drawer
+            primitiveBatcher = new PrimitiveBatcher<VertexColor>(1024, 128);
+            primitiveBuffer = new VertexBuffer<VertexColor>(graphicsDevice, (uint)primitiveBatcher.TriangleVertexCapacity, BufferUsage.StreamDraw);
+            primitiveProgram = SimpleShaderProgram.Create<VertexColor>(graphicsDevice, 0, 0, true);
+
             OnKeyDown(null, Key.R, 0); // Simulation is initialized inside here
             OnKeyDown(null, Key.Home, 0);
         }
@@ -71,11 +82,26 @@ namespace tp2
             simulation.Step();
 
             graphicsDevice.Framebuffer = null;
+            graphicsDevice.SetViewport(0, 0, (uint)Window.Size.X, (uint)Window.Size.Y);
             graphicsDevice.BlendingEnabled = false;
             graphicsDevice.DepthTestingEnabled = false;
             graphicsDevice.ClearColor = Color4b.Black;
             graphicsDevice.Clear(ClearBuffers.Color);
-            graphicsDevice.SetViewport(0, 0, (uint)Window.Size.X, (uint)Window.Size.Y);
+
+            primitiveBatcher.ClearTriangles();
+            primitiveBatcher.ClearLines();
+            primitiveBatcher.AddCirclePrecise(Vector2.Zero, ContainerRadius * 1.25f, Color4b.OrangeRed);
+            primitiveBatcher.AddCirclePrecise(Vector2.Zero, ContainerRadius, new Color4b(64, 64, 64));
+            uint minStorage = (uint)Math.Max(primitiveBatcher.TriangleVertexCount, primitiveBatcher.LineVertexCount);
+            if (primitiveBuffer.StorageLength < minStorage)
+                primitiveBuffer.RecreateStorage((uint)Math.Max(primitiveBatcher.TriangleVertexCapacity, primitiveBatcher.LineVertexCapacity));
+            graphicsDevice.VertexArray = primitiveBuffer;
+            graphicsDevice.ShaderProgram = primitiveProgram;
+            primitiveBuffer.DataSubset.SetData(primitiveBatcher.LineVertices);
+            graphicsDevice.DrawArrays(PrimitiveType.Lines, 0, (uint)primitiveBatcher.LineVertexCount);
+            primitiveBuffer.DataSubset.SetData(primitiveBatcher.TriangleVertices);
+            graphicsDevice.DrawArrays(PrimitiveType.Triangles, 0, (uint)primitiveBatcher.TriangleVertexCount);
+
             graphicsDevice.ShaderProgram = simulationDrawProgram;
             graphicsDevice.VertexArray = simulationDrawArray;
             simulationDrawProgram.Uniforms["constantsSampler"].SetValueTexture(simulation.ParticleConstsTexture);
@@ -88,16 +114,20 @@ namespace tp2
             if (size.X == 0 || size.Y == 0)
                 return;
 
+            Matrix4x4 projection;
             if (size.X < size.Y)
             {
-                simulationDrawProgram.Uniforms["projection"].SetValueMat4(Matrix4x4.CreateOrthographic(2f * size.X / size.Y, 2f, 0.01f, 10f));
+                projection = Matrix4x4.CreateOrthographic(2f * size.X / size.Y, 2f, 0.01f, 10f);
                 mouseMoveScale = 2f / size.Y;
             }
             else
             {
-                simulationDrawProgram.Uniforms["projection"].SetValueMat4(Matrix4x4.CreateOrthographic(2f, 2f * size.Y / size.X, 0.01f, 10f));
+                projection = Matrix4x4.CreateOrthographic(2f, 2f * size.Y / size.X, 0.01f, 10f);
                 mouseMoveScale = 2f / size.X;
             }
+
+            simulationDrawProgram.Uniforms["projection"].SetValueMat4(projection);
+            primitiveProgram.Projection = projection;
         }
 
         protected override void OnUnload()
@@ -170,7 +200,7 @@ namespace tp2
                         particleColors[i] = Color4b.FromHSV(i / (float)particleCount, 1, 1);
                     }
 
-                    simulation = new ParticleSimulation(graphicsDevice, simSizeX, simSizeY, 3, particleConsts, particleVars);
+                    simulation = new ParticleSimulation(graphicsDevice, simSizeX, simSizeY, 3, ContainerRadius, particleConsts, particleVars);
                     particleColorsSubset.SetData(particleColors);
                     break;
             }
@@ -178,8 +208,9 @@ namespace tp2
 
         private void UpdateTransformMatrix()
         {
-            Matrix4x4 mat = Matrix4x4.CreateScale((simulationAreaMax.X - simulationAreaMin.X) / (simulationAreaMax.Y - simulationAreaMin.Y), 1f, 1f) * Matrix4x4.CreateTranslation(offset.X, offset.Y, 0) * Matrix4x4.CreateScale(scale);
-            simulationDrawProgram.Uniforms["view"].SetValueMat4(mat);
+            Matrix4x4 view = Matrix4x4.CreateScale((simulationAreaMax.X - simulationAreaMin.X) / (simulationAreaMax.Y - simulationAreaMin.Y), 1f, 1f) * Matrix4x4.CreateTranslation(offset.X, offset.Y, 0) * Matrix4x4.CreateScale(scale);
+            simulationDrawProgram.Uniforms["view"].SetValueMat4(view);
+            primitiveProgram.View = view;
         }
     }
 }

@@ -20,6 +20,8 @@ public class ParticleSimulation : IDisposable
     public uint Steps { get; private set; } = 0;
     public float SecondsElapsed { get; private set; } = 0;
 
+    public float ContainerRadius { get; }
+
     private readonly GraphicsDevice graphicsDevice;
 
     private VertexBuffer<VertexPosition> vertexBuffer;
@@ -38,7 +40,7 @@ public class ParticleSimulation : IDisposable
 
     private static readonly BlendState minBlendState = new BlendState(false, BlendingMode.Min, BlendingFactor.One, BlendingFactor.One);
 
-    public ParticleSimulation(GraphicsDevice graphicsDevice, uint sizeX, uint sizeY, uint particleBuffersCount, ReadOnlySpan<ParticleConsts> particleConsts, ReadOnlySpan<PositionAndVelocity> particleVars)
+    public ParticleSimulation(GraphicsDevice graphicsDevice, uint sizeX, uint sizeY, uint particleBuffersCount, float containerRadius, ReadOnlySpan<ParticleConsts> particleConsts, ReadOnlySpan<PositionAndVelocity> particleVars)
     {
         if (sizeX <= 0) throw new ArgumentOutOfRangeException(nameof(sizeX));
         if (sizeY <= 0) throw new ArgumentOutOfRangeException(nameof(sizeY));
@@ -46,9 +48,11 @@ public class ParticleSimulation : IDisposable
         if (particleVars.Length != sizeX * sizeY) throw new ArgumentException("particleVars length must match the particle count (sizeX * sizeY)");
         if (particleBuffersCount < 2) throw new ArgumentException(nameof(particleBuffersCount) + " must be at least 2");
         if (particleBuffersCount > 16) throw new ArgumentException("not gonna let you kill ur computer", nameof(particleBuffersCount));
+        if (containerRadius <= 0) throw new ArgumentException("Container radius must be greater than 0", nameof(containerRadius));
 
         SizeX = sizeX;
         SizeY = sizeY;
+        ContainerRadius = containerRadius;
         this.graphicsDevice = graphicsDevice;
 
         ReadOnlySpan<VertexPosition> vertexBufferData =
@@ -59,18 +63,19 @@ public class ParticleSimulation : IDisposable
             new VertexPosition(new Vector3(1, 1, 0))
         ];
 
+        // Create dummy vertex buffer
         vertexBuffer = new VertexBuffer<VertexPosition>(graphicsDevice, vertexBufferData, BufferUsage.StaticDraw);
 
+        // Create particle constants buffer
         particleConstsBuffer = new Framebuffer2D(graphicsDevice, sizeX, sizeY, DepthStencilFormat.None, 0, TextureImageFormat.Float2);
         particleConstsBuffer.Texture.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
         particleConstsBuffer.Texture.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
 
         particleVarsBuffers = new((int)particleBuffersCount);
         for (uint i = 0; i < particleBuffersCount; i++)
-        {
             particleVarsBuffers.Add(new ParticleVarsBuffer(graphicsDevice, sizeX, sizeY));
-        }
 
+        // Create aggregation buffer, vertexarray and program
         aggregationBuffer = new Framebuffer2D(graphicsDevice, 1, 1, DepthStencilFormat.None, 0, TextureImageFormat.Float);
         aggregationBuffer.Texture.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
         aggregationBuffer.Texture.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
@@ -85,13 +90,65 @@ public class ParticleSimulation : IDisposable
         aggregationProgramBuilder.SpecifyVertexAttribs([]);
         aggregationProgram = aggregationProgramBuilder.Create(this.graphicsDevice);
 
+        // Create simulation program
         simulationProgram = ShaderProgram.FromFiles<VertexPosition>(graphicsDevice, "data/dum_vs.glsl", "data/sim_fs_particles.glsl", "vPosition");
 
+        // Set particle constants (mass & radius) and variables (position & velocity)
         particleConstsBuffer.Texture.SetData(particleConsts);
         particleVarsBuffers[0].PositionAndVelocity.SetData(particleVars);
+
         TimeToCollisionAndCollidesWith[] tmpttcacw = new TimeToCollisionAndCollidesWith[ParticleCount];
         Array.Fill(tmpttcacw, new TimeToCollisionAndCollidesWith { TimeToCollision = -100 });
         particleVarsBuffers[0].TimeToCollisionAndCollidesWith.SetData<TimeToCollisionAndCollidesWith>(tmpttcacw);
+
+        // Calculate the initial time-to-collision and with-who for all particles
+        InitializeSim();
+    }
+
+    private void InitializeSim()
+    {
+        using ShaderProgram initializationProgram = ShaderProgram.FromFiles<VertexPosition>(graphicsDevice, "data/dum_vs.glsl", "data/sim_fs_initialize.glsl", "vPosition");
+
+        // Move the last buffer to the beginning of the list, we then draw on it so it becomes the current.
+        ParticleVarsBuffer oldest = particleVarsBuffers[^1];
+        particleVarsBuffers.RemoveAt(particleVarsBuffers.Count - 1);
+        particleVarsBuffers.Insert(0, oldest);
+
+        graphicsDevice.Framebuffer = particleVarsBuffers[0].Framebuffer;
+        graphicsDevice.SetViewport(0, 0, SizeX, SizeY);
+        graphicsDevice.BlendingEnabled = false;
+        graphicsDevice.DepthTestingEnabled = false;
+        graphicsDevice.VertexArray = vertexBuffer;
+        graphicsDevice.ShaderProgram = initializationProgram;
+        initializationProgram.Uniforms["constantsSampler"].SetValueTexture(particleConstsBuffer);
+        initializationProgram.Uniforms["posAndVelSampler"].SetValueTexture(particleVarsBuffers[1].PositionAndVelocity);
+        initializationProgram.Uniforms["containerRadius"].SetValueFloat(ContainerRadius);
+        graphicsDevice.DrawArrays(PrimitiveType.TriangleStrip, 0, vertexBuffer.StorageLength);
+
+        float minTimeToCollision = calculateMinTimeToCollision();
+        Console.WriteLine("Initial minimum time to collision: " + minTimeToCollision);
+    }
+
+    private float calculateMinTimeToCollision()
+    {
+        graphicsDevice.Framebuffer = aggregationBuffer;
+        graphicsDevice.SetViewport(0, 0, aggregationBuffer.Width, aggregationBuffer.Height);
+
+        // Clear the aggregation buffer
+        graphicsDevice.ClearColor = new Vector4(999999999999999.9f);
+        graphicsDevice.Clear(ClearBuffers.Color);
+
+        // Draw to the aggregation buffer with min-function blendstate
+        graphicsDevice.BlendState = minBlendState;
+        graphicsDevice.DepthTestingEnabled = false;
+        graphicsDevice.VertexArray = aggregationVertexArray;
+        graphicsDevice.ShaderProgram = aggregationProgram;
+        aggregationProgram.Uniforms["timeToCollisionAndCollidesWithSampler"].SetValueTexture(particleVarsBuffers[0].TimeToCollisionAndCollidesWith);
+        graphicsDevice.DrawArrays(PrimitiveType.Points, 0, ParticleCount);
+
+        Span<float> miny = stackalloc float[1];
+        aggregationBuffer.Texture.GetData(miny);
+        return miny[0];
     }
 
     public void Step()
@@ -116,20 +173,11 @@ public class ParticleSimulation : IDisposable
         simulationProgram.Uniforms["posAndVelSampler"].SetValueTexture(particleVarsBuffers[1].PositionAndVelocity);
         simulationProgram.Uniforms["timeToCollisionAndCollidesWithSampler"].SetValueTexture(particleVarsBuffers[1].TimeToCollisionAndCollidesWith);
         simulationProgram.Uniforms["deltaTime"].SetValueFloat(0.001f);
-        simulationProgram.Uniforms["containerRadius"].SetValueFloat(0.1f);
+        simulationProgram.Uniforms["containerRadius"].SetValueFloat(ContainerRadius);
         graphicsDevice.DrawArrays(PrimitiveType.TriangleStrip, 0, vertexBuffer.StorageLength);
 
-        graphicsDevice.Framebuffer = aggregationBuffer;
-        graphicsDevice.SetViewport(0, 0, aggregationBuffer.Width, aggregationBuffer.Height);
-        graphicsDevice.BlendState = minBlendState;
-        graphicsDevice.VertexArray = aggregationVertexArray;
-        graphicsDevice.ShaderProgram = aggregationProgram;
-        aggregationProgram.Uniforms["timeToCollisionAndCollidesWithSampler"].SetValueTexture(particleVarsBuffers[0].TimeToCollisionAndCollidesWith);
-        graphicsDevice.DrawArrays(PrimitiveType.Points, 0, ParticleCount);
-        
-        Span<float> miny = stackalloc float[1];
-        aggregationBuffer.Texture.GetData(miny);
-        float minTimeToCollision = miny[0];
+        float minTimeToCollision = calculateMinTimeToCollision();
+        Console.WriteLine("Minimum time to collision: " + minTimeToCollision);
 
         // PositionAndVelocity[] posandvel1 = new PositionAndVelocity[ParticleCount];
         // TimeToCollisionAndCollidesWith[] timetocol1 = new TimeToCollisionAndCollidesWith[ParticleCount];
@@ -168,7 +216,12 @@ public struct ParticleVarsBuffer : IDisposable
         Framebuffer.Attach(PositionAndVelocity, FramebufferAttachmentPoint.Color0);
         Framebuffer.Attach(TimeToCollisionAndCollidesWith, FramebufferAttachmentPoint.Color1);
         Framebuffer.UpdateFramebufferData();
-        graphicsDevice.GL.DrawBuffers([DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1]);
+        CallGlDrawBuffers();
+    }
+
+    public void CallGlDrawBuffers()
+    {
+        Framebuffer.GraphicsDevice.GL.DrawBuffers([DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1]);
     }
 
     public void Dispose()
