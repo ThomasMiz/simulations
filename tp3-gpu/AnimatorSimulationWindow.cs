@@ -10,9 +10,9 @@ namespace tp3_gpu
     class AnimatorSimulationWindow : WindowBase
     {
         private readonly float animationSpeed;
-        
+
         private readonly SimulationConfig config;
-        
+
         private Vector2 lastMousePos;
         private float mouseMoveScale;
 
@@ -40,7 +40,7 @@ namespace tp3_gpu
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.animationSpeed = animationSpeed;
-            
+
             Window.FramesPerSecond = 0;
             Window.VSync = false;
         }
@@ -87,15 +87,23 @@ namespace tp3_gpu
 
         protected override void OnRender(double dt)
         {
-            float deltaTime = (float)dt * animationSpeed;
-            simulationTime += deltaTime;
-            //while (simulationTime >= simulation.NextCollisionTime)
-            if (simulationTime >= simulation.NextCollisionTime)
+            if ((config.MaxSteps == null || simulation.Steps < config.MaxSteps) && (config.MaxSimulationTime == null || simulation.SecondsElapsed < config.MaxSimulationTime))
             {
-                simulationTime = simulation.NextCollisionTime;
-                lastStepTime = simulation.NextCollisionTime;
-                simulation.Step();
-                Console.WriteLine($"Ran step {simulation.Steps} with time {simulationTime}");
+                float deltaTime = (float)dt * animationSpeed;
+                simulationTime += deltaTime;
+                //while (simulationTime >= simulation.NextCollisionTime)
+                if (simulationTime >= simulation.NextCollisionTime)
+                {
+                    simulationTime = simulation.NextCollisionTime;
+                    lastStepTime = simulation.NextCollisionTime;
+                    simulation.Step();
+                    if (simulation.SecondsElapsed >= config.MaxSimulationTime)
+                        Console.WriteLine($"Reached time limit of {simulation.SecondsElapsed} after {simulation.Steps} steps");
+                    else if (simulation.Steps >= config.MaxSteps)
+                        Console.WriteLine($"Reached step limit of {simulation.Steps} after simulating {simulation.SecondsElapsed} seconds");
+                    else if (simulation.Steps % 1000 == 0)
+                        Console.WriteLine($"Ran step {simulation.Steps} with next collision time {simulation.SecondsElapsed}");
+                }
             }
 
             graphicsDevice.Framebuffer = null;
@@ -229,7 +237,8 @@ namespace tp3_gpu
 
         private void UpdateTransformMatrix()
         {
-            Matrix4x4 view = Matrix4x4.CreateScale(1f, 1f, 1f) * Matrix4x4.CreateTranslation(offset.X, offset.Y, 0) * Matrix4x4.CreateScale(scale);
+            float s = 0.3f / config.ContainerRadius;
+            Matrix4x4 view = Matrix4x4.CreateScale(s, s, 1f) * Matrix4x4.CreateTranslation(offset.X, offset.Y, 0) * Matrix4x4.CreateScale(scale);
             simulationDrawProgram.Uniforms["view"].SetValueMat4(view);
             primitiveProgram.View = view;
         }

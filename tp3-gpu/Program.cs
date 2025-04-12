@@ -13,11 +13,13 @@ class Program
             {
                 ContainerRadius = 0.05f,
                 OutputFile = "output.sim",
+                //MaxSteps = 2000,
+                //MaxSimulationTime = 60,
             }
-            //.AddSingleParticle(mass: 3.0f, radius: 0.005f, position: Vector2.Zero, velocity: Vector2.Zero)
+            .AddSingleParticle(mass: 3.0f, radius: 0.005f, position: Vector2.Zero, velocity: Vector2.Zero)
             .AddScatteredParticles(count: 200, mass: 1.0f, radius: 0.0005f, speed: 1.0f);
 
-        new AnimatorSimulationWindow(config, 0.05f).Run();
+        new AnimatorSimulationWindow(config, animationSpeed: 0.05f).Run();
         // new HeadlessSimulationWindow(config).Run();
     }
 }

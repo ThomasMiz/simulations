@@ -15,7 +15,7 @@ public class HeadlessSimulationWindow : WindowBase
     public HeadlessSimulationWindow(SimulationConfig config)
     {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
-        
+
         Window.FramesPerSecond = 0;
         Window.VSync = false;
     }
@@ -27,8 +27,31 @@ public class HeadlessSimulationWindow : WindowBase
 
     protected override void OnRender(double dt)
     {
-        simulation.Step();
-        Console.WriteLine($"Ran step {simulation.Steps} with next collision time {simulation.SecondsElapsed}");
+        if ((config.MaxSteps == null || simulation.Steps < config.MaxSteps) && (config.MaxSimulationTime == null || simulation.SecondsElapsed < config.MaxSimulationTime))
+        {
+            simulation.Step();
+
+            bool limitReached = false;
+            if (config.MaxSimulationTime != null && simulation.SecondsElapsed >= config.MaxSimulationTime)
+            {
+                Console.WriteLine($"Reached time limit of {simulation.SecondsElapsed} after {simulation.Steps} steps");
+                limitReached = true;
+            }
+            else if (config.MaxSteps != null && simulation.Steps >= config.MaxSteps)
+            {
+                Console.WriteLine($"Reached step limit of {simulation.Steps} after simulating {simulation.SecondsElapsed} seconds");
+                limitReached = true;
+            }
+            else if (simulation.Steps % 1000 == 0)
+            {
+                Console.WriteLine($"Ran step {simulation.Steps} with next collision time {simulation.SecondsElapsed}");
+            }
+
+            if (limitReached)
+            {
+                Window.Close();
+            }
+        }
     }
 
     protected override void OnResized(Vector2D<int> size)
