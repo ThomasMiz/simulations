@@ -157,12 +157,12 @@ public class ParticleSimulation : IDisposable
 
     public void Step()
     {
-        // Console.WriteLine("Minimum time to collision: " + minTimeToCollision);
+        // Console.WriteLine("Minimum time to collision: " + TimeToNextCollision);
 
         // PositionAndVelocity[] posandvel0 = new PositionAndVelocity[ParticleCount];
         // TimeToCollisionAndCollidesWith[] timetocol0 = new TimeToCollisionAndCollidesWith[ParticleCount];
-        // particleVarsBuffers[0].PositionAndVelocity.GetData<PositionAndVelocity>(posandvel0);
-        // particleVarsBuffers[0].TimeToCollisionAndCollidesWith.GetData<TimeToCollisionAndCollidesWith>(timetocol0);
+        // particleVarsBuffers[0].PositionAndVelocity.Texture.GetData<PositionAndVelocity>(posandvel0);
+        // particleVarsBuffers[0].TimeToCollisionAndCollidesWith.Texture.GetData<TimeToCollisionAndCollidesWith>(timetocol0);
 
         // Move the last buffer to the beginning of the list, we then draw on it so it becomes the current.
         ParticleVarsBuffer oldest = particleVarsBuffers[^1];
@@ -191,8 +191,8 @@ public class ParticleSimulation : IDisposable
 
         // PositionAndVelocity[] posandvel1 = new PositionAndVelocity[ParticleCount];
         // TimeToCollisionAndCollidesWith[] timetocol1 = new TimeToCollisionAndCollidesWith[ParticleCount];
-        // particleVarsBuffers[0].PositionAndVelocity.GetData<PositionAndVelocity>(posandvel1);
-        // particleVarsBuffers[0].TimeToCollisionAndCollidesWith.GetData<TimeToCollisionAndCollidesWith>(timetocol1);
+        // particleVarsBuffers[0].PositionAndVelocity.Texture.GetData<PositionAndVelocity>(posandvel1);
+        // particleVarsBuffers[0].TimeToCollisionAndCollidesWith.Texture.GetData<TimeToCollisionAndCollidesWith>(timetocol1);
     }
 
     public void Dispose()

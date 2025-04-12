@@ -13,11 +13,11 @@ namespace tp2
 {
     class ParticleSimulationWindow : WindowBase
     {
-        private const float SimulationSpeed = 0.015f;
-        const int SimSizeX = 2, SimSizeY = 2;
+        private const float SimulationSpeed = 0.03f;
+        const int SimSizeX = 20, SimSizeY = 2;
         const int ParticleCount = SimSizeX * SimSizeY;
         const float ParticleMass = 1;
-        const float ParticleRadius = 0.005f;
+        const float ParticleRadius = 0.0005f;
 
         private const float ContainerRadius = 0.05f;
         private const float InnerContainerRadius = 0.005f;
@@ -219,6 +219,9 @@ namespace tp2
                         particleVars[i] = new PositionAndVelocity(position, velocity);
                         particleColors[i] = Color4b.FromHSV(i / (float)ParticleCount, 1, 1);
                     }
+
+                    // particleVars[0] = new PositionAndVelocity();
+                    // particleConsts[0] = new ParticleConsts(10, ParticleRadius * 10);
 
                     simulation = new ParticleSimulation(graphicsDevice, SimSizeX, SimSizeY, 3, ContainerRadius, particleConsts, particleVars);
                     particleColorsSubset.SetData(particleColors);

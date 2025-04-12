@@ -53,7 +53,7 @@ vec3 findNextTimeToCollision(in ivec2 myCoords, in vec2 pos, in float rad, in ve
             float otherRadius = otherRawConstants.y;
             float t = timeToCollisionWithOther(pos, rad, vel, otherPosition, otherRadius, otherVelocity);
 
-            if (t > 0 && t < minTime) {
+            if (t >= 0 && t <= minTime) {
                 minTime = t;
                 minCoords = coords;
             }

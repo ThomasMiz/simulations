@@ -39,7 +39,7 @@ void main() {
             float otherMass = otherRawConstants.x;
             float otherRadius = otherRawConstants.y;
 
-            vec4 otherRawPosAndVel = texelFetch(posAndVelSampler, coords, 0);
+            vec4 otherRawPosAndVel = texelFetch(posAndVelSampler, otherCoords, 0);
             vec2 otherVelocity = otherRawPosAndVel.zw;
             vec2 otherPosition = otherRawPosAndVel.xy + otherVelocity * deltaTime;
 
@@ -49,7 +49,7 @@ void main() {
             float j = (2 * mass * otherMass * dot(deltaV, deltaR)) / (sigma * (mass + otherMass));
             vec2 j2 = j * deltaR / sigma; // j_x and j_y
 
-            velocity = velocity + j2 / mass;
+            velocity += j2 / mass;
         }
     }
 
