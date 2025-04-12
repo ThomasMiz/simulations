@@ -5,9 +5,13 @@ import numpy as np
 from matplotlib.patches import Circle
 import os
 
+path = "./bin/Debug/net8.0/output.sim"
+output_file = "animacion.mp4"
+
 # ========= LECTURA DE ARCHIVO BINARIO =========
 def leer_output_binario(path):
     with open(path, 'rb') as f:
+        radio_contenedor = struct.unpack('f', f.read(4))[0]
         N = struct.unpack('i', f.read(4))[0]
         masas_radios = [struct.unpack('ff', f.read(8)) for _ in range(N)]
 
@@ -20,7 +24,7 @@ def leer_output_binario(path):
             t = struct.unpack('f', f.read(4))[0]
             particulas = [struct.unpack('ffff', f.read(16)) for _ in range(N)]
             data.append((t, particulas))
-    return N, masas_radios, data
+    return radio_contenedor, N, masas_radios, data
 
 # ========= INTERPOLACIÓN DE ESTADOS =========
 def generar_frames_interpolados(data, fps=30):
@@ -54,26 +58,26 @@ def generar_frames_interpolados(data, fps=30):
     return frames
 
 # ========= ANIMACION =========
-def animar_interpolado(N, data, L=0.1, obstaculo_radio=0.005, output_file="animacion.mp4"):
+def animar_interpolado(N, data, radio_contenedor):
     interpolados = generar_frames_interpolados(data)
 
     fig, ax = plt.subplots()
-    ax.set_xlim(0, L)
-    ax.set_ylim(0, L)
+    ax.set_xlim(-radio_contenedor, radio_contenedor)
+    ax.set_ylim(-radio_contenedor, radio_contenedor)
     ax.set_aspect('equal')
     ax.set_facecolor('black')
 
     # Borde del recinto circular (con espesor visual)
-# Dibujar el borde del recinto circular
-    borde = plt.Circle((L/2, L/2), L/2, color='white', fill=False, linewidth=2)
+    # Dibujar el borde del recinto circular
+    borde = plt.Circle((0, 0), radio_contenedor, color='white', fill=False, linewidth=0.5)
     ax.add_patch(borde)
 
     # Obstáculo central
-    obstaculo = Circle((L/2, L/2), obstaculo_radio, color='red', fill=True)
-    ax.add_patch(obstaculo)
+    #obstaculo = Circle((L/2, L/2), obstaculo_radio, color='red', fill=True)
+    #ax.add_patch(obstaculo)
 
-# Crear los círculos representando cada partícula con su radio real
-    circulos = [Circle((0, 0), radius=masas_radios[i][1], color='white') for i in range(N)]
+    # Crear los círculos representando cada partícula con su radio real
+    circulos = [Circle((0, 0), radius=masas_radios[i][1], color='white', linewidth=0, fill=True) for i in range(N)]
     for c in circulos:
         ax.add_patch(c)
 
@@ -95,10 +99,8 @@ def animar_interpolado(N, data, L=0.1, obstaculo_radio=0.005, output_file="anima
     plt.close()
 
 # ========= EJECUCION =========
-if __name__ == "__main__":
-    path = "output.sim"  # Cambiar si tu archivo tiene otro nombre
-    if not os.path.exists(path):
-        print(f"Archivo '{path}' no encontrado.")
-    else:
-        N, masas_radios, data = leer_output_binario(path)
-        animar_interpolado(N, data)
+if not os.path.exists(path):
+    print(f"Archivo '{path}' no encontrado.")
+else:
+    radio_contenedor, N, masas_radios, data = leer_output_binario(path)
+    animar_interpolado(N, data, radio_contenedor)

@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using tp2;
 
 namespace tp3_gpu;
 
@@ -10,5 +9,6 @@ class Program
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
         new ParticleSimulationWindow().Run();
+        // new HeadlessSimRunner().Run();
     }
 }

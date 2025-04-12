@@ -1,20 +1,16 @@
-﻿using System;
-using System.ComponentModel;
-using System.Drawing;
-using System.Numerics;
+﻿using System.Numerics;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using SimulationBase;
-using tp3_gpu;
 using TrippyGL;
 using TrippyGL.Utils;
 
-namespace tp2
+namespace tp3_gpu
 {
     class ParticleSimulationWindow : WindowBase
     {
-        private const float SimulationSpeed = 0.03f;
-        const int SimSizeX = 20, SimSizeY = 2;
+        private const float SimulationSpeed = 999f;
+        const int SimSizeX = 20, SimSizeY = 10;
         const int ParticleCount = SimSizeX * SimSizeY;
         const float ParticleMass = 1;
         const float ParticleRadius = 0.0005f;
@@ -48,6 +44,12 @@ namespace tp2
 
         private float simulationTime;
         private float lastStepTime;
+
+        public ParticleSimulationWindow()
+        {
+            Window.FramesPerSecond = 0;
+            Window.VSync = false;
+        }
 
         protected override void OnLoad()
         {
@@ -94,7 +96,7 @@ namespace tp2
                 simulationTime = simulation.NextCollisionTime;
                 lastStepTime = simulation.NextCollisionTime;
                 simulation.Step();
-                Console.WriteLine($"Ran step {simulation.Steps}");
+                Console.WriteLine($"Ran step {simulation.Steps} with time {simulationTime}");
             }
 
             graphicsDevice.Framebuffer = null;

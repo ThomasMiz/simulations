@@ -3,8 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+path = "./bin/Debug/net8.0/output.sim"
+
 def leer_colisiones_bin(path):
     with open(path, 'rb') as f:
+        radio_contenedor = struct.unpack('f', f.read(4))[0]
         N = struct.unpack('i', f.read(4))[0]
         masas_radios = [struct.unpack('ff', f.read(8)) for _ in range(N)]
         datos = []
@@ -17,11 +20,10 @@ def leer_colisiones_bin(path):
             t = struct.unpack('f', f.read(4))[0]
             particulas = [struct.unpack('ffff', f.read(16)) for _ in range(N)]
             datos.append((t, particulas))
-    return N, masas_radios, datos
+    return radio_contenedor, N, masas_radios, datos
 
-def calcular_presion(datos, masas_radios, L=0.1):
-    R = L / 2
-    perimetro = 2 * np.pi * R
+def calcular_presion(radio_contenedor, datos, masas_radios):
+    perimetro = 2 * np.pi * radio_contenedor
     m = masas_radios[0][0]
 
     tiempos = []
@@ -49,23 +51,21 @@ def calcular_presion(datos, masas_radios, L=0.1):
 
     return tiempos, presiones
 
-if __name__ == "__main__":
-    archivo = "output_simulacion.bin"
-    N, masas_radios, datos = leer_colisiones_bin(archivo)
-    tiempos, presiones = calcular_presion(datos, masas_radios)
+radio_contenedor, N, masas_radios, datos = leer_colisiones_bin(path)
+tiempos, presiones = calcular_presion(radio_contenedor, datos, masas_radios)
 
-    df = pd.DataFrame({
-        "Tiempo [s]": tiempos,
-        "Presión [N/m]": presiones
-    })
-    print(df.head(10))
+df = pd.DataFrame({
+    "Tiempo [s]": tiempos,
+    "Presión [N/m]": presiones
+})
+print(df.head(10))
 
-    plt.figure(figsize=(8, 5))
-    plt.plot(tiempos, presiones, color='blue')
-    plt.xlabel("Tiempo [s]")
-    plt.ylabel("Presión instantánea [N/m]")
-    plt.title("Presión sobre el borde del recinto en función del tiempo")
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig("grafico_presion.png")
-    plt.show()
+plt.figure(figsize=(8, 5))
+plt.plot(tiempos, presiones, color='blue')
+plt.xlabel("Tiempo [s]")
+plt.ylabel("Presión instantánea [N/m]")
+plt.title("Presión sobre el borde del recinto en función del tiempo")
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("grafico_presion.png")
+plt.show()

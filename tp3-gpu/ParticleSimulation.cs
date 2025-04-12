@@ -1,5 +1,4 @@
 using System.Numerics;
-using Silk.NET.OpenGL;
 using TrippyGL;
 using BlendingFactor = TrippyGL.BlendingFactor;
 using PrimitiveType = TrippyGL.PrimitiveType;
@@ -128,7 +127,7 @@ public class ParticleSimulation : IDisposable
         simulationCalctimeProgram.Uniforms["constantsSampler"].SetValueTexture(particleConstsBuffer);
         simulationCalctimeProgram.Uniforms["posAndVelSampler"].SetValueTexture(particleVarsBuffers[0].PositionAndVelocity);
         graphicsDevice.DrawArrays(PrimitiveType.TriangleStrip, 0, vertexBuffer.StorageLength);
-        
+
         graphicsDevice.Framebuffer = aggregationBuffer;
         graphicsDevice.SetViewport(0, 0, aggregationBuffer.Width, aggregationBuffer.Height);
 
@@ -185,7 +184,7 @@ public class ParticleSimulation : IDisposable
         SecondsElapsed += TimeToNextCollision;
 
         RecalculateMinTimeToCollision();
-        
+
         // Save state to file
         fileSaver?.Save(Steps, SecondsElapsed, particleVarsBuffers[0]);
 
@@ -197,7 +196,7 @@ public class ParticleSimulation : IDisposable
 
     public void Dispose()
     {
-        fileSaver.Dispose();
+        fileSaver?.Dispose();
         vertexBuffer.Dispose();
         simulationAdvanceProgram.Dispose();
         simulationCalctimeProgram.Dispose();
