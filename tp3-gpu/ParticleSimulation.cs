@@ -146,7 +146,7 @@ public class ParticleSimulation : IDisposable
         if (TimeToNextCollision <= 0)
         {
             Console.WriteLine("Warning: TimeToNextCollision is <= 0: {0}", TimeToNextCollision);
-            TimeToNextCollision = 0.001f;
+            TimeToNextCollision = 0.00000001f;
         }
     }
 
