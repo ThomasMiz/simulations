@@ -7,27 +7,18 @@ using TrippyGL.Utils;
 
 namespace tp3_gpu
 {
-    class ParticleSimulationWindow : WindowBase
+    class AnimatorSimulationWindow : WindowBase
     {
-        private const float SimulationSpeed = 999f;
-        const int SimSizeX = 20, SimSizeY = 10;
-        const int ParticleCount = SimSizeX * SimSizeY;
-        const float ParticleMass = 1;
-        const float ParticleRadius = 0.0005f;
-
-        private const float ContainerRadius = 0.05f;
-        private const float InnerContainerRadius = 0.005f;
-        private readonly Vector2 simulationAreaMin = new Vector2(-ContainerRadius, -ContainerRadius);
-        private readonly Vector2 simulationAreaMax = new Vector2(ContainerRadius, ContainerRadius);
-
+        private readonly float animationSpeed;
+        
+        private readonly SimulationConfig config;
+        
         private Vector2 lastMousePos;
         private float mouseMoveScale;
 
         private Vector2 offset;
         private float scaleExponent;
         private float scale;
-
-        private Random r = new Random();
 
         private ParticleSimulation simulation;
 
@@ -45,8 +36,11 @@ namespace tp3_gpu
         private float simulationTime;
         private float lastStepTime;
 
-        public ParticleSimulationWindow()
+        public AnimatorSimulationWindow(SimulationConfig config, float animationSpeed = 1)
         {
+            this.config = config ?? throw new ArgumentNullException(nameof(config));
+            this.animationSpeed = animationSpeed;
+            
             Window.FramesPerSecond = 0;
             Window.VSync = false;
         }
@@ -63,8 +57,11 @@ namespace tp3_gpu
             circleSubset = new VertexDataBufferSubset<VertexPosition>(circleBuffer, circleVertices);
 
             // Make particle colors buffer
-            particleColorsBuffer = new BufferObject(graphicsDevice, DataBufferSubset.CalculateRequiredSizeInBytes<Color4b>(ParticleCount), BufferUsage.StaticDraw);
-            particleColorsSubset = new VertexDataBufferSubset<Color4b>(particleColorsBuffer);
+            Color4b[] particleColors = new Color4b[config.ParticleCount];
+            for (int i = 0; i < particleColors.Length; i++)
+                particleColors[i] = Color4b.FromHSV(i / (float)particleColors.Length, 1, 1);
+            particleColorsBuffer = new BufferObject(graphicsDevice, DataBufferSubset.CalculateRequiredSizeInBytes<Color4b>((uint)config.ParticleCount), BufferUsage.StaticDraw);
+            particleColorsSubset = new VertexDataBufferSubset<Color4b>(particleColorsBuffer, particleColors);
 
             // Make simulation draw array
             ReadOnlySpan<VertexAttribSource> attribSources =
@@ -82,13 +79,15 @@ namespace tp3_gpu
             primitiveBuffer = new VertexBuffer<VertexColor>(graphicsDevice, (uint)primitiveBatcher.TriangleVertexCapacity, BufferUsage.StreamDraw);
             primitiveProgram = SimpleShaderProgram.Create<VertexColor>(graphicsDevice, 0, 0, true);
 
+            simulation = new ParticleSimulation(graphicsDevice, config);
+
             OnKeyDown(null, Key.R, 0); // Simulation is initialized inside here
             OnKeyDown(null, Key.Home, 0);
         }
 
         protected override void OnRender(double dt)
         {
-            float deltaTime = (float)dt * SimulationSpeed;
+            float deltaTime = (float)dt * animationSpeed;
             simulationTime += deltaTime;
             //while (simulationTime >= simulation.NextCollisionTime)
             if (simulationTime >= simulation.NextCollisionTime)
@@ -108,8 +107,8 @@ namespace tp3_gpu
 
             primitiveBatcher.ClearTriangles();
             primitiveBatcher.ClearLines();
-            primitiveBatcher.AddCirclePrecise(Vector2.Zero, ContainerRadius * 1.25f, Color4b.OrangeRed);
-            primitiveBatcher.AddCirclePrecise(Vector2.Zero, ContainerRadius, new Color4b(64, 64, 64));
+            primitiveBatcher.AddCirclePrecise(Vector2.Zero, config.ContainerRadius * 1.25f, Color4b.OrangeRed);
+            primitiveBatcher.AddCirclePrecise(Vector2.Zero, config.ContainerRadius, new Color4b(64, 64, 64));
             uint minStorage = (uint)Math.Max(primitiveBatcher.TriangleVertexCount, primitiveBatcher.LineVertexCount);
             if (primitiveBuffer.StorageLength < minStorage)
                 primitiveBuffer.RecreateStorage((uint)Math.Max(primitiveBatcher.TriangleVertexCapacity, primitiveBatcher.LineVertexCapacity));
@@ -125,7 +124,7 @@ namespace tp3_gpu
             simulationDrawProgram.Uniforms["constantsSampler"].SetValueTexture(simulation.ParticleConstsTexture);
             simulationDrawProgram.Uniforms["previousPosAndVelSampler"].SetValueTexture(simulation.ParticleVarsBuffers[0].PositionAndVelocity);
             simulationDrawProgram.Uniforms["timeSinceLastStep"].SetValueFloat(simulationTime - lastStepTime);
-            graphicsDevice.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, circleSubset.StorageLength, ParticleCount);
+            graphicsDevice.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, circleSubset.StorageLength, simulation.ParticleCount);
 
             //if (simulation.Steps >= 10)
             //    Window.Close();
@@ -205,7 +204,7 @@ namespace tp3_gpu
                     UpdateTransformMatrix();
                     break;
 
-                case Key.R:
+                /*case Key.R:
                     simulation?.Dispose();
 
                     simulationTime = 0;
@@ -222,18 +221,15 @@ namespace tp3_gpu
                         particleColors[i] = Color4b.FromHSV(i / (float)ParticleCount, 1, 1);
                     }
 
-                    // particleVars[0] = new PositionAndVelocity();
-                    // particleConsts[0] = new ParticleConsts(10, ParticleRadius * 10);
-
                     simulation = new ParticleSimulation(graphicsDevice, SimSizeX, SimSizeY, 3, ContainerRadius, particleConsts, particleVars);
                     particleColorsSubset.SetData(particleColors);
-                    break;
+                    break;*/
             }
         }
 
         private void UpdateTransformMatrix()
         {
-            Matrix4x4 view = Matrix4x4.CreateScale((simulationAreaMax.X - simulationAreaMin.X) / (simulationAreaMax.Y - simulationAreaMin.Y), 1f, 1f) * Matrix4x4.CreateTranslation(offset.X, offset.Y, 0) * Matrix4x4.CreateScale(scale);
+            Matrix4x4 view = Matrix4x4.CreateScale(1f, 1f, 1f) * Matrix4x4.CreateTranslation(offset.X, offset.Y, 0) * Matrix4x4.CreateScale(scale);
             simulationDrawProgram.Uniforms["view"].SetValueMat4(view);
             primitiveProgram.View = view;
         }

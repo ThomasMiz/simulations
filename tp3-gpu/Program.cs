@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Numerics;
 
 namespace tp3_gpu;
 
@@ -8,7 +9,15 @@ class Program
     {
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
-        new ParticleSimulationWindow().Run();
-        // new HeadlessSimRunner().Run();
+        SimulationConfig config = new SimulationConfig()
+            {
+                ContainerRadius = 0.05f,
+                OutputFile = "output.sim",
+            }
+            //.AddSingleParticle(mass: 3.0f, radius: 0.005f, position: Vector2.Zero, velocity: Vector2.Zero)
+            .AddScatteredParticles(count: 200, mass: 1.0f, radius: 0.0005f, speed: 1.0f);
+
+        new AnimatorSimulationWindow(config, 0.05f).Run();
+        // new HeadlessSimulationWindow(config).Run();
     }
 }

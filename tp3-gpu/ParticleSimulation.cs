@@ -42,21 +42,17 @@ public class ParticleSimulation : IDisposable
 
     private static readonly BlendState minBlendState = new BlendState(false, BlendingMode.Min, BlendingFactor.One, BlendingFactor.One);
 
-    private SimulationFileSaver fileSaver;
+    private SimulationFileSaver? fileSaver;
 
-    public ParticleSimulation(GraphicsDevice graphicsDevice, uint sizeX, uint sizeY, uint particleBuffersCount, float containerRadius, ReadOnlySpan<ParticleConsts> particleConsts, ReadOnlySpan<PositionAndVelocity> particleVars)
+    public ParticleSimulation(GraphicsDevice graphicsDevice, SimulationConfig config, uint particleBuffersCount = 2)
     {
-        if (sizeX <= 0) throw new ArgumentOutOfRangeException(nameof(sizeX));
-        if (sizeY <= 0) throw new ArgumentOutOfRangeException(nameof(sizeY));
-        if (particleConsts.Length != sizeX * sizeY) throw new ArgumentException("particleConsts length must match the particle count (sizeX * sizeY)");
-        if (particleVars.Length != sizeX * sizeY) throw new ArgumentException("particleVars length must match the particle count (sizeX * sizeY)");
         if (particleBuffersCount < 2) throw new ArgumentException(nameof(particleBuffersCount) + " must be at least 2");
         if (particleBuffersCount > 16) throw new ArgumentException("not gonna let you kill ur computer", nameof(particleBuffersCount));
-        if (containerRadius <= 0) throw new ArgumentException("Container radius must be greater than 0", nameof(containerRadius));
+        if (config.ContainerRadius <= 0) throw new ArgumentException("Container radius must be greater than 0");
 
-        SizeX = sizeX;
-        SizeY = sizeY;
-        ContainerRadius = containerRadius;
+        SizeX = (uint)config.ParticleCount;
+        SizeY = 1;
+        ContainerRadius = config.ContainerRadius;
         this.graphicsDevice = graphicsDevice;
 
         ReadOnlySpan<VertexPosition> vertexBufferData =
@@ -71,13 +67,13 @@ public class ParticleSimulation : IDisposable
         vertexBuffer = new VertexBuffer<VertexPosition>(graphicsDevice, vertexBufferData, BufferUsage.StaticDraw);
 
         // Create particle constants buffer
-        particleConstsBuffer = new Framebuffer2D(graphicsDevice, sizeX, sizeY, DepthStencilFormat.None, 0, TextureImageFormat.Float2);
+        particleConstsBuffer = new Framebuffer2D(graphicsDevice, SizeX, SizeY, DepthStencilFormat.None, 0, TextureImageFormat.Float2);
         particleConstsBuffer.Texture.SetTextureFilters(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
         particleConstsBuffer.Texture.SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
 
         particleVarsBuffers = new((int)particleBuffersCount);
         for (uint i = 0; i < particleBuffersCount; i++)
-            particleVarsBuffers.Add(new ParticleVarsBuffer(graphicsDevice, sizeX, sizeY));
+            particleVarsBuffers.Add(new ParticleVarsBuffer(graphicsDevice, SizeX, SizeY));
 
         // Create aggregation buffer, vertexarray and program
         aggregationBuffer = new Framebuffer2D(graphicsDevice, 1, 1, DepthStencilFormat.None, 0, TextureImageFormat.Float);
@@ -99,8 +95,8 @@ public class ParticleSimulation : IDisposable
         simulationCalctimeProgram = ShaderProgram.FromFiles<VertexPosition>(graphicsDevice, "data/dum_vs.glsl", "data/sim_fs_calctime.glsl", "vPosition");
 
         // Set particle constants (mass & radius) and variables (position & velocity)
-        particleConstsBuffer.Texture.SetData(particleConsts);
-        particleVarsBuffers[0].PositionAndVelocity.Texture.SetData(particleVars);
+        particleConstsBuffer.Texture.SetData(config.ParticleConstsSpan);
+        particleVarsBuffers[0].PositionAndVelocity.Texture.SetData(config.PositionAndVelocitySpan);
 
         TimeToCollisionAndCollidesWith[] tmpttcacw = new TimeToCollisionAndCollidesWith[ParticleCount];
         Array.Fill(tmpttcacw, new TimeToCollisionAndCollidesWith { TimeToCollision = -100 });
@@ -110,7 +106,7 @@ public class ParticleSimulation : IDisposable
         RecalculateMinTimeToCollision();
 
         // File saver :-)
-        fileSaver = new SimulationFileSaver(containerRadius, particleConsts, "output.sim");
+        fileSaver = config.OutputFile == null ? null : new SimulationFileSaver(ContainerRadius, config.ParticleConstsSpan, config.OutputFile);
         fileSaver?.Save(Steps, SecondsElapsed, particleVarsBuffers[0]);
     }
 
