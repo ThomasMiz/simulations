@@ -3,13 +3,14 @@ using Silk.NET.Input;
 using Silk.NET.Maths;
 using SimulationBase;
 using TrippyGL;
-using TrippyGL.Utils;
 
 namespace tp3_gpu
 {
     class AnimatorSimulationWindow : WindowBase
     {
         private readonly float animationSpeed;
+        private readonly bool autoClose;
+        private bool requestClose = false;
 
         private readonly SimulationConfig config;
 
@@ -36,10 +37,11 @@ namespace tp3_gpu
         private float simulationTime;
         private float lastStepTime;
 
-        public AnimatorSimulationWindow(SimulationConfig config, float animationSpeed = 1)
+        public AnimatorSimulationWindow(SimulationConfig config, float animationSpeed = 1, bool autoClose = false)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.animationSpeed = animationSpeed;
+            this.autoClose = autoClose;
 
             Window.FramesPerSecond = 0;
             Window.VSync = false;
@@ -97,12 +99,26 @@ namespace tp3_gpu
                     simulationTime = simulation.NextCollisionTime;
                     lastStepTime = simulation.NextCollisionTime;
                     simulation.Step();
+                    bool limitReached = false;
                     if (simulation.SecondsElapsed >= config.MaxSimulationTime)
+                    {
                         Console.WriteLine($"Reached time limit of {simulation.SecondsElapsed} after {simulation.Steps} steps");
+                        limitReached = true;
+                    }
                     else if (simulation.Steps >= config.MaxSteps)
+                    {
                         Console.WriteLine($"Reached step limit of {simulation.Steps} after simulating {simulation.SecondsElapsed} seconds");
+                        limitReached = true;
+                    }
                     else if (simulation.Steps % 1000 == 0)
+                    {
                         Console.WriteLine($"Ran step {simulation.Steps} with next collision time {simulation.SecondsElapsed}");
+                    }
+
+                    if (limitReached && autoClose)
+                    {
+                        requestClose = true;
+                    }
                 }
             }
 
@@ -133,9 +149,15 @@ namespace tp3_gpu
             simulationDrawProgram.Uniforms["previousPosAndVelSampler"].SetValueTexture(simulation.ParticleVarsBuffers[0].PositionAndVelocity);
             simulationDrawProgram.Uniforms["timeSinceLastStep"].SetValueFloat(simulationTime - lastStepTime);
             graphicsDevice.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, circleSubset.StorageLength, simulation.ParticleCount);
+        }
 
-            //if (simulation.Steps >= 10)
-            //    Window.Close();
+        protected override void OnUpdate(double dt)
+        {
+            base.OnUpdate(dt);
+            if (requestClose && !Window.IsClosing)
+            {
+                Window.Close();
+            }
         }
 
         protected override void OnResized(Vector2D<int> size)
@@ -161,10 +183,12 @@ namespace tp3_gpu
 
         protected override void OnUnload()
         {
-            circleBuffer.Dispose();
-            particleColorsBuffer.Dispose();
-            simulationDrawArray.Dispose();
             simulationDrawProgram.Dispose();
+            simulationDrawArray.Dispose();
+            circleBuffer.Dispose();
+            primitiveProgram.Dispose();
+            primitiveBuffer.Dispose();
+            particleColorsBuffer.Dispose();
             simulation.Dispose();
         }
 

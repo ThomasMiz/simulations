@@ -1,8 +1,5 @@
-using System.Globalization;
-using System.Numerics;
 using Silk.NET.Maths;
 using SimulationBase;
-using TrippyGL.Utils;
 
 namespace tp3_gpu;
 

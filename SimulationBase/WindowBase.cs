@@ -7,7 +7,7 @@ using TrippyGL;
 
 namespace SimulationBase
 {
-    public abstract class WindowBase
+    public abstract class WindowBase : IDisposable
     {
         /// <summary>This application's <see cref="IWindow"/></summary>
         public IWindow Window { private set; get; }
@@ -275,6 +275,12 @@ namespace SimulationBase
         protected virtual void OnGamepadButtonUp(IGamepad sender, Button button) { }
         protected virtual void OnGamepadThumbstickMoved(IGamepad sender, Thumbstick thumbstick) { }
         protected virtual void OnGamepadTriggerMoved(IGamepad sender, Trigger trigger) { }
+
+        public void Dispose()
+        {
+            InputContext.Dispose();
+            Window.Dispose();
+        }
 
         private void GraphicsDevice_ShaderCompiled(GraphicsDevice sender, in ShaderProgramBuilder programBuilder, bool success)
         {
