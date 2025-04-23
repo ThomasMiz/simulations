@@ -5,10 +5,10 @@ from matplotlib.patches import Circle
 
 from file_loader import SimulationData
 
-path = "../bin/Debug/net8.0/output.sim"
+path = "output.sim"
 output_file = "animacion.mp4"
 
-animation_speed = 0.025 # Velocidad de animación respecto a la simulación
+animation_speed = 1 # Velocidad de animación respecto a la simulación
 animation_fps = 30 # Fotogramas por segundo
 external_clock_period = (1.0 / animation_fps) * animation_speed
 

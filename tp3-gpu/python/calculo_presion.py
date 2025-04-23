@@ -1,71 +1,108 @@
 import struct
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
 
-path = "./bin/Debug/net8.0/output.sim"
+file_path = '../output.sim'
 
-def leer_colisiones_bin(path):
-    with open(path, 'rb') as f:
-        radio_contenedor = struct.unpack('f', f.read(4))[0]
-        N = struct.unpack('i', f.read(4))[0]
-        masas_radios = [struct.unpack('ff', f.read(8)) for _ in range(N)]
-        datos = []
+with open(file_path, 'rb') as f:
+    data = f.read()
 
-        while True:
-            step_bytes = f.read(4)
-            if not step_bytes:
-                break
-            step = struct.unpack('i', step_bytes)[0]
-            t = struct.unpack('f', f.read(4))[0]
-            particulas = [struct.unpack('ffff', f.read(16)) for _ in range(N)]
-            datos.append((t, particulas))
-    return radio_contenedor, N, masas_radios, datos
+offset = 0
 
-def calcular_presion(radio_contenedor, datos, masas_radios):
-    perimetro = 2 * np.pi * radio_contenedor
-    m = masas_radios[0][0]
+# Leer containerRadius (float) y N (uint)
+container_radius = struct.unpack_from('f', data, offset)[0]
+offset += 4
+N = struct.unpack_from('I', data, offset)[0]
+offset += 4
 
-    tiempos = []
-    presiones = []
+# Leer masa y radio de cada partícula
+masas = []
+radios = []
+for _ in range(N):
+    masa, radio = struct.unpack_from('ff', data, offset)
+    masas.append(masa)
+    radios.append(radio)
+    offset += 8
 
-    for i in range(1, len(datos)):
-        t_anterior, estado_anterior = datos[i - 1]
-        t_actual, estado_actual = datos[i]
-        dt = t_actual - t_anterior
-        impulso_total_evento = 0.0
+# Constantes geométricas
+perimetro_ext = 2 * np.pi * container_radius
+perimetro_obs = 2 * np.pi * 0.005
 
-        for j in range(len(estado_actual)):
-            vx0, vy0 = estado_anterior[j][2], estado_anterior[j][3]
-            vx1, vy1 = estado_actual[j][2], estado_actual[j][3]
+# Configuración
+ventana = 0.005  # 0.5 ms
+t_actual = 0.0
 
-            if not np.allclose([vx0, vy0], [vx1, vy1], atol=1e-8):
-                delta_vx = vx1 - vx0
-                delta_vy = vy1 - vy0
-                delta_p = m * np.sqrt(delta_vx**2 + delta_vy**2)
-                impulso_total_evento += delta_p
+tiempos = []
+presion_ext = []
+presion_obs = []
 
-        presion_inst = impulso_total_evento / (dt * perimetro)
-        tiempos.append(t_actual)
-        presiones.append(presion_inst)
+vel_prev = np.zeros((N, 2))
+prev_time = None
+acum_impulso_ext = 0.0
+acum_impulso_obs = 0.0
 
-    return tiempos, presiones
+# Leer los pasos de simulación
+while offset + 8 + 16 * N <= len(data):
+    step, tiempo = struct.unpack_from('If', data, offset)
+    offset += 8
 
-radio_contenedor, N, masas_radios, datos = leer_colisiones_bin(path)
-tiempos, presiones = calcular_presion(radio_contenedor, datos, masas_radios)
+    posiciones = []
+    velocidades = []
+    for i in range(N):
+        px, py, vx, vy = struct.unpack_from('ffff', data, offset)
+        posiciones.append((px, py))
+        velocidades.append((vx, vy))
+        offset += 16
 
-df = pd.DataFrame({
-    "Tiempo [s]": tiempos,
-    "Presión [N/m]": presiones
-})
-print(df.head(10))
+    posiciones = np.array(posiciones)
+    velocidades = np.array(velocidades)
 
-plt.figure(figsize=(8, 5))
-plt.plot(tiempos, presiones, color='blue')
-plt.xlabel("Tiempo [s]")
-plt.ylabel("Presión instantánea [N/m]")
-plt.title("Presión sobre el borde del recinto en función del tiempo")
+    if prev_time is not None:
+        while tiempo >= t_actual + ventana:
+            presion_ext.append(acum_impulso_ext / (ventana * perimetro_ext))
+            presion_obs.append(acum_impulso_obs / (ventana * perimetro_obs))
+            tiempos.append(t_actual + ventana / 2)
+            t_actual += ventana
+            acum_impulso_ext = 0.0
+            acum_impulso_obs = 0.0
+
+        for i in range(N):
+            if np.sign(vel_prev[i][0]) != np.sign(velocidades[i][0]) or np.sign(vel_prev[i][1]) != np.sign(velocidades[i][1]):
+                dist = np.linalg.norm(posiciones[i])
+                if abs(dist - container_radius) < 2 * radios[i]:
+                    v_normal = np.dot(vel_prev[i], posiciones[i] / dist)
+                    acum_impulso_ext += 2 * masas[i] * abs(v_normal)
+                elif abs(dist - 0.005) < 2 * radios[i]:
+                    v_normal = np.dot(vel_prev[i], posiciones[i] / dist)
+                    acum_impulso_obs += 2 * masas[i] * abs(v_normal)
+
+    vel_prev = velocidades.copy()
+    prev_time = tiempo
+
+# Rellenar ventanas pendientes al final
+while len(tiempos) > 0 and t_actual < prev_time:
+    presion_ext.append(acum_impulso_ext / (ventana * perimetro_ext))
+    presion_obs.append(acum_impulso_obs / (ventana * perimetro_obs))
+    tiempos.append(t_actual + ventana / 2)
+    t_actual += ventana
+    acum_impulso_ext = 0.0
+    acum_impulso_obs = 0.0
+
+# Suavizado con promedio móvil (rolling mean)
+def suavizar(lista, ventana=5):
+    return np.convolve(lista, np.ones(ventana)/ventana, mode='same')
+
+presion_ext_suave = suavizar(presion_ext, ventana=5)
+presion_obs_suave = suavizar(presion_obs, ventana=5)
+
+# Graficar
+plt.figure(figsize=(12, 5))
+plt.plot(tiempos, presion_ext_suave, label='Presión Pared')
+plt.plot(tiempos, presion_obs_suave, label='Presión Obstáculo')
+plt.xlabel('Tiempo [s]')
+plt.ylabel('Presión [N/m]')
+plt.title('Presión en función del tiempo (suavizada)')
+plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig("grafico_presion.png")
 plt.show()
