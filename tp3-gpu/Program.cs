@@ -7,6 +7,7 @@ namespace tp3_gpu;
 class Program
 {
     private const float BASICALLY_ZERO = 0.0000000000000001f;
+    private const float VERY_HIGH = 9999999999.99999999999999999999999999f;
 
     static void Main(string[] args)
     {
@@ -44,7 +45,7 @@ class Program
                     MaxSteps = maxSteps,
                     //MaxSimulationTime = 60,
                 }
-                .AddSingleParticle(mass: 3.0f, radius: 0.005f, position: Vector2.Zero, velocity: new Vector2(fixedObstacle ? 0 : BASICALLY_ZERO))
+                .AddSingleParticle(mass: fixedObstacle ? VERY_HIGH : 3.0f, radius: 0.005f, position: Vector2.Zero, velocity: new Vector2(fixedObstacle ? 0 : BASICALLY_ZERO))
                 .AddScatteredParticles(count: 250, mass: 1.0f, radius: 0.0005f, speed: speed);
 
             using WindowBase window = visualize ? new AnimatorSimulationWindow(config, autoClose: i + 1 == runs) : new HeadlessSimulationWindow(config);
