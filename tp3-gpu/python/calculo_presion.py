@@ -2,7 +2,7 @@ import struct
 import numpy as np
 import matplotlib.pyplot as plt
 
-file_path = '../output.sim'
+file_path = '../outputs/output3-fixedobstacle-250particles-vel6-50ksteps.sim'
 
 with open(file_path, 'rb') as f:
     data = f.read()
@@ -29,7 +29,7 @@ perimetro_ext = 2 * np.pi * container_radius
 perimetro_obs = 2 * np.pi * 0.005
 
 # Configuración
-ventana = 0.005  # 0.5 ms
+ventana = 0.01  # 0.5 ms
 t_actual = 0.0
 
 tiempos = []
@@ -88,17 +88,12 @@ while len(tiempos) > 0 and t_actual < prev_time:
     acum_impulso_ext = 0.0
     acum_impulso_obs = 0.0
 
-# Suavizado con promedio móvil (rolling mean)
-def suavizar(lista, ventana=5):
-    return np.convolve(lista, np.ones(ventana)/ventana, mode='same')
 
-presion_ext_suave = suavizar(presion_ext, ventana=5)
-presion_obs_suave = suavizar(presion_obs, ventana=5)
 
 # Graficar
 plt.figure(figsize=(12, 5))
-plt.plot(tiempos, presion_ext_suave, label='Presión Pared')
-plt.plot(tiempos, presion_obs_suave, label='Presión Obstáculo')
+plt.plot(tiempos, presion_ext, label='Presión Pared')
+plt.plot(tiempos, presion_obs, label='Presión Obstáculo')
 plt.xlabel('Tiempo [s]')
 plt.ylabel('Presión [N/m]')
 plt.title('Presión en función del tiempo (suavizada)')
