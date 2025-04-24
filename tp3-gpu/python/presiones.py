@@ -1,9 +1,11 @@
 import struct
 import numpy as np
 import matplotlib.pyplot as plt
-import glob
 
-# Archivos generados para distintas velocidades
+# Parámetros
+ventana = 0.01  # segundos
+
+# Archivos a analizar
 archivos = {
     1: "../outputs/output1-fixedobstacle-250particles-vel1-50ksteps.sim",
     3: "../outputs/output1-fixedobstacle-250particles-vel3-50ksteps.sim",
@@ -11,13 +13,7 @@ archivos = {
     10: "../outputs/output1-fixedobstacle-250particles-vel10-50ksteps.sim"
 }
 
-# Parámetros
-ventana = 0.01  # intervalo de tiempo en segundos
-
-temperaturas = []
-presiones = []
-
-for v0, path in archivos.items():
+def calcular_presion_pared(path):
     with open(path, 'rb') as f:
         data = f.read()
 
@@ -36,12 +32,14 @@ for v0, path in archivos.items():
         offset += 8
 
     perimetro_ext = 2 * np.pi * container_radius
+
     vel_prev = np.zeros((N, 2))
     prev_time = None
     acum_impulso_ext = 0.0
     t_actual = 0.0
-    presion_ext = []
+
     tiempos = []
+    presion_ext = []
 
     while offset + 8 + 16 * N <= len(data):
         step, tiempo = struct.unpack_from('If', data, offset)
@@ -75,23 +73,26 @@ for v0, path in archivos.items():
         vel_prev = velocidades.copy()
         prev_time = tiempo
 
-    # Calcular presión promedio en equilibrio (últimos valores)
-    # Tomar el último 90% de los datos para calcular el promedio
-    cantidad = int(len(presion_ext) * 0.9)
-    if cantidad > 0:
-        promedio = np.mean(presion_ext[-cantidad:])
-        presiones.append(promedio)
-        temperaturas.append(v0 ** 2)  # T ~ v0²
-    else:
-        print(f"[!] No hay suficientes datos en {path}")
+    return tiempos, presion_ext
 
+# Plot
+plt.figure(figsize=(12, 6))
 
-# Graficar P vs T
-plt.figure(figsize=(8, 5))
-plt.plot(temperaturas, presiones, marker='o')
-plt.xlabel('Temperatura relativa (v₀²)')
-plt.ylabel('Presión promedio [N/m]')
-plt.title('Presión promedio vs Temperatura relativa')
+for v0, path in archivos.items():
+    try:
+        tiempos, presiones = calcular_presion_pared(path)
+        if len(presiones) == 0:
+            print(f"[!] No se pudieron calcular presiones para v0={v0}")
+            continue
+
+        plt.plot(tiempos, presiones, label=f'v₀ = {v0}')
+    except FileNotFoundError:
+        print(f"[X] Archivo no encontrado para v0={v0}: {path}")
+
+plt.xlabel('Tiempo [s]')
+plt.ylabel('Presión sobre la pared [N/m]')
+plt.title('Comparación de presión contra la pared para distintas velocidades iniciales')
+plt.legend()
 plt.grid(True)
 plt.tight_layout()
 plt.show()
