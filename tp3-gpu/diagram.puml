@@ -1,0 +1,94 @@
+@startuml
+
+class ParticleConsts {
+    + float Mass
+    + float Radius
+}
+
+class PositionAndVelocity {
+    + Vector2 Position
+    + Vector2 Velocity
+}
+
+class TimeToCollisionAndCollidesWith
+{
+    + float TimeToCollision
+    + Vector2 CollidesWith
+}
+
+class SimulationConfig {
+    + float ContainerRadius
+    + int? RandomSeed
+    + uint? MaxSteps
+    + float? MaxSimulationTime
+    + string? OutputFile
+    - Random r
+    - List<ParticleConsts> particleConsts
+    - List<PositionAndVelocity> particlePosAndVels
+    - bool IntersectsWithExistingParticles(float radius, Vector2 position)
+    - Vector2 GetRandomNonOverlappingPosition(float radius, int retries)
+    + this AddSingleParticle(float mass, float radius, Vector2 position, Vector2 velocity)
+    + this AddScatteredParticles(uint count, float mass, float radius, float speed)
+}
+
+class SimulationFileSaver {
+    + string Filename
+    - StreamWriter stream
+    - PositionAndVelocity[] tmpbuf
+    - void WriteStart(float containerRadius, ReadOnlySpan<ParticleConsts> particleConsts)
+    + void Save(uint step, float time, in ParticleVarsBuffer particleVarsBuffer)
+    + void Dispose()
+}
+
+class ParticleSimulation {
+    + uint Size
+    + float ContainerRadius
+    + uint Steps
+    + float SecondsElapsed
+    + float TimeToNextCollision
+    - GraphicsDevice device
+    - VertexBuffer<VertexPosition> vertexBuffer;
+    - Framebuffer2D particleConstsBuffer;
+    - List<ParticleVarsBuffer> particleVarsBuffers;
+    - Framebuffer2D aggregationBuffer;
+    - VertexArray aggregationVertexArray;
+    - ShaderProgram aggregationProgram;
+    - ShaderProgram simulationAdvanceProgram;
+    - ShaderProgram simulationCalctimeProgram;
+    - BlendState minBlendState
+    - SimulationFileSaver? fileSaver;
+    - void RecalculateMinTimeToCollision()
+    + void Step()
+    + void Dispose()
+}
+
+class ParticleVarsBuffer {
+    + Framebuffer2D PositionAndVelocity
+    + Framebuffer2D TimeToCollisionAndCollidesWith
+}
+
+class HeadlessSimulationWindow
+{
+    - SimulationConfig config
+    - ParticleSimulation simulation
+}
+
+SimulationConfig --> ParticleConsts
+SimulationConfig --> PositionAndVelocity
+
+ParticleSimulation *-- SimulationConfig
+ParticleSimulation *-- SimulationFileSaver
+ParticleSimulation *-- ParticleVarsBuffer
+ParticleSimulation --> ParticleConsts
+ParticleSimulation --> PositionAndVelocity
+
+SimulationFileSaver --> ParticleConsts
+SimulationFileSaver --> PositionAndVelocity
+
+ParticleVarsBuffer --> PositionAndVelocity
+ParticleVarsBuffer --> TimeToCollisionAndCollidesWith
+
+HeadlessSimulationWindow --> SimulationConfig
+HeadlessSimulationWindow --> ParticleSimulation
+
+@enduml
