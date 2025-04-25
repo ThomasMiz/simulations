@@ -73,20 +73,9 @@ class HeadlessSimulationWindow
     - ParticleSimulation simulation
 }
 
-SimulationConfig --> ParticleConsts
-SimulationConfig --> PositionAndVelocity
-
 ParticleSimulation *-- SimulationConfig
 ParticleSimulation *-- SimulationFileSaver
 ParticleSimulation *-- ParticleVarsBuffer
-ParticleSimulation --> ParticleConsts
-ParticleSimulation --> PositionAndVelocity
-
-SimulationFileSaver --> ParticleConsts
-SimulationFileSaver --> PositionAndVelocity
-
-ParticleVarsBuffer --> PositionAndVelocity
-ParticleVarsBuffer --> TimeToCollisionAndCollidesWith
 
 HeadlessSimulationWindow --> SimulationConfig
 HeadlessSimulationWindow --> ParticleSimulation
