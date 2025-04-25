@@ -3,12 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 
+from matplotlib.ticker import StrMethodFormatter
+
 # Archivos generados para distintas velocidades
 archivos = {
-    1: "../outputs/output1-fixedobstacle-250particles-vel1-50ksteps.sim",
-    3: "../outputs/output1-fixedobstacle-250particles-vel3-50ksteps.sim",
-    6: "../outputs/output1-fixedobstacle-250particles-vel6-50ksteps.sim",
-    10: "../outputs/output1-fixedobstacle-250particles-vel10-50ksteps.sim"
+    1: "./outputs-fixedobstacle/output1-fixedobstacle-250particles-vel1-50ksteps.sim",
+    3: "./outputs-fixedobstacle/output1-fixedobstacle-250particles-vel3-50ksteps.sim",
+    6: "./outputs-fixedobstacle/output1-fixedobstacle-250particles-vel6-50ksteps.sim",
+    10: "./outputs-fixedobstacle/output1-fixedobstacle-250particles-vel10-50ksteps.sim"
 }
 
 # Parámetros
@@ -86,12 +88,16 @@ for v0, path in archivos.items():
         print(f"[!] No hay suficientes datos en {path}")
 
 
-# Graficar P vs T
-plt.figure(figsize=(8, 5))
+plt.figure(figsize=(15, 6))
 plt.plot(temperaturas, presiones, marker='o')
-plt.xlabel('Temperatura relativa (v₀²)')
-plt.ylabel('Presión promedio [N/m]')
-plt.title('Presión promedio vs Temperatura relativa')
+
+plt.xlabel('Temperatura relativa [v₀²]', fontsize=20)
+plt.ylabel('Presión promedio [N/m]',    fontsize=20)
+
+plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
+
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
 plt.grid(True)
 plt.tight_layout()
 plt.show()
