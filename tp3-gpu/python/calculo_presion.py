@@ -1,8 +1,9 @@
 import struct
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import ScalarFormatter, StrMethodFormatter
 
-file_path = '../outputs/output3-fixedobstacle-250particles-vel6-50ksteps.sim'
+file_path = './outputs-fixedobstacle/output4-fixedobstacle-250particles-vel10-50ksteps.sim'
 
 with open(file_path, 'rb') as f:
     data = f.read()
@@ -90,14 +91,25 @@ while len(tiempos) > 0 and t_actual < prev_time:
 
 
 
-# Graficar
-plt.figure(figsize=(12, 5))
-plt.plot(tiempos, presion_ext, label='Presión Pared')
-plt.plot(tiempos, presion_obs, label='Presión Obstáculo')
-plt.xlabel('Tiempo [s]')
-plt.ylabel('Presión [N/m]')
-plt.title('Presión en función del tiempo (suavizada)')
-plt.legend()
-plt.grid(True)
+fig, ax = plt.subplots(figsize=(15, 6))
+
+ax.plot(tiempos, presion_ext, label='Presión Pared')
+ax.plot(tiempos, presion_obs, label='Presión Obstáculo')
+
+# desactivar notación científica si la tenías
+ax.ticklabel_format(style='plain', axis='y')
+
+# formateador con separador de miles
+ax.yaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
+
+ax.legend(loc='upper right',
+          fontsize=20)
+
+# etiquetas y estilos
+ax.set_xlabel('Tiempo [s]', fontsize=20)
+ax.set_ylabel('Presión [N/m]', fontsize=20)
+ax.tick_params(axis='both', labelsize=20)
+ax.grid(True)
+
 plt.tight_layout()
 plt.show()
