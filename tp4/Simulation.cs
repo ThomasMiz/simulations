@@ -23,7 +23,7 @@ public abstract class Simulation : IDisposable
 
     private SimulationFileSaver? saver;
 
-    protected Simulation(string integrationType, int stepSaveCount, SimulationConfig config)
+    protected Simulation(string integrationType, int stepSaveCount, string? outputFile, SimulationConfig? config)
     {
         if (stepSaveCount <= 0) throw new ArgumentOutOfRangeException(nameof(stepSaveCount), stepSaveCount, "Must be > 0");
 
@@ -39,9 +39,9 @@ public abstract class Simulation : IDisposable
         States = new List<ParticleState[]>(stepSaveCount);
         States.Add(initialState);
 
-        if (config.OutputFile != null)
+        if (outputFile != null)
         {
-            saver = new SimulationFileSaver(config.OutputFile, IntegrationType, DeltaTime, Consts);
+            saver = new SimulationFileSaver(outputFile, IntegrationType, DeltaTime, Consts);
             saver.AppendState(0, 0, initialState);
         }
     }

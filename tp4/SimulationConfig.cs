@@ -32,7 +32,7 @@ public class SimulationConfig
         return AddParticle(mass, new Vector2(position.Item1, position.Item2), new Vector2(velocity.Item1, velocity.Item2));
     }
 
-    private void checkValidity()
+    private void CheckValidity()
     {
         if (ForceFunction == null) throw new ArgumentNullException(nameof(ForceFunction));
         if (consts.Count == 0) throw new ArgumentOutOfRangeException(nameof(consts), consts.Count, "Must specify at least one particle");
@@ -49,9 +49,25 @@ public class SimulationConfig
         return maxStepsByTime ?? MaxSteps;
     }
 
+    private string? MakeOutputFilename(string integrationType)
+    {
+        if (OutputFile == null) return null;
+
+        return OutputFile
+            .Replace("{type}", integrationType)
+            .Replace("{steps}", CalculateMaxSteps().ToString())
+            .Replace("{count}", consts.Count.ToString());
+    }
+
     public Simulation BuildVerlet()
     {
-        checkValidity();
-        return new VerletSimulation(this);
+        CheckValidity();
+        return new VerletSimulation(MakeOutputFilename(VerletSimulation.TypeName), this);
+    }
+
+    public Simulation BuildBeeman()
+    {
+        CheckValidity();
+        return new BeemanSimulation(MakeOutputFilename(BeemanSimulation.TypeName), this);
     }
 }
