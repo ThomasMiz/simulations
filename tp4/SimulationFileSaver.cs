@@ -6,18 +6,29 @@ public class SimulationFileSaver : IDisposable
 
     private readonly StreamWriter stream;
 
-    public SimulationFileSaver(String filename, ParticleConsts[] particleConsts)
+    public SimulationFileSaver(String filename, String integrationType, float deltaTime, ParticleConsts[] particleConsts)
     {
         Filename = filename;
         stream = File.CreateText(filename);
-        WriteStart(particleConsts);
+        WriteStart(integrationType, deltaTime, particleConsts);
     }
 
-    private void WriteStart(ParticleConsts[] particleConsts)
+    private void WriteStart(String integrationType, float deltaTime, ParticleConsts[] particleConsts)
     {
+        stream.Write("IntegrationType: ");
+        stream.Write(integrationType);
+        stream.Write('\n');
+
+        stream.Write("DeltaTime: ");
+        stream.Write(deltaTime);
+        stream.Write('\n');
+
         stream.Write("Masses: [");
         for (int i = 0; i < particleConsts.Length; i++)
+        {
+            if (i != 0) stream.Write(", ");
             stream.Write(particleConsts[i].Mass);
+        }
         stream.Write("]\n");
     }
 

@@ -8,7 +8,7 @@ public class VerletSimulation : Simulation
     // output always be position+velocity together, the position calculations are always one step ahead.
     private Vector2[] nextStatePositions;
 
-    public VerletSimulation(SimulationConfig config) : base(2, config)
+    public VerletSimulation(SimulationConfig config) : base("Verlet", 2, config)
     {
         nextStatePositions = new Vector2[CurrentState.Length];
         Initialize();

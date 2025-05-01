@@ -2,12 +2,14 @@ namespace tp4;
 
 public abstract class Simulation : IDisposable
 {
+    public string IntegrationType { get; }
+
     public float DeltaTime { get; }
 
     public uint? MaxSteps { get; } = null;
 
     public uint Steps { get; private set; } = 0;
-    public float SecondsElapsed { get; private set; } = 0;
+    public float SecondsElapsed => Steps * DeltaTime;
 
     public ForceFunction ForceFunction { get; }
 
@@ -21,10 +23,11 @@ public abstract class Simulation : IDisposable
 
     private SimulationFileSaver? saver;
 
-    protected Simulation(int stepSaveCount, SimulationConfig config)
+    protected Simulation(string integrationType, int stepSaveCount, SimulationConfig config)
     {
         if (stepSaveCount <= 0) throw new ArgumentOutOfRangeException(nameof(stepSaveCount), stepSaveCount, "Must be > 0");
 
+        IntegrationType = integrationType;
         DeltaTime = config.DeltaTime;
         MaxSteps = config.CalculateMaxSteps();
         ForceFunction = config.ForceFunction ?? throw new ArgumentNullException("config.ForceFunction");
@@ -38,7 +41,7 @@ public abstract class Simulation : IDisposable
 
         if (config.OutputFile != null)
         {
-            saver = new SimulationFileSaver(config.OutputFile, Consts);
+            saver = new SimulationFileSaver(config.OutputFile, IntegrationType, DeltaTime, Consts);
             saver.AppendState(0, 0, initialState);
         }
     }
@@ -46,10 +49,9 @@ public abstract class Simulation : IDisposable
     public void Step()
     {
         StepImpl();
-        
+
         Steps++;
-        SecondsElapsed += DeltaTime;
-        
+
         saver?.AppendState(Steps, SecondsElapsed, CurrentState);
     }
 
