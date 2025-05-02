@@ -45,7 +45,7 @@ public abstract class Simulation : IDisposable
 
         if (outputFile != null)
         {
-            saver = new SimulationFileSaver(outputFile, IntegrationType, DeltaTime, Consts);
+            saver = new SimulationFileSaver(outputFile, config.SaveEverySteps, IntegrationType, DeltaTime, Consts);
             saver.AppendState(0, 0, initialState);
         }
     }
@@ -73,12 +73,11 @@ public abstract class Simulation : IDisposable
         }
 
         Steps++;
-        
+
         ParticleState[] nextState = states[^1];
         states.RemoveAt(states.Count - 1);
         StepImpl(nextState);
         states.Insert(0, nextState);
-
 
         saver?.AppendState(Steps, SecondsElapsed, CurrentState);
     }

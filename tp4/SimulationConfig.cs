@@ -10,6 +10,7 @@ public class SimulationConfig
     public float? MaxSimulationTime { get; set; } = null;
 
     public string? OutputFile { get; set; } = null;
+    public uint SaveEverySteps { get; set; } = 1;
 
     public ForceFunction ForceFunction { get; set; }
 

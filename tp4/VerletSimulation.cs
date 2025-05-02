@@ -35,9 +35,9 @@ public class VerletSimulation : Simulation
                 nextStatePositions[i] = Rails[i]!.getPosition(DeltaTime);
                 continue;
             }
-            
+
             float mass = Consts[i].Mass;
-            Vector2 force = ForceFunction.Apply(currentState, i);
+            Vector2 force = ForceFunction.Apply(Consts, currentState, i);
             prevDummyState[i] = new ParticleState
             {
                 Position = currentState[i].Position - DeltaTime * currentState[i].Velocity + Math2.Square(DeltaTime) / (2 * mass) * force,
@@ -60,14 +60,14 @@ public class VerletSimulation : Simulation
         {
             nextState[i].Position = nextStatePositions[i];
 
-            Vector2 force = ForceFunction.Apply(currentState, i);
+            Vector2 force = ForceFunction.Apply(Consts, currentState, i);
             nextState[i].Velocity = currentState[i].Velocity + force * DeltaTime / Consts[i].Mass; // Predicted velocity, will be overwritten later
         }
 
         for (int i = 0; i < nextState.Length; i++)
         {
             // Calculate r(t + 2dt), which in the next iteration will be r(t + dt)
-            Vector2 force = ForceFunction.Apply(nextState, i); // Force F(t + dt)
+            Vector2 force = ForceFunction.Apply(Consts, nextState, i); // Force F(t + dt)
             nextStatePositions[i] = 2 * nextStatePositions[i] - currentState[i].Position + Math2.Square(DeltaTime) / Consts[i].Mass * force;
 
             // For cases such as the "Oscilador Amortiguado", where the force F(t) depends on the velocity v(t), the

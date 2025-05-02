@@ -22,12 +22,12 @@ public class Gear5Simulation : Simulation
     {
         for (int i = 0; i < predictedVars.Length; i++)
         {
-            predictedVars[i].r0 = ForceFunction.GetDerivative(0, CurrentState, Consts, i);
-            predictedVars[i].r1 = ForceFunction.GetDerivative(1, CurrentState, Consts, i);
-            predictedVars[i].r2 = ForceFunction.GetDerivative(2, CurrentState, Consts, i);
-            predictedVars[i].r3 = ForceFunction.GetDerivative(3, CurrentState, Consts, i);
-            predictedVars[i].r4 = ForceFunction.GetDerivative(4, CurrentState, Consts, i);
-            predictedVars[i].r5 = ForceFunction.GetDerivative(5, CurrentState, Consts, i);
+            predictedVars[i].r0 = ForceFunction.GetDerivative(0, Consts, CurrentState, i);
+            predictedVars[i].r1 = ForceFunction.GetDerivative(1, Consts, CurrentState, i);
+            predictedVars[i].r2 = ForceFunction.GetDerivative(2, Consts, CurrentState, i);
+            predictedVars[i].r3 = ForceFunction.GetDerivative(3, Consts, CurrentState, i);
+            predictedVars[i].r4 = ForceFunction.GetDerivative(4, Consts, CurrentState, i);
+            predictedVars[i].r5 = ForceFunction.GetDerivative(5, Consts, CurrentState, i);
         }
     }
 
@@ -62,7 +62,7 @@ public class Gear5Simulation : Simulation
 
         for (int i = 0; i < nextState.Length; i++)
         {
-            Vector2 force = ForceFunction.Apply(nextState, i);
+            Vector2 force = ForceFunction.Apply(Consts, nextState, i);
             Vector2 a = force / Consts[i].Mass;
 
             Vector2 deltaA = a - predictedVars[i].r2;

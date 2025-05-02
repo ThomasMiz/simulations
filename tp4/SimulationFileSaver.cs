@@ -3,12 +3,14 @@ namespace tp4;
 public class SimulationFileSaver : IDisposable
 {
     public String Filename { get; }
+    public uint SaveEverySteps { get; }
 
     private readonly StreamWriter stream;
 
-    public SimulationFileSaver(String filename, String integrationType, float deltaTime, ParticleConsts[] particleConsts)
+    public SimulationFileSaver(String filename, uint? saveEveryStep, String integrationType, float deltaTime, ParticleConsts[] particleConsts)
     {
         Filename = filename;
+        SaveEverySteps = saveEveryStep ?? 1;
         stream = File.CreateText(filename);
         WriteStart(integrationType, deltaTime, particleConsts);
     }
@@ -29,11 +31,15 @@ public class SimulationFileSaver : IDisposable
             if (i != 0) stream.Write(", ");
             stream.Write(particleConsts[i].Mass);
         }
+
         stream.Write("]\n");
     }
 
     public void AppendState(uint step, float time, ParticleState[] state)
     {
+        if (step % SaveEverySteps != 0)
+            return;
+
         stream.Write('[');
         stream.Write(step);
         stream.Write(' ');

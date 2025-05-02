@@ -36,7 +36,7 @@ public class BeemanSimulation : Simulation
             }
 
             float mass = Consts[i].Mass;
-            Vector2 force = ForceFunction.Apply(currentState, i);
+            Vector2 force = ForceFunction.Apply(Consts, currentState, i);
             prevDummyState[i] = new ParticleState
             {
                 Position = currentState[i].Position - DeltaTime * currentState[i].Velocity + Math2.Square(DeltaTime) / (2 * mass) * force,
@@ -68,8 +68,8 @@ public class BeemanSimulation : Simulation
 
             float mass = Consts[i].Mass;
 
-            Vector2 force_t = ForceFunction.Apply(currentState, i);
-            Vector2 force_t_prev = ForceFunction.Apply(prevState, i);
+            Vector2 force_t = ForceFunction.Apply(Consts, currentState, i);
+            Vector2 force_t_prev = ForceFunction.Apply(Consts, prevState, i);
 
             Vector2 predictedPosition = currentState[i].Position
                                         + DeltaTime * currentState[i].Velocity
@@ -91,9 +91,9 @@ public class BeemanSimulation : Simulation
 
             float mass = Consts[i].Mass;
 
-            Vector2 force_t = ForceFunction.Apply(currentState, i);
-            Vector2 force_t_prev = ForceFunction.Apply(prevState, i);
-            Vector2 force_t_next = ForceFunction.Apply(predictedStates, i);
+            Vector2 force_t = ForceFunction.Apply(Consts, currentState, i);
+            Vector2 force_t_prev = ForceFunction.Apply(Consts, prevState, i);
+            Vector2 force_t_next = ForceFunction.Apply(Consts, predictedStates, i);
 
             nextState[i].Position = predictedStates[i].Position;
             nextState[i].Velocity = currentState[i].Velocity + (1f / 3f * force_t_next + 5f / 6f * force_t - 1f / 6f * force_t_prev) / mass * DeltaTime;
