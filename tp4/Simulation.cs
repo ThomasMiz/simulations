@@ -16,7 +16,9 @@ public abstract class Simulation : IDisposable
     protected ParticleConsts[] Consts { get; }
 
     protected int StepSaveCount { get; }
-    protected List<ParticleState[]> States { get; } // Index 0 is current, higher indexes are older.
+
+    private readonly List<ParticleState[]> states; // Index 0 is current, higher indexes are older.
+    protected IReadOnlyList<ParticleState[]> States => states;
 
     public ParticleState[] CurrentState => States[0];
     public ParticleState[] PreviousState => States[1];
@@ -36,8 +38,8 @@ public abstract class Simulation : IDisposable
         ParticleState[] initialState = config.GetInitialStateArray();
 
         StepSaveCount = stepSaveCount;
-        States = new List<ParticleState[]>(stepSaveCount);
-        States.Add(initialState);
+        states = new List<ParticleState[]>(stepSaveCount);
+        states.Add(initialState);
 
         if (outputFile != null)
         {
@@ -46,14 +48,39 @@ public abstract class Simulation : IDisposable
         }
     }
 
+    private void Initialize()
+    {
+        InitializeImpl();
+
+        while (states.Count < StepSaveCount)
+            states.Add(new ParticleState[Consts.Length]);
+    }
+
+    protected abstract void InitializeImpl();
+
+    protected void AddOlderState(ParticleState[] oldState)
+    {
+        states.Add(oldState);
+    }
+
     public void Step()
     {
-        StepImpl();
+        if (Steps == 0)
+        {
+            Initialize();
+        }
+
+        ParticleState[] nextState = states[^1];
+        states.RemoveAt(states.Count - 1);
+        StepImpl(nextState);
+        states.Insert(0, nextState);
 
         Steps++;
 
         saver?.AppendState(Steps, SecondsElapsed, CurrentState);
     }
+
+    protected abstract void StepImpl(ParticleState[] nextState);
 
     public void RunToEnd()
     {
@@ -73,8 +100,6 @@ public abstract class Simulation : IDisposable
                 Console.WriteLine("Ran {0} steps", Steps);
         }
     }
-
-    protected abstract void StepImpl();
 
     public void Dispose()
     {

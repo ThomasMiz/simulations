@@ -18,7 +18,7 @@ class Program
             DeltaTime = 0.01f,
             MaxSimulationTime = 5,
             OutputFile = "output-{count}-{type}-{steps}steps.txt",
-            ForceFunction = ForceFunctions.OsciladorAmortiguado(k: 10000, y: 100)
+            ForceFunction = new ForceFunctions.OsciladorAmortiguado { K = 10000, Y = 100 }
         }.AddParticle(Mass, position: (1, 0), velocity: (-A * Gamma / (2 * Mass), 0));
 
         using Simulation verlet = config.BuildVerlet();

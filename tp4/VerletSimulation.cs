@@ -13,12 +13,11 @@ public class VerletSimulation : Simulation
     public VerletSimulation(string? outputFile, SimulationConfig? config) : base(TypeName, 2, outputFile, config)
     {
         nextStatePositions = new Vector2[CurrentState.Length];
-        Initialize();
     }
 
-    private void Initialize()
+    protected override void InitializeImpl()
     {
-        ParticleState[] currentState = States[0];
+        ParticleState[] currentState = CurrentState;
         ParticleState[] prevDummyState = new ParticleState[currentState.Length];
 
         for (int i = 0; i < currentState.Length; i++)
@@ -26,7 +25,7 @@ public class VerletSimulation : Simulation
             // Create a "dummy" state previous to the real initial state using simple Euler interpolation
             // This is because the verlet algorithm needs the two previous states to calculate the next
             float mass = Consts[i].Mass;
-            Vector2 force = ForceFunction(currentState, i);
+            Vector2 force = ForceFunction.Apply(currentState, i);
             prevDummyState[i] = new ParticleState
             {
                 Position = currentState[i].Position - DeltaTime * currentState[i].Velocity + Math2.Square(DeltaTime) / (2 * mass) * force,
@@ -37,30 +36,26 @@ public class VerletSimulation : Simulation
             nextStatePositions[i] = 2 * currentState[i].Position - prevDummyState[i].Position + Math2.Square(DeltaTime) / mass * force;
         }
 
-        States.Add(prevDummyState); // Add it last, as the previous state.
+        AddOlderState(prevDummyState); // Add it last, as the previous state.
     }
 
-    protected override void StepImpl()
+    protected override void StepImpl(ParticleState[] nextState)
     {
-        ParticleState[] currentState = States[0]; // State at time = t
-
-        ParticleState[] nextState = States[^1]; // State at time = (t + dt) (what we're calculating)
-        States.RemoveAt(States.Count - 1);
-
-        // Simulation code
+        ParticleState[] currentState = CurrentState; // State at time = t
+        // nextState: State at time = (t + dt) (what we're calculating)
 
         for (int i = 0; i < nextState.Length; i++)
         {
             nextState[i].Position = nextStatePositions[i];
 
-            Vector2 force = ForceFunction(currentState, i);
+            Vector2 force = ForceFunction.Apply(currentState, i);
             nextState[i].Velocity = currentState[i].Velocity + force * DeltaTime / Consts[i].Mass; // Predicted velocity, will be overwritten later
         }
 
         for (int i = 0; i < nextState.Length; i++)
         {
             // Calculate r(t + 2dt), which in the next iteration will be r(t + dt)
-            Vector2 force = ForceFunction(nextState, i); // Force F(t + dt)
+            Vector2 force = ForceFunction.Apply(nextState, i); // Force F(t + dt)
             nextStatePositions[i] = 2 * nextStatePositions[i] - currentState[i].Position + Math2.Square(DeltaTime) / Consts[i].Mass * force;
 
             // For cases such as the "Oscilador Amortiguado", where the force F(t) depends on the velocity v(t), the
@@ -68,7 +63,5 @@ public class VerletSimulation : Simulation
             // To solve this, we use the most recently available positions and velocities: F(t) = f(r(t), v(t-1))
             nextState[i].Velocity = (nextStatePositions[i] - currentState[i].Position) / (2 * DeltaTime);
         }
-
-        States.Insert(0, nextState);
     }
 }
