@@ -4,9 +4,9 @@ import numpy as np
 
 # Map of simulation method names to their corresponding output files
 output_files = {
-    "Verlet": "../bin/Debug/net8.0/output-1-verlet-501steps.txt",
-    "Beeman": "../bin/Debug/net8.0/output-1-beeman-501steps.txt",
-    "Gear5": "../bin/Debug/net8.0/output-1-gear5-501steps.txt"
+    "Verlet": "../bin/Debug/net8.0/output-simple-verlet-501steps.txt",
+    "Beeman": "../bin/Debug/net8.0/output-simple-beeman-501steps.txt",
+    "Gear5": "../bin/Debug/net8.0/output-simple-gear5-501steps.txt"
 }
 
 # Parameters for analytical solution

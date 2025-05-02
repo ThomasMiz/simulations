@@ -24,6 +24,17 @@ public class BeemanSimulation : Simulation
         {
             // Create a "dummy" state previous to the real initial state using simple Euler interpolation
             // This is because the verlet algorithm needs the two previous states to calculate the next
+
+            if (Rails[i] != null)
+            {
+                prevDummyState[i] = new ParticleState
+                {
+                    Position = Rails[i]!.getPosition(-DeltaTime),
+                    Velocity = Rails[i]!.getVelocity(-DeltaTime)
+                };
+                continue;
+            }
+
             float mass = Consts[i].Mass;
             Vector2 force = ForceFunction.Apply(currentState, i);
             prevDummyState[i] = new ParticleState
@@ -45,6 +56,16 @@ public class BeemanSimulation : Simulation
         // Calculate all new positions and predicted velocities
         for (int i = 0; i < nextState.Length; i++)
         {
+            if (Rails[i] != null)
+            {
+                predictedStates[i] = new ParticleState
+                {
+                    Position = Rails[i]!.getPosition(SecondsElapsed),
+                    Velocity = Rails[i]!.getVelocity(SecondsElapsed)
+                };
+                continue;
+            }
+
             float mass = Consts[i].Mass;
 
             Vector2 force_t = ForceFunction.Apply(currentState, i);
@@ -62,6 +83,12 @@ public class BeemanSimulation : Simulation
         // Now calculate the actual new positions and velocities
         for (int i = 0; i < nextState.Length; i++)
         {
+            if (Rails[i] != null)
+            {
+                nextState[i] = predictedStates[i];
+                continue;
+            }
+
             float mass = Consts[i].Mass;
 
             Vector2 force_t = ForceFunction.Apply(currentState, i);

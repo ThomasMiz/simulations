@@ -14,14 +14,17 @@ public class SimulationConfig
     public ForceFunction ForceFunction { get; set; }
 
     private List<ParticleConsts> consts = new();
+    private List<ParticleRail?> rails = new();
     private List<ParticleState> initialState = new();
 
     public ParticleConsts[] GetConstsArray() => consts.ToArray();
+    public ParticleRail?[] GetRailsArray() => rails.ToArray();
     public ParticleState[] GetInitialStateArray() => initialState.ToArray();
 
     public SimulationConfig AddParticle(float mass, Vector2 position, Vector2 velocity)
     {
         consts.Add(new ParticleConsts { Mass = mass });
+        rails.Add(null);
         initialState.Add(new ParticleState { Position = position, Velocity = velocity });
 
         return this;
@@ -30,6 +33,14 @@ public class SimulationConfig
     public SimulationConfig AddParticle(float mass, (float, float) position, (float, float) velocity)
     {
         return AddParticle(mass, new Vector2(position.Item1, position.Item2), new Vector2(velocity.Item1, velocity.Item2));
+    }
+
+    public SimulationConfig AddRailedParticle(float mass, ParticleRail rail)
+    {
+        consts.Add(new ParticleConsts { Mass = mass });
+        rails.Add(rail);
+        initialState.Add(new ParticleState { Position = rail.getPosition(0), Velocity = rail.getVelocity(0) });
+        return this;
     }
 
     private void CheckValidity()

@@ -24,6 +24,18 @@ public class VerletSimulation : Simulation
         {
             // Create a "dummy" state previous to the real initial state using simple Euler interpolation
             // This is because the verlet algorithm needs the two previous states to calculate the next
+
+            if (Rails[i] != null)
+            {
+                prevDummyState[i] = new ParticleState
+                {
+                    Position = Rails[i]!.getPosition(-DeltaTime),
+                    Velocity = Rails[i]!.getVelocity(-DeltaTime)
+                };
+                nextStatePositions[i] = Rails[i]!.getPosition(DeltaTime);
+                continue;
+            }
+            
             float mass = Consts[i].Mass;
             Vector2 force = ForceFunction.Apply(currentState, i);
             prevDummyState[i] = new ParticleState

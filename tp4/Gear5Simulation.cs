@@ -76,6 +76,13 @@ public class Gear5Simulation : Simulation
             predictedVars[i].r4 += gearConstants.a4 * deltaR2 * 24f / Math2.Pow4(DeltaTime);
             predictedVars[i].r5 += gearConstants.a5 * deltaR2 * 120f / Math2.Pow5(DeltaTime);
 
+            if (Rails[i] != null)
+            {
+                predictedVars[i].r0 = Rails[i]!.getPosition(SecondsElapsed);
+                predictedVars[i].r1 = Rails[i]!.getVelocity(SecondsElapsed);
+                continue;
+            }
+
             nextState[i] = new ParticleState { Position = predictedVars[i].r0, Velocity = predictedVars[i].r1 };
         }
     }

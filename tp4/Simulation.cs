@@ -14,6 +14,7 @@ public abstract class Simulation : IDisposable
     public ForceFunction ForceFunction { get; }
 
     protected ParticleConsts[] Consts { get; }
+    protected ParticleRail?[] Rails { get; }
 
     protected int StepSaveCount { get; }
 
@@ -35,6 +36,7 @@ public abstract class Simulation : IDisposable
         ForceFunction = config.ForceFunction ?? throw new ArgumentNullException("config.ForceFunction");
 
         Consts = config.GetConstsArray();
+        Rails = config.GetRailsArray();
         ParticleState[] initialState = config.GetInitialStateArray();
 
         StepSaveCount = stepSaveCount;
@@ -70,12 +72,13 @@ public abstract class Simulation : IDisposable
             Initialize();
         }
 
+        Steps++;
+        
         ParticleState[] nextState = states[^1];
         states.RemoveAt(states.Count - 1);
         StepImpl(nextState);
         states.Insert(0, nextState);
 
-        Steps++;
 
         saver?.AppendState(Steps, SecondsElapsed, CurrentState);
     }
