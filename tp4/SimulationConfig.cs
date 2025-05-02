@@ -4,14 +4,14 @@ namespace tp4;
 
 public class SimulationConfig
 {
-    public float DeltaTime { get; init; }
+    public float DeltaTime { get; set; }
 
-    public uint? MaxSteps { get; init; } = null;
-    public float? MaxSimulationTime { get; init; } = null;
+    public uint? MaxSteps { get; set; } = null;
+    public float? MaxSimulationTime { get; set; } = null;
 
-    public string? OutputFile { get; init; } = null;
+    public string? OutputFile { get; set; } = null;
 
-    public ForceFunction ForceFunction { get; init; }
+    public ForceFunction ForceFunction { get; set; }
 
     private List<ParticleConsts> consts = new();
     private List<ParticleState> initialState = new();
@@ -69,5 +69,11 @@ public class SimulationConfig
     {
         CheckValidity();
         return new BeemanSimulation(MakeOutputFilename(BeemanSimulation.TypeName), this);
+    }
+
+    public Simulation BuildGear5()
+    {
+        CheckValidity();
+        return new Gear5Simulation(MakeOutputFilename(Gear5Simulation.TypeName), this);
     }
 }

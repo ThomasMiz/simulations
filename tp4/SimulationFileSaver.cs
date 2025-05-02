@@ -56,6 +56,7 @@ public class SimulationFileSaver : IDisposable
 
     public void Dispose()
     {
+        Console.WriteLine($"Saved to {Filename}");
         stream.Flush();
         stream.Dispose();
     }

@@ -21,10 +21,21 @@ class Program
             ForceFunction = new ForceFunctions.OsciladorAmortiguado { K = 10000, Y = 100 }
         }.AddParticle(Mass, position: (1, 0), velocity: (-A * Gamma / (2 * Mass), 0));
 
-        using Simulation verlet = config.BuildVerlet();
-        verlet.RunToEnd();
+        using (Simulation verlet = config.BuildVerlet())
+        {
+            verlet.RunToEnd();
+        }
 
-        using Simulation beeman = config.BuildBeeman();
-        beeman.RunToEnd();
+        using (Simulation beeman = config.BuildBeeman())
+        {
+            beeman.RunToEnd();
+        }
+
+        using (Simulation gear5 = config.BuildGear5())
+        {
+            gear5.RunToEnd();
+        }
+
+        Console.WriteLine("Goodbye!");
     }
 }
