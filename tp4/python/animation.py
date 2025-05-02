@@ -53,5 +53,14 @@ ani = animation.FuncAnimation(
     fig, update, frames=num_frames, interval=30, blit=True
 )
 
+# Save as GIF
+#from matplotlib.animation import PillowWriter
+#ani.save("particles.gif", writer=PillowWriter(fps=30))
+
+# Save as MP4
+#from matplotlib.animation import FFMpegWriter
+#ani.save("particles.mp4", writer=FFMpegWriter(fps=30, metadata=dict(artist='el tuki'), bitrate=1800))
+
+# Plot
 plt.tight_layout()
 plt.show()
