@@ -66,7 +66,7 @@ public class Gear5Simulation : Simulation
             Vector2 a = force / Consts[i].Mass;
 
             Vector2 deltaA = a - predictedVars[i].r2;
-            Vector2 deltaR2 = deltaA * Math2.Square(DeltaTime) / 4f;
+            Vector2 deltaR2 = deltaA * Math2.Square(DeltaTime) / 2f;
 
             // Apply corrections
             predictedVars[i].r0 += gearConstants.a0 * deltaR2;
