@@ -14,8 +14,8 @@ class Program
         //RunDaisyChainGravitySystem();
         RunAllDeltaTimes();
         
-        List<Action> runs = [RunSimpleSystems, RunComplexSystem, RunEightLoopGravitySystem, RunDaisyChainGravitySystem];
-        Parallel.ForEach(runs, a => a());
+        //List<Action> runs = [RunSimpleSystems, RunComplexSystem, RunEightLoopGravitySystem, RunDaisyChainGravitySystem];
+        //Parallel.ForEach(runs, a => a());
 
         Console.WriteLine("Goodbye!");
     }
