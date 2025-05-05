@@ -9,15 +9,24 @@ class Program
     {
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
-        RunSimpleSystems();
-        RunComplexSystem();
-        RunEightLoopGravitySystem();
-        RunDaisyChainGravitySystem();
-
+        //RunSimpleSystems(0.01f);
+        //RunComplexSystem();
+        //RunEightLoopGravitySystem();
+        //RunDaisyChainGravitySystem();
+        RunAllDeltaTimes();
+        
         Console.WriteLine("Goodbye!");
     }
-
-    private static void RunSimpleSystems()
+    private static void RunAllDeltaTimes()
+    {
+        double[] deltaTimes = { 1e-6, 1e-5, 1e-4, 1e-3, 1e-2 };
+        foreach (float dt in deltaTimes)
+        {
+            RunSimpleSystems(dt);
+        }
+    }
+    
+    private static void RunSimpleSystems(double deltaTime)
     {
         // All mass units are in kg, all time units are in seconds
         const double A = 1;
@@ -27,9 +36,9 @@ class Program
 
         var config = new SimulationConfig
         {
-            DeltaTime = 0.01,
+            DeltaTime = deltaTime,
             MaxSimulationTime = 5,
-            OutputFile = "simple-{type}-{steps}steps.txt",
+            OutputFile = $"output-simple-{{type}}-{{steps}}steps-dt{deltaTime:e0}.txt",
             ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: K, y: Gamma)
         }.AddParticle(mass: Mass, position: (1, 0), velocity: (-A * Gamma / (2 * Mass), 0));
 
