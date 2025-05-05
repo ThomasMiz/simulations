@@ -11,8 +11,8 @@ class Program
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
         RunSimpleSystems();
-        // RunComplexSystem();
-        // RunEightLoopGravitySystem();
+        RunComplexSystem();
+        RunEightLoopGravitySystem();
         RunDaisyChainGravitySystem();
 
         Console.WriteLine("Goodbye!");
@@ -30,7 +30,7 @@ class Program
         {
             DeltaTime = 0.01f,
             MaxSimulationTime = 5,
-            OutputFile = "output-simple-{type}-{steps}steps.txt",
+            OutputFile = "simple-{type}-{steps}steps.txt",
             ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: K, y: Gamma),
         }.AddParticle(Mass, position: (1, 0), velocity: (-A * Gamma / (2 * Mass), 0));
 
@@ -54,7 +54,7 @@ class Program
     {
         // All mass units are in kg, all time units are in seconds
         const float m = 0.00021f;
-        const float k = 0.1023f;
+        const float k = 0.1023f; // NOTE: unit in kg/s2 is "corrected" interpreted as g/s2
         const float gamma = 0.0003f;
         const float A = 0.01f;
         const float l0 = 0.001f;
@@ -64,8 +64,8 @@ class Program
         var config = new SimulationConfig()
         {
             DeltaTime = 0.01f,
-            MaxSimulationTime = 5,
-            OutputFile = "output-N{count}-{type}-{steps}steps.txt",
+            MaxSimulationTime = 10,
+            OutputFile = "complex-N{count}-{type}-{steps}steps.txt",
             ForceFunction = new ForceFunctions.OsciladoresAcoplados(k: k, y: gamma),
         };
 

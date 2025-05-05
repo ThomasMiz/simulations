@@ -58,6 +58,16 @@ public class VerletSimulation : Simulation
 
         for (int i = 0; i < nextState.Length; i++)
         {
+            if (Rails[i] != null)
+            {
+                nextState[i] = new ParticleState
+                {
+                    Position = Rails[i]!.getPosition(SecondsElapsed),
+                    Velocity = Rails[i]!.getVelocity(SecondsElapsed)
+                };
+                continue;
+            }
+
             nextState[i].Position = nextStatePositions[i];
 
             Vector2 force = ForceFunction.Apply(Consts, currentState, i);
@@ -66,6 +76,11 @@ public class VerletSimulation : Simulation
 
         for (int i = 0; i < nextState.Length; i++)
         {
+            if (Rails[i] != null)
+            {
+                continue;
+            }
+
             // Calculate r(t + 2dt), which in the next iteration will be r(t + dt)
             Vector2 force = ForceFunction.Apply(Consts, nextState, i); // Force F(t + dt)
             nextStatePositions[i] = 2 * nextStatePositions[i] - currentState[i].Position + Math2.Square(DeltaTime) / Consts[i].Mass * force;
