@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using TrippyGL.Utils;
 
 namespace tp4;
 
@@ -15,6 +14,9 @@ class Program
         //RunDaisyChainGravitySystem();
         RunAllDeltaTimes();
         
+        List<Action> runs = [RunSimpleSystems, RunComplexSystem, RunEightLoopGravitySystem, RunDaisyChainGravitySystem];
+        Parallel.ForEach(runs, a => a());
+
         Console.WriteLine("Goodbye!");
     }
     private static void RunAllDeltaTimes()
@@ -42,37 +44,44 @@ class Program
             ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: K, y: Gamma)
         }.AddParticle(mass: Mass, position: (1, 0), velocity: (-A * Gamma / (2 * Mass), 0));
 
-        using (Simulation verlet = config.BuildVerlet())
-        {
-            verlet.RunToEnd();
-        }
+        List<Action> runs =
+        [
+            () =>
+            {
+                using Simulation verlet = config.BuildVerlet();
+                verlet.RunToEnd();
+            },
+            () =>
+            {
+                using Simulation beeman = config.BuildBeeman();
+                beeman.RunToEnd();
+            },
+            () =>
+            {
+                using Simulation gear5 = config.BuildGear5();
+                gear5.RunToEnd();
+            },
+        ];
 
-        using (Simulation beeman = config.BuildBeeman())
-        {
-            beeman.RunToEnd();
-        }
-
-        using (Simulation gear5 = config.BuildGear5())
-        {
-            gear5.RunToEnd();
-        }
+        Parallel.ForEach(runs, a => a());
     }
 
     private static void RunComplexSystem()
     {
         // All mass units are in kg, all time units are in seconds
         const double m = 0.00021;
-        const double k = 0.1023; // NOTE: unit in kg/s2 is "corrected" interpreted as g/s2
+        const double k = 102.3; // NOTE: unit in kg/s2 is "corrected" interpreted as g/s2
         const double gamma = 0.0003;
         const double A = 0.01;
         const double l0 = 0.001;
-        const double w = TrippyMath.TwoPI;
+        const double w = Math.PI * 2;
         const int N = 1000;
 
         var config = new SimulationConfig
         {
-            DeltaTime = 0.01,
-            MaxSimulationTime = 10,
+            DeltaTime = 0.001,
+            MaxSimulationTime = 5,
+            SaveEverySteps = 10,
             OutputFile = "complex-N{count}-{type}-{steps}steps.txt",
             ForceFunction = new ForceFunctions.OsciladoresAcoplados(k: k, y: gamma)
         };
@@ -81,20 +90,26 @@ class Program
         for (int i = 1; i < N; i++)
             config.AddParticle(mass: m, position: (l0 * i, 0), velocity: (0, 0));
 
-        using (Simulation verlet = config.BuildVerlet())
-        {
-            verlet.RunToEnd();
-        }
+        List<Action> runs =
+        [
+            () =>
+            {
+                using Simulation verlet = config.BuildVerlet();
+                verlet.RunToEnd();
+            },
+            () =>
+            {
+                using Simulation beeman = config.BuildBeeman();
+                beeman.RunToEnd();
+            },
+            () =>
+            {
+                using Simulation gear5 = config.BuildGear5();
+                gear5.RunToEnd();
+            },
+        ];
 
-        using (Simulation beeman = config.BuildBeeman())
-        {
-            beeman.RunToEnd();
-        }
-
-        using (Simulation gear5 = config.BuildGear5())
-        {
-            gear5.RunToEnd();
-        }
+        Parallel.ForEach(runs, a => a());
     }
 
     private static void RunEightLoopGravitySystem()

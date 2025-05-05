@@ -23,12 +23,12 @@ public static class ParticleRails
 
         public override Vector2D<double> getPosition(double time)
         {
-            return new Vector2D<double>(0, A * Math.Cos(W * time));
+            return new Vector2D<double>(0, A * Math.Sin(W * time));
         }
 
         public override Vector2D<double> getVelocity(double time)
         {
-            return new Vector2D<double>(0, -A * W * Math.Sin(W * time));
+            return new Vector2D<double>(0, A * W * Math.Cos(W * time));
         }
     }
 }

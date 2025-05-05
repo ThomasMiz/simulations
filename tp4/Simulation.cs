@@ -92,6 +92,18 @@ public abstract class Simulation : IDisposable
         {
             Step();
 
+            bool badFloatDetected = false;
+            for (int i = 0; !badFloatDetected && i < CurrentState.Length; i++)
+            {
+                badFloatDetected = !double.IsFinite(CurrentState[i].Position.X) || !double.IsFinite(CurrentState[i].Position.Y) || !double.IsFinite(CurrentState[i].Velocity.X) || !double.IsFinite(CurrentState[i].Velocity.Y);
+            }
+
+            if (badFloatDetected)
+            {
+                Console.WriteLine("WARNING! NaN or infinite value detected, stopping simulation after {0} steps", Steps);
+                break;
+            }
+
             if (MaxSteps.HasValue && Steps >= MaxSteps)
             {
                 Console.WriteLine("Stopping simulation after {0} steps and {1} seconds; limit reached", Steps, SecondsElapsed);
