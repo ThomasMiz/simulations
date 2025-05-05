@@ -8,11 +8,6 @@ class Program
     {
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
-        RunSimpleSystems();
-        RunComplexSystem();
-        RunEightLoopGravitySystem();
-        RunDaisyChainGravitySystem();
-
         List<Action> runs = [RunSimpleSystems, RunComplexSystem, RunEightLoopGravitySystem, RunDaisyChainGravitySystem];
         Parallel.ForEach(runs, a => a());
 
