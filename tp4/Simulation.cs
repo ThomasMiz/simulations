@@ -4,12 +4,12 @@ public abstract class Simulation : IDisposable
 {
     public string IntegrationType { get; }
 
-    public float DeltaTime { get; }
+    public double DeltaTime { get; }
 
     public uint? MaxSteps { get; } = null;
 
     public uint Steps { get; private set; } = 0;
-    public float SecondsElapsed => Steps * DeltaTime;
+    public double SecondsElapsed => Steps * DeltaTime;
 
     public ForceFunction ForceFunction { get; }
 

@@ -1,11 +1,11 @@
-using System.Numerics;
+using Silk.NET.Maths;
 
 namespace tp4;
 
 public struct ParticleState
 {
-    public Vector2 Position { get; set; }
-    public Vector2 Velocity { get; set; }
+    public Vector2D<double> Position { get; set; }
+    public Vector2D<double> Velocity { get; set; }
 
     public override string ToString()
     {

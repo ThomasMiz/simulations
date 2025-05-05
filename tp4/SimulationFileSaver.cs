@@ -2,12 +2,9 @@ namespace tp4;
 
 public class SimulationFileSaver : IDisposable
 {
-    public String Filename { get; }
-    public uint SaveEverySteps { get; }
-
     private readonly StreamWriter stream;
 
-    public SimulationFileSaver(String filename, uint? saveEveryStep, String integrationType, float deltaTime, ParticleConsts[] particleConsts)
+    public SimulationFileSaver(string filename, uint? saveEveryStep, string integrationType, double deltaTime, ParticleConsts[] particleConsts)
     {
         Filename = filename;
         SaveEverySteps = saveEveryStep ?? 1;
@@ -15,7 +12,17 @@ public class SimulationFileSaver : IDisposable
         WriteStart(integrationType, deltaTime, particleConsts);
     }
 
-    private void WriteStart(String integrationType, float deltaTime, ParticleConsts[] particleConsts)
+    public string Filename { get; }
+    public uint SaveEverySteps { get; }
+
+    public void Dispose()
+    {
+        Console.WriteLine($"Saved to {Filename}");
+        stream.Flush();
+        stream.Dispose();
+    }
+
+    private void WriteStart(string integrationType, double deltaTime, ParticleConsts[] particleConsts)
     {
         stream.Write("IntegrationType: ");
         stream.Write(integrationType);
@@ -35,7 +42,7 @@ public class SimulationFileSaver : IDisposable
         stream.Write("]\n");
     }
 
-    public void AppendState(uint step, float time, ParticleState[] state)
+    public void AppendState(uint step, double time, ParticleState[] state)
     {
         if (step % SaveEverySteps != 0)
             return;
@@ -58,12 +65,5 @@ public class SimulationFileSaver : IDisposable
         }
 
         stream.Write('\n');
-    }
-
-    public void Dispose()
-    {
-        Console.WriteLine($"Saved to {Filename}");
-        stream.Flush();
-        stream.Dispose();
     }
 }

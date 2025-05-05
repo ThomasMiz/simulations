@@ -1,28 +1,38 @@
-using System.Numerics;
+using Silk.NET.Maths;
 
 namespace tp4;
 
 public class SimulationConfig
 {
-    public float DeltaTime { get; set; }
+    private readonly List<ParticleConsts> consts = new();
+    private readonly List<ParticleState> initialState = new();
+    private readonly List<ParticleRail?> rails = new();
+    public double DeltaTime { get; set; }
 
     public uint? MaxSteps { get; set; } = null;
-    public float? MaxSimulationTime { get; set; } = null;
+    public double? MaxSimulationTime { get; set; } = null;
 
     public string? OutputFile { get; set; } = null;
     public uint SaveEverySteps { get; set; } = 1;
 
     public ForceFunction ForceFunction { get; set; }
 
-    private List<ParticleConsts> consts = new();
-    private List<ParticleRail?> rails = new();
-    private List<ParticleState> initialState = new();
+    public ParticleConsts[] GetConstsArray()
+    {
+        return consts.ToArray();
+    }
 
-    public ParticleConsts[] GetConstsArray() => consts.ToArray();
-    public ParticleRail?[] GetRailsArray() => rails.ToArray();
-    public ParticleState[] GetInitialStateArray() => initialState.ToArray();
+    public ParticleRail?[] GetRailsArray()
+    {
+        return rails.ToArray();
+    }
 
-    public SimulationConfig AddParticle(float mass, Vector2 position, Vector2 velocity)
+    public ParticleState[] GetInitialStateArray()
+    {
+        return initialState.ToArray();
+    }
+
+    public SimulationConfig AddParticle(double mass, Vector2D<double> position, Vector2D<double> velocity)
     {
         consts.Add(new ParticleConsts { Mass = mass });
         rails.Add(null);
@@ -31,12 +41,12 @@ public class SimulationConfig
         return this;
     }
 
-    public SimulationConfig AddParticle(float mass, (float, float) position, (float, float) velocity)
+    public SimulationConfig AddParticle(double mass, (double, double) position, (double, double) velocity)
     {
-        return AddParticle(mass, new Vector2(position.Item1, position.Item2), new Vector2(velocity.Item1, velocity.Item2));
+        return AddParticle(mass, new Vector2D<double>(position.Item1, position.Item2), new Vector2D<double>(velocity.Item1, velocity.Item2));
     }
 
-    public SimulationConfig AddRailedParticle(float mass, ParticleRail rail)
+    public SimulationConfig AddRailedParticle(double mass, ParticleRail rail)
     {
         consts.Add(new ParticleConsts { Mass = mass });
         rails.Add(rail);
@@ -55,7 +65,7 @@ public class SimulationConfig
 
     public uint? CalculateMaxSteps()
     {
-        uint? maxStepsByTime = MaxSimulationTime == null ? null : (uint)Math.Ceiling(MaxSimulationTime.Value / (double)DeltaTime);
+        uint? maxStepsByTime = MaxSimulationTime == null ? null : (uint)Math.Ceiling(MaxSimulationTime.Value / DeltaTime);
 
         if (maxStepsByTime != null && MaxSteps != null) return Math.Min(maxStepsByTime.Value, MaxSteps.Value);
         return maxStepsByTime ?? MaxSteps;

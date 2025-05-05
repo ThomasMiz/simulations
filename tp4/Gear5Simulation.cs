@@ -1,4 +1,4 @@
-using System.Numerics;
+using Silk.NET.Maths;
 
 namespace tp4;
 
@@ -6,11 +6,11 @@ public class Gear5Simulation : Simulation
 {
     public const string TypeName = "gear5";
 
+    private readonly GearConstants gearConstants;
+
     // Verlet requires the positions of the next step to calculate the velocity of the current step, so to make the
     // output always be position+velocity together, the position calculations are always one step ahead.
-    private PredictedVars[] predictedVars;
-
-    private readonly GearConstants gearConstants;
+    private readonly PredictedVars[] predictedVars;
 
     public Gear5Simulation(string? outputFile, SimulationConfig config) : base(TypeName, 1, outputFile, config)
     {
@@ -62,11 +62,11 @@ public class Gear5Simulation : Simulation
 
         for (int i = 0; i < nextState.Length; i++)
         {
-            Vector2 force = ForceFunction.Apply(Consts, nextState, i);
-            Vector2 a = force / Consts[i].Mass;
+            Vector2D<double> force = ForceFunction.Apply(Consts, nextState, i);
+            Vector2D<double> a = force / Consts[i].Mass;
 
-            Vector2 deltaA = a - predictedVars[i].r2;
-            Vector2 deltaR2 = deltaA * Math2.Square(DeltaTime) / 2f;
+            Vector2D<double> deltaA = a - predictedVars[i].r2;
+            Vector2D<double> deltaR2 = deltaA * Math2.Square(DeltaTime) / 2f;
 
             // Apply corrections
             predictedVars[i].r0 += gearConstants.a0 * deltaR2;
@@ -87,9 +87,9 @@ public class Gear5Simulation : Simulation
         }
     }
 
-    struct PredictedVars
+    private struct PredictedVars
     {
-        public Vector2 r0, r1, r2, r3, r4, r5;
+        public Vector2D<double> r0, r1, r2, r3, r4, r5;
 
         public override string ToString()
         {

@@ -2,14 +2,14 @@ namespace tp4;
 
 public struct GearConstants
 {
-    public float a0 { get; }
-    public float a1 { get; }
-    public float a2 { get; }
-    public float a3 { get; }
-    public float a4 { get; }
-    public float a5 { get; }
+    public double a0 { get; }
+    public double a1 { get; }
+    public double a2 { get; }
+    public double a3 { get; }
+    public double a4 { get; }
+    public double a5 { get; }
 
-    public GearConstants(float a0, float a1, float a2, float a3, float a4, float a5)
+    public GearConstants(double a0, double a1, double a2, double a3, double a4, double a5)
     {
         this.a0 = a0;
         this.a1 = a1;
@@ -19,7 +19,7 @@ public struct GearConstants
         this.a5 = a5;
     }
 
-    public static readonly GearConstants PositionDependentForces = new(3f / 20f, 251f / 360f, 1, 11f / 18f, 1f / 6f, 1f / 60f);
+    public static readonly GearConstants PositionDependentForces = new(3.0 / 20.0, 251.0 / 360.0, 1, 11.0 / 18.0, 1.0 / 6.0, 1.0 / 60.0);
 
-    public static readonly GearConstants PositionAndVelocityDependentForces = new(3f / 16f, 251f / 360f, 1, 11f / 18f, 1f / 6f, 1f / 60f);
+    public static readonly GearConstants PositionAndVelocityDependentForces = new(3.0 / 16.0, 251.0 / 360.0, 1, 11.0 / 18.0, 1.0 / 6.0, 1.0 / 60.0);
 }

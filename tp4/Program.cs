@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Numerics;
 using TrippyGL.Utils;
 
 namespace tp4;
@@ -21,18 +20,18 @@ class Program
     private static void RunSimpleSystems()
     {
         // All mass units are in kg, all time units are in seconds
-        const float A = 1f;
-        const float Mass = 70f;
-        const float K = 10000f;
-        const float Gamma = 100;
+        const double A = 1;
+        const double Mass = 70;
+        const double K = 10000;
+        const double Gamma = 100;
 
-        var config = new SimulationConfig()
+        var config = new SimulationConfig
         {
-            DeltaTime = 0.01f,
+            DeltaTime = 0.01,
             MaxSimulationTime = 5,
             OutputFile = "simple-{type}-{steps}steps.txt",
-            ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: K, y: Gamma),
-        }.AddParticle(Mass, position: (1, 0), velocity: (-A * Gamma / (2 * Mass), 0));
+            ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: K, y: Gamma)
+        }.AddParticle(mass: Mass, position: (1, 0), velocity: (-A * Gamma / (2 * Mass), 0));
 
         using (Simulation verlet = config.BuildVerlet())
         {
@@ -53,20 +52,20 @@ class Program
     private static void RunComplexSystem()
     {
         // All mass units are in kg, all time units are in seconds
-        const float m = 0.00021f;
-        const float k = 0.1023f; // NOTE: unit in kg/s2 is "corrected" interpreted as g/s2
-        const float gamma = 0.0003f;
-        const float A = 0.01f;
-        const float l0 = 0.001f;
-        const float w = TrippyMath.TwoPI;
+        const double m = 0.00021;
+        const double k = 0.1023; // NOTE: unit in kg/s2 is "corrected" interpreted as g/s2
+        const double gamma = 0.0003;
+        const double A = 0.01;
+        const double l0 = 0.001;
+        const double w = TrippyMath.TwoPI;
         const int N = 1000;
 
-        var config = new SimulationConfig()
+        var config = new SimulationConfig
         {
-            DeltaTime = 0.01f,
+            DeltaTime = 0.01,
             MaxSimulationTime = 10,
             OutputFile = "complex-N{count}-{type}-{steps}steps.txt",
-            ForceFunction = new ForceFunctions.OsciladoresAcoplados(k: k, y: gamma),
+            ForceFunction = new ForceFunctions.OsciladoresAcoplados(k: k, y: gamma)
         };
 
         config.AddRailedParticle(mass: m, rail: new ParticleRails.OscillatorRail(a: A, w: w));
@@ -91,18 +90,18 @@ class Program
 
     private static void RunEightLoopGravitySystem()
     {
-        var config = new SimulationConfig()
+        var config = new SimulationConfig
         {
-            DeltaTime = 0.001f,
+            DeltaTime = 0.001,
             MaxSimulationTime = 5,
             SaveEverySteps = 10,
             OutputFile = "gravityeightloop-N{count}-{type}-{steps}steps.txt",
-            ForceFunction = new ForceFunctions.Gravity(g: 1),
+            ForceFunction = new ForceFunctions.Gravity(g: 1)
         };
 
-        config.AddParticle(mass: 1, position: (0.97000436f, -0.24308753f), velocity: (0.4662036850f, 0.4323657300f));
-        config.AddParticle(mass: 1, position: (-0.97000436f, 0.24308753f), velocity: (0.4662036850f, 0.4323657300f));
-        config.AddParticle(mass: 1, position: (0, 0), velocity: (-0.93240737f, -0.86473146f));
+        config.AddParticle(mass: 1, position: (0.97000436, -0.24308753), velocity: (0.4662036850, 0.4323657300));
+        config.AddParticle(mass: 1, position: (-0.97000436, 0.24308753), velocity: (0.4662036850, 0.4323657300));
+        config.AddParticle(mass: 1, position: (0, 0), velocity: (-0.93240737, -0.86473146));
 
         using (Simulation sim = config.BuildBeeman())
         {
@@ -112,25 +111,25 @@ class Program
 
     private static void RunDaisyChainGravitySystem()
     {
-        var config = new SimulationConfig()
+        var config = new SimulationConfig
         {
-            DeltaTime = 0.001f,
+            DeltaTime = 0.001,
             MaxSimulationTime = 9,
             SaveEverySteps = 10,
             OutputFile = "gravitydaisychain-N{count}-{type}-{steps}steps.txt",
-            ForceFunction = new ForceFunctions.Gravity(g: 1),
+            ForceFunction = new ForceFunctions.Gravity(g: 1)
         };
 
         const int N = 5;
-        const float R = 1;
-        const float S = 1.2f;
+        const double R = 1;
+        const double S = 1.2;
 
         for (int i = 0; i < N; i++)
         {
             config.AddParticle(
                 mass: 1,
-                position: (R * MathF.Cos(2 * MathF.PI * i / N), R * MathF.Sin(2 * MathF.PI * i / N)),
-                velocity: (-S * MathF.Sin(2 * MathF.PI * i / N), S * MathF.Cos(2 * MathF.PI * i / N))
+                position: (R * Math.Cos(2 * Math.PI * i / N), R * Math.Sin(2 * Math.PI * i / N)),
+                velocity: (-S * Math.Sin(2 * Math.PI * i / N), S * Math.Cos(2 * Math.PI * i / N))
             );
         }
 

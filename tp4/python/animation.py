@@ -4,7 +4,7 @@ from matplotlib.patches import Circle
 from file_loader import parse_simulation_file
 
 # === Configuration ===
-FILE_PATH = "../bin/Debug/net8.0/complex-N1000-verlet-1001steps.txt"
+FILE_PATH = "../bin/Debug/net8.0/complex-N200-verlet-1001steps.txt"
 PARTICLE_RADIUS = 0.0005  # Adjust as needed
 
 # === Load simulation data ===
@@ -57,8 +57,8 @@ ani = animation.FuncAnimation(
 #ani.save("particles.gif", writer=PillowWriter(fps=30))
 
 # Save as MP4
-#from matplotlib.animation import FFMpegWriter
-#ani.save("particles.mp4", writer=FFMpegWriter(fps=30, metadata=dict(artist='el tuki'), bitrate=1800))
+from matplotlib.animation import FFMpegWriter
+ani.save("particles.mp4", writer=FFMpegWriter(fps=30, metadata=dict(artist='el tuki'), bitrate=1800))
 
 # Plot
 plt.tight_layout()
