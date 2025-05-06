@@ -21,25 +21,25 @@ def analytical_position(t):
 # Archivos por método
 methods_files = {
     "Verlet": {
-        "output-simple-verlet-500steps-dt1e-002.txt": 1e-2,
+        "output-simple-verlet-501steps-dt1e-002.txt": 1e-2,
         "output-simple-verlet-5000steps-dt1e-003.txt": 1e-3,
-        "output-simple-verlet-50000steps-dt1e-004.txt": 1e-4,
-        "output-simple-verlet-500000steps-dt1e-005.txt": 1e-5,
-        "output-simple-verlet-5000000steps-dt1e-006.txt": 1e-6,
+        "output-simple-verlet-50001steps-dt1e-004.txt": 1e-4,
+        "output-simple-verlet-500001steps-dt1e-005.txt": 1e-5,
+        "output-simple-verlet-5000001steps-dt1e-006.txt": 1e-6,
     },
     "Beeman": {
-        "output-simple-beeman-500steps-dt1e-002.txt": 1e-2,
+        "output-simple-beeman-501steps-dt1e-002.txt": 1e-2,
         "output-simple-beeman-5000steps-dt1e-003.txt": 1e-3,
-        "output-simple-beeman-50000steps-dt1e-004.txt": 1e-4,
-        "output-simple-beeman-500000steps-dt1e-005.txt": 1e-5,
-        "output-simple-beeman-5000000steps-dt1e-006.txt": 1e-6,
+        "output-simple-beeman-50001steps-dt1e-004.txt": 1e-4,
+        "output-simple-beeman-500001steps-dt1e-005.txt": 1e-5,
+        "output-simple-beeman-5000001steps-dt1e-006.txt": 1e-6,
     },
     "Gear Corrector Predictor": {
-        "output-simple-gear5-500steps-dt1e-002.txt": 1e-2,
+        "output-simple-gear5-501steps-dt1e-002.txt": 1e-2,
         "output-simple-gear5-5000steps-dt1e-003.txt": 1e-3,
-        "output-simple-gear5-50000steps-dt1e-004.txt": 1e-4,
-        "output-simple-gear5-500000steps-dt1e-005.txt": 1e-5,
-        "output-simple-gear5-5000000steps-dt1e-006.txt": 1e-6,
+        "output-simple-gear5-50001steps-dt1e-004.txt": 1e-4,
+        "output-simple-gear5-500001steps-dt1e-005.txt": 1e-5,
+        "output-simple-gear5-5000001steps-dt1e-006.txt": 1e-6,
     }
 }
 
