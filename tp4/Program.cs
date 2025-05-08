@@ -9,10 +9,11 @@ class Program
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
         //RunSimpleSystems(0.01f);
-        //RunComplexSystem();
+        //RunComplexSystem(2 * Math.PI, 102.3, 0.001);
         //RunEightLoopGravitySystem();
         //RunDaisyChainGravitySystem();
-        RunAllDeltaTimes();
+        //RunAllDeltaTimes();
+        RunComplexSystemSweep();
         
         //List<Action> runs = [RunSimpleSystems, RunComplexSystem, RunEightLoopGravitySystem, RunDaisyChainGravitySystem];
         //Parallel.ForEach(runs, a => a());
@@ -65,24 +66,42 @@ class Program
 
         Parallel.ForEach(runs, a => a());
     }
+    public static void RunComplexSystemSweep()
+{
+    double[] ks = new[] { 1.023e2, 3e2, 1e3, 3e3, 1e4}.Select(k => k / 1000.0).ToArray(); // pasa a kg/s²
+    double[] omegas = new[] { 2 * Math.PI, 6 * Math.PI, 12 * Math.PI, 20 * Math.PI };
+    double[] deltaTimes =  {1e-4, 1e-3, 1e-2,1e-1 };
 
-    private static void RunComplexSystem()
+
+    foreach (double k in ks)
+    {
+        foreach (double omega in omegas)
+        {
+            foreach (double deltaTime in deltaTimes)
+            {
+                RunComplexSystem( omega,k, deltaTime);
+            }
+        }
+    }
+}
+
+
+    private static void RunComplexSystem(double wp,double kp, double dt)
     {
         // All mass units are in kg, all time units are in seconds
         const double m = 0.00021;
-        const double k = 102.3; // NOTE: unit in kg/s2 is "corrected" interpreted as g/s2
+        double k = kp; // NOTE: unit in kg/s2 is "corrected" interpreted as g/s2
         const double gamma = 0.0003;
         const double A = 0.01;
         const double l0 = 0.001;
-        const double w = Math.PI * 2;
+        double w = wp;
         const int N = 1000;
-
         var config = new SimulationConfig
         {
-            DeltaTime = 0.001,
+            DeltaTime = dt,
             MaxSimulationTime = 5,
             SaveEverySteps = 10,
-            OutputFile = "complex-N{count}-{type}-{steps}steps.txt",
+            OutputFile = $"complex-N{N}-{{type}}-dt{dt:e0}-k{k:0.##e0}-w{w / Math.PI:0}pi.txt",
             ForceFunction = new ForceFunctions.OsciladoresAcoplados(k: k, y: gamma)
         };
 
@@ -111,6 +130,8 @@ class Program
 
         Parallel.ForEach(runs, a => a());
     }
+
+
 
     private static void RunEightLoopGravitySystem()
     {
