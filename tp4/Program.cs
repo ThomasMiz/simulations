@@ -84,7 +84,6 @@ class Program
         }
     }
 
-
     private static void RunComplexSystem(double wp, double kp, double dt)
     {
         // All mass units are in kg, all time units are in seconds

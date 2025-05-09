@@ -49,12 +49,10 @@ public static class ForceFunctions
                 // 3 => new Vector2(-K * states[index].Velocity.X - Y * Apply(states, index).X / consts[index].Mass, 0),
                 // 3 => new Vector2(-K * GetDerivative(1, states, consts, index).X - Y * GetDerivative(2, states, consts, index).X, 0),
                 int i when i >= 3 => new Vector2D<double>(
-                    (-K * GetDerivative(i - 2, consts, states, index).X 
-                     - Y * GetDerivative(i - 1, consts, states, index).X) / m,
+                    (-K * GetDerivative(i - 2, consts, states, index).X - Y * GetDerivative(i - 1, consts, states, index).X) / m,
                     0
                 ),
                 _ => Vector2D<double>.Zero
-                
             };
         }
     }

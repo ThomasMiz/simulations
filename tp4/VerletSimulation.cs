@@ -41,7 +41,7 @@ public class VerletSimulation : Simulation
             prevDummyState[i] = new ParticleState
             {
                 Position = currentState[i].Position - DeltaTime * currentState[i].Velocity + Math2.Square(DeltaTime) / (2 * mass) * force,
-                Velocity = currentState[i].Velocity + (DeltaTime / mass) * force
+                Velocity = currentState[i].Velocity - (DeltaTime / mass) * force
             };
 
             // Calculate the positions for the next state
