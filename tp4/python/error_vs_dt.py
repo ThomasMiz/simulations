@@ -20,7 +20,7 @@ def analytical_position(t):
 
 # Archivos por método
 methods_files = {
-    "Verlet": {
+    "Verlet original": {
         "output-simple-verlet-500steps-dt1e-002.txt": 1e-2,
         "output-simple-verlet-5000steps-dt1e-003.txt": 1e-3,
         "output-simple-verlet-50000steps-dt1e-004.txt": 1e-4,
@@ -34,7 +34,7 @@ methods_files = {
         "output-simple-beeman-500000steps-dt1e-005.txt": 1e-5,
         "output-simple-beeman-5000000steps-dt1e-006.txt": 1e-6,
     },
-    "Gear Corrector Predictor": {
+    "Gear predictor-corrector de orden 5": {
         "output-simple-gear5-500steps-dt1e-002.txt": 1e-2,
         "output-simple-gear5-5000steps-dt1e-003.txt": 1e-3,
         "output-simple-gear5-50000steps-dt1e-004.txt": 1e-4,
@@ -62,19 +62,20 @@ for method, files in methods_files.items():
     method_errors[method] = sorted(errors)
 
 # Graficar
-plt.figure(figsize=(8, 6))
-markers = {'Verlet': 'o', 'Beeman': 's', 'Gear Corrector Predictor': 'o'}
-colors = {'Verlet': 'tab:blue', 'Beeman': 'tab:orange', 'Gear Corrector Predictor': 'tab:green'}
+plt.figure(figsize=(15, 6))
+markers = {'Verlet original': 'o', 'Beeman': 's', 'Gear predictor-corrector de orden 5': 'o'}
+colors = {'Verlet original': 'tab:blue', 'Beeman': 'tab:orange', 'Gear predictor-corrector de orden 5': 'tab:green'}
 
 for method, values in method_errors.items():
     dts, mses = zip(*values)
     plt.loglog(dts, mses, marker=markers[method], label=method, color=colors[method])
 
-plt.xlabel("Tiempo (s)")
-plt.ylabel("MSE")
-plt.title("Error cuadrático medio vs paso de integración")
+plt.xlabel(r"$\Delta t$ (s)", fontsize=20)
+plt.ylabel("ECM", fontsize=20)
 plt.grid(True, which='both', linestyle='--', linewidth=0.5)
-plt.legend()
+plt.legend(fontsize=20)
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
 plt.tight_layout()
 plt.savefig("mse_vs_dt.png")
 plt.show()
