@@ -12,8 +12,8 @@ class Program
         //RunComplexSystem(2 * Math.PI, 102.3, 0.001);
         //RunEightLoopGravitySystem();
         //RunDaisyChainGravitySystem();
-        RunAllDeltaTimes();
-        //RunComplexSystemSweep();
+        //RunAllDeltaTimes();
+        RunComplexSystemSweep();
 
         //List<Action> runs = [RunSimpleSystems, RunComplexSystem, RunEightLoopGravitySystem, RunDaisyChainGravitySystem];
         //Parallel.ForEach(runs, a => a());
@@ -67,22 +67,25 @@ class Program
 
     public static void RunComplexSystemSweep()
     {
-        double[] ks = new[] { 1.023e2, 3e2, 1e3, 3e3, 1e4 }.Select(k => k / 1000.0).ToArray(); // pasa a kg/s²
-        double[] omegas = new[] { 2 * Math.PI, 6 * Math.PI, 12 * Math.PI, 20 * Math.PI };
-        double[] deltaTimes = { 1e-4, 1e-3, 1e-2, 1e-1 };
+        //double[] ks = new[] { 1.023e2, 3e2, 1e3, 3e3, 1e4 } // pasa a kg/s²
+        double[] ks = new[] { 1.023e2 };
+        //double[] omegas = new[] { 2 * Math.PI, 6 * Math.PI, 12 * Math.PI, 20 * Math.PI };
+        double[] omegas = new[] { 2 * Math.PI };
+        double[] deltaTimes = { 1e-4, 1e-3, 1e-2};
 
-
-        foreach (double k in ks)
+        Parallel.ForEach(ks, k =>
         {
-            foreach (double omega in omegas)
+            Parallel.ForEach(omegas, omega =>
             {
-                foreach (double deltaTime in deltaTimes)
+                Parallel.ForEach(deltaTimes, dt =>
                 {
-                    RunComplexSystem(omega, k, deltaTime);
-                }
-            }
-        }
+                    RunComplexSystem(omega, k, dt);
+                });
+            });
+        });
     }
+
+
 
     private static void RunComplexSystem(double wp, double kp, double dt)
     {
@@ -109,7 +112,7 @@ class Program
 
         List<Action> runs =
         [
-            () =>
+            /*() =>
             {
                 using Simulation verlet = config.BuildVerlet();
                 verlet.RunToEnd();
@@ -118,7 +121,7 @@ class Program
             {
                 using Simulation beeman = config.BuildBeeman();
                 beeman.RunToEnd();
-            },
+            },*/
             () =>
             {
                 using Simulation gear5 = config.BuildGear5();
