@@ -12,23 +12,21 @@ class Program
         //RunComplexSystem(2 * Math.PI, 102.3, 0.001);
         //RunEightLoopGravitySystem();
         //RunDaisyChainGravitySystem();
-        //RunAllDeltaTimes();
-        RunComplexSystemSweep();
-        
+        RunAllDeltaTimes();
+        //RunComplexSystemSweep();
+
         //List<Action> runs = [RunSimpleSystems, RunComplexSystem, RunEightLoopGravitySystem, RunDaisyChainGravitySystem];
         //Parallel.ForEach(runs, a => a());
 
         Console.WriteLine("Goodbye!");
     }
+
     private static void RunAllDeltaTimes()
     {
         double[] deltaTimes = { 1e-6, 1e-5, 1e-4, 1e-3, 1e-2 };
-        foreach (float dt in deltaTimes)
-        {
-            RunSimpleSystems(dt);
-        }
+        Parallel.ForEach(deltaTimes, RunSimpleSystems);
     }
-    
+
     private static void RunSimpleSystems(double deltaTime)
     {
         // All mass units are in kg, all time units are in seconds
@@ -66,31 +64,32 @@ class Program
 
         Parallel.ForEach(runs, a => a());
     }
+
     public static void RunComplexSystemSweep()
-{
-    double[] ks = new[] { 1.023e2, 3e2, 1e3, 3e3, 1e4}.Select(k => k / 1000.0).ToArray(); // pasa a kg/s²
-    double[] omegas = new[] { 2 * Math.PI, 6 * Math.PI, 12 * Math.PI, 20 * Math.PI };
-    double[] deltaTimes =  {1e-4, 1e-3, 1e-2,1e-1 };
-
-
-    foreach (double k in ks)
     {
-        foreach (double omega in omegas)
+        double[] ks = new[] { 1.023e2, 3e2, 1e3, 3e3, 1e4 }.Select(k => k / 1000.0).ToArray(); // pasa a kg/s²
+        double[] omegas = new[] { 2 * Math.PI, 6 * Math.PI, 12 * Math.PI, 20 * Math.PI };
+        double[] deltaTimes = { 1e-4, 1e-3, 1e-2, 1e-1 };
+
+
+        foreach (double k in ks)
         {
-            foreach (double deltaTime in deltaTimes)
+            foreach (double omega in omegas)
             {
-                RunComplexSystem( omega,k, deltaTime);
+                foreach (double deltaTime in deltaTimes)
+                {
+                    RunComplexSystem(omega, k, deltaTime);
+                }
             }
         }
     }
-}
 
 
-    private static void RunComplexSystem(double wp,double kp, double dt)
+    private static void RunComplexSystem(double wp, double kp, double dt)
     {
         // All mass units are in kg, all time units are in seconds
         const double m = 0.00021;
-        double k = kp; // NOTE: unit in kg/s2 is "corrected" interpreted as g/s2
+        double k = kp;
         const double gamma = 0.0003;
         const double A = 0.01;
         const double l0 = 0.001;
@@ -130,7 +129,6 @@ class Program
 
         Parallel.ForEach(runs, a => a());
     }
-
 
 
     private static void RunEightLoopGravitySystem()
