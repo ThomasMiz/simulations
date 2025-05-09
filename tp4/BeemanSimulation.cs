@@ -22,9 +22,6 @@ public class BeemanSimulation : Simulation
 
         for (int i = 0; i < currentState.Length; i++)
         {
-            // Create a "dummy" state previous to the real initial state using simple Euler interpolation
-            // This is because the verlet algorithm needs the two previous states to calculate the next
-
             if (Rails[i] != null)
             {
                 prevDummyState[i] = new ParticleState
@@ -35,12 +32,13 @@ public class BeemanSimulation : Simulation
                 continue;
             }
 
-            double mass = Consts[i].Mass;
-            Vector2D<double> force = ForceFunction.Apply(Consts, currentState, i);
+            double m = Consts[i].Mass;
+            Vector2D<double> a = ForceFunction.Apply(Consts, currentState, i) / m;
+
             prevDummyState[i] = new ParticleState
             {
-                Position = currentState[i].Position - DeltaTime * currentState[i].Velocity + Math2.Square(DeltaTime) / (2 * mass) * force,
-                Velocity = currentState[i].Velocity + (DeltaTime / mass) * force
+                Position = currentState[i].Position - DeltaTime * currentState[i].Velocity + 0.5 * a * Math2.Square(DeltaTime),
+                Velocity = currentState[i].Velocity - a * DeltaTime
             };
         }
 
@@ -53,7 +51,6 @@ public class BeemanSimulation : Simulation
         ParticleState[] currentState = CurrentState; // State at time = t
         // nextState: State at time = (t + dt) (what we're calculating)
 
-        // Calculate all new positions and predicted velocities
         for (int i = 0; i < nextState.Length; i++)
         {
             if (Rails[i] != null)
@@ -66,18 +63,23 @@ public class BeemanSimulation : Simulation
                 continue;
             }
 
-            double mass = Consts[i].Mass;
+            double m = Consts[i].Mass;
 
-            Vector2D<double> force_t = ForceFunction.Apply(Consts, currentState, i);
-            Vector2D<double> force_t_prev = ForceFunction.Apply(Consts, prevState, i);
+            Vector2D<double> a_t = ForceFunction.Apply(Consts, currentState, i) / m;
+            Vector2D<double> a_tm1 = ForceFunction.Apply(Consts, prevState, i) / m;
 
-            Vector2D<double> predictedPosition = currentState[i].Position
-                                                 + DeltaTime * currentState[i].Velocity
-                                                 + (2f / 3f * force_t - 1f / 6f * force_t_prev) / mass * Math2.Square(DeltaTime);
+            Vector2D<double> x_next = currentState[i].Position
+                                    + currentState[i].Velocity * DeltaTime
+                                    + (2.0 / 3.0 * a_t - 1.0 / 6.0 * a_tm1) * Math2.Square(DeltaTime);
 
-            Vector2D<double> predictedVelocity = currentState[i].Velocity + (3f / 2f * force_t - 1f / 2f * force_t_prev) / mass * DeltaTime;
+            Vector2D<double> v_predict = currentState[i].Velocity
+                                       + (3.0 / 2.0 * a_t - 1.0 / 2.0 * a_tm1) * DeltaTime;
 
-            predictedStates[i] = new ParticleState { Position = predictedPosition, Velocity = predictedVelocity };
+            predictedStates[i] = new ParticleState
+            {
+                Position = x_next,
+                Velocity = v_predict // provisional
+            };
         }
 
         // Now calculate the actual new positions and velocities
@@ -89,14 +91,18 @@ public class BeemanSimulation : Simulation
                 continue;
             }
 
-            double mass = Consts[i].Mass;
+            double m = Consts[i].Mass;
 
-            Vector2D<double> force_t = ForceFunction.Apply(Consts, currentState, i);
-            Vector2D<double> force_t_prev = ForceFunction.Apply(Consts, prevState, i);
-            Vector2D<double> force_t_next = ForceFunction.Apply(Consts, predictedStates, i);
+            Vector2D<double> a_t = ForceFunction.Apply(Consts, currentState, i) / m;
+            Vector2D<double> a_tm1 = ForceFunction.Apply(Consts, prevState, i) / m;
+            Vector2D<double> a_tp1 = ForceFunction.Apply(Consts, predictedStates, i) / m;
 
-            nextState[i].Position = predictedStates[i].Position;
-            nextState[i].Velocity = currentState[i].Velocity + (1f / 3f * force_t_next + 5f / 6f * force_t - 1f / 6f * force_t_prev) / mass * DeltaTime;
+            nextState[i] = new ParticleState
+            {
+                Position = predictedStates[i].Position,
+                Velocity = currentState[i].Velocity
+                         + (1.0 / 3.0 * a_tp1 + 5.0 / 6.0 * a_t - 1.0 / 6.0 * a_tm1) * DeltaTime
+            };
         }
     }
 }
