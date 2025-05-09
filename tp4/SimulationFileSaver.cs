@@ -29,14 +29,14 @@ public class SimulationFileSaver : IDisposable
         stream.Write('\n');
 
         stream.Write("DeltaTime: ");
-        stream.Write(deltaTime);
+        stream.Write(deltaTime.ToString("G17"));
         stream.Write('\n');
 
         stream.Write("Masses: [");
         for (int i = 0; i < particleConsts.Length; i++)
         {
             if (i != 0) stream.Write(", ");
-            stream.Write(particleConsts[i].Mass);
+            stream.Write(particleConsts[i].Mass.ToString("G17"));
         }
 
         stream.Write("]\n");
@@ -50,18 +50,18 @@ public class SimulationFileSaver : IDisposable
         stream.Write('[');
         stream.Write(step);
         stream.Write(' ');
-        stream.Write(time);
+        stream.Write(time.ToString("G17"));
         stream.Write(']');
         for (int i = 0; i < state.Length; i++)
         {
             stream.Write(i == 0 ? " " : " ; ");
-            stream.Write(state[i].Position.X);
+            stream.Write(state[i].Position.X.ToString("G17"));
             stream.Write(' ');
-            stream.Write(state[i].Position.Y);
+            stream.Write(state[i].Position.Y.ToString("G17"));
             stream.Write(' ');
-            stream.Write(state[i].Velocity.X);
+            stream.Write(state[i].Velocity.X.ToString("G17"));
             stream.Write(' ');
-            stream.Write(state[i].Velocity.Y);
+            stream.Write(state[i].Velocity.Y.ToString("G17"));
         }
 
         stream.Write('\n');
