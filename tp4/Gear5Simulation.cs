@@ -20,7 +20,7 @@ public class Gear5Simulation : Simulation
 
     protected override void InitializeImpl()
     {
-        for (int i = 0; i < predictedVars.Length; i++)
+        Parallel.For(0, predictedVars.Length, i =>
         {
             predictedVars[i].r0 = ForceFunction.GetDerivative(0, Consts, CurrentState, i);
             predictedVars[i].r1 = ForceFunction.GetDerivative(1, Consts, CurrentState, i);
@@ -28,7 +28,7 @@ public class Gear5Simulation : Simulation
             predictedVars[i].r3 = ForceFunction.GetDerivative(3, Consts, CurrentState, i);
             predictedVars[i].r4 = ForceFunction.GetDerivative(4, Consts, CurrentState, i);
             predictedVars[i].r5 = ForceFunction.GetDerivative(5, Consts, CurrentState, i);
-        }
+        });
     }
 
     protected override void StepImpl(ParticleState[] nextState)
@@ -36,7 +36,7 @@ public class Gear5Simulation : Simulation
         // nextState: State at time = (t + dt) (what we're calculating)
 
         // Calculate all the predicted variables
-        for (int i = 0; i < nextState.Length; i++)
+        Parallel.For(0, nextState.Length, i =>
         {
             PredictedVars prevPreds = predictedVars[i];
 
@@ -58,9 +58,9 @@ public class Gear5Simulation : Simulation
 
             // Used for the force calculations, will be overwritten in the next loop
             nextState[i] = new ParticleState { Position = predictedVars[i].r0, Velocity = predictedVars[i].r1 };
-        }
+        });
 
-        for (int i = 0; i < nextState.Length; i++)
+        Parallel.For(0, nextState.Length, i =>
         {
             Vector2D<double> force = ForceFunction.Apply(Consts, nextState, i);
             Vector2D<double> a = force / Consts[i].Mass;
@@ -80,11 +80,11 @@ public class Gear5Simulation : Simulation
             {
                 predictedVars[i].r0 = Rails[i]!.getPosition(SecondsElapsed);
                 predictedVars[i].r1 = Rails[i]!.getVelocity(SecondsElapsed);
-                continue;
+                return;
             }
 
             nextState[i] = new ParticleState { Position = predictedVars[i].r0, Velocity = predictedVars[i].r1 };
-        }
+        });
     }
 
     private struct PredictedVars

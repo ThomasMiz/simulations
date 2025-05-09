@@ -20,7 +20,7 @@ public class VerletSimulation : Simulation
         ParticleState[] currentState = CurrentState;
         ParticleState[] prevDummyState = new ParticleState[currentState.Length];
 
-        for (int i = 0; i < currentState.Length; i++)
+        Parallel.For(0, currentState.Length, i =>
         {
             // Create a "dummy" state previous to the real initial state using simple Euler interpolation
             // This is because the verlet algorithm needs the two previous states to calculate the next
@@ -33,7 +33,7 @@ public class VerletSimulation : Simulation
                     Velocity = Rails[i]!.getVelocity(-DeltaTime)
                 };
                 nextStatePositions[i] = Rails[i]!.getPosition(DeltaTime);
-                continue;
+                return;
             }
 
             double mass = Consts[i].Mass;
@@ -46,7 +46,7 @@ public class VerletSimulation : Simulation
 
             // Calculate the positions for the next state
             nextStatePositions[i] = 2 * currentState[i].Position - prevDummyState[i].Position + Math2.Square(DeltaTime) / mass * force;
-        }
+        });
 
         AddOlderState(prevDummyState); // Add it last, as the previous state.
     }
@@ -56,7 +56,7 @@ public class VerletSimulation : Simulation
         ParticleState[] currentState = CurrentState; // State at time = t
         // nextState: State at time = (t + dt) (what we're calculating)
 
-        for (int i = 0; i < nextState.Length; i++)
+        Parallel.For(0, nextState.Length, i =>
         {
             if (Rails[i] != null)
             {
@@ -65,18 +65,18 @@ public class VerletSimulation : Simulation
                     Position = Rails[i]!.getPosition(SecondsElapsed),
                     Velocity = Rails[i]!.getVelocity(SecondsElapsed)
                 };
-                continue;
+                return;
             }
 
             nextState[i].Position = nextStatePositions[i];
 
             Vector2D<double> force = ForceFunction.Apply(Consts, currentState, i);
             nextState[i].Velocity = currentState[i].Velocity + force * DeltaTime / Consts[i].Mass; // Predicted velocity, will be overwritten later
-        }
+        });
 
-        for (int i = 0; i < nextState.Length; i++)
+        Parallel.For(0, nextState.Length, i =>
         {
-            if (Rails[i] != null) continue;
+            if (Rails[i] != null) return;
 
             // For cases such as the "Oscilador Amortiguado", where the force F(t) depends on the velocity v(t), the
             // Verlet equations are recursive: to calculate F(t) we need v(t), which needs r(t + dt), which needs F(t).
@@ -86,6 +86,6 @@ public class VerletSimulation : Simulation
             Vector2D<double> force = ForceFunction.Apply(Consts, nextState, i); // Force F(t + dt)
             nextStatePositions[i] = 2 * nextStatePositions[i] - currentState[i].Position + Math2.Square(DeltaTime) / Consts[i].Mass * force;
             nextState[i].Velocity = (nextStatePositions[i] - currentState[i].Position) / (2 * DeltaTime);
-        }
+        });
     }
 }

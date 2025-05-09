@@ -20,7 +20,7 @@ public class BeemanSimulation : Simulation
         ParticleState[] currentState = CurrentState;
         ParticleState[] prevDummyState = new ParticleState[currentState.Length];
 
-        for (int i = 0; i < currentState.Length; i++)
+        Parallel.For(0, currentState.Length, i =>
         {
             if (Rails[i] != null)
             {
@@ -29,7 +29,7 @@ public class BeemanSimulation : Simulation
                     Position = Rails[i]!.getPosition(-DeltaTime),
                     Velocity = Rails[i]!.getVelocity(-DeltaTime)
                 };
-                continue;
+                return;
             }
 
             double m = Consts[i].Mass;
@@ -40,7 +40,7 @@ public class BeemanSimulation : Simulation
                 Position = currentState[i].Position - DeltaTime * currentState[i].Velocity + 0.5 * a * Math2.Square(DeltaTime),
                 Velocity = currentState[i].Velocity - a * DeltaTime
             };
-        }
+        });
 
         AddOlderState(prevDummyState); // Add it last, as the previous state.
     }
@@ -51,7 +51,7 @@ public class BeemanSimulation : Simulation
         ParticleState[] currentState = CurrentState; // State at time = t
         // nextState: State at time = (t + dt) (what we're calculating)
 
-        for (int i = 0; i < nextState.Length; i++)
+        Parallel.For(0, nextState.Length, i =>
         {
             if (Rails[i] != null)
             {
@@ -60,7 +60,7 @@ public class BeemanSimulation : Simulation
                     Position = Rails[i]!.getPosition(SecondsElapsed),
                     Velocity = Rails[i]!.getVelocity(SecondsElapsed)
                 };
-                continue;
+                return;
             }
 
             double m = Consts[i].Mass;
@@ -69,26 +69,26 @@ public class BeemanSimulation : Simulation
             Vector2D<double> a_tm1 = ForceFunction.Apply(Consts, prevState, i) / m;
 
             Vector2D<double> x_next = currentState[i].Position
-                                    + currentState[i].Velocity * DeltaTime
-                                    + (2.0 / 3.0 * a_t - 1.0 / 6.0 * a_tm1) * Math2.Square(DeltaTime);
+                                      + currentState[i].Velocity * DeltaTime
+                                      + (2.0 / 3.0 * a_t - 1.0 / 6.0 * a_tm1) * Math2.Square(DeltaTime);
 
             Vector2D<double> v_predict = currentState[i].Velocity
-                                       + (3.0 / 2.0 * a_t - 1.0 / 2.0 * a_tm1) * DeltaTime;
+                                         + (3.0 / 2.0 * a_t - 1.0 / 2.0 * a_tm1) * DeltaTime;
 
             predictedStates[i] = new ParticleState
             {
                 Position = x_next,
                 Velocity = v_predict // provisional
             };
-        }
+        });
 
         // Now calculate the actual new positions and velocities
-        for (int i = 0; i < nextState.Length; i++)
+        Parallel.For(0, nextState.Length, i =>
         {
             if (Rails[i] != null)
             {
                 nextState[i] = predictedStates[i];
-                continue;
+                return;
             }
 
             double m = Consts[i].Mass;
@@ -101,8 +101,8 @@ public class BeemanSimulation : Simulation
             {
                 Position = predictedStates[i].Position,
                 Velocity = currentState[i].Velocity
-                         + (1.0 / 3.0 * a_tp1 + 5.0 / 6.0 * a_t - 1.0 / 6.0 * a_tm1) * DeltaTime
+                           + (1.0 / 3.0 * a_tp1 + 5.0 / 6.0 * a_t - 1.0 / 6.0 * a_tm1) * DeltaTime
             };
-        }
+        });
     }
 }
