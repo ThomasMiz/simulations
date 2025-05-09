@@ -65,7 +65,7 @@ public class SimulationConfig
 
     public uint? CalculateMaxSteps()
     {
-        uint? maxStepsByTime = MaxSimulationTime == null ? null : (uint)Math.Ceiling(MaxSimulationTime.Value / DeltaTime);
+        uint? maxStepsByTime = MaxSimulationTime == null ? null : (uint)Math.Ceiling(MaxSimulationTime.Value / DeltaTime - 0.2);
 
         if (maxStepsByTime != null && MaxSteps != null) return Math.Min(maxStepsByTime.Value, MaxSteps.Value);
         return maxStepsByTime ?? MaxSteps;
