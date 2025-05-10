@@ -1,0 +1,131 @@
+@startuml
+
+class ParticleConsts {
+    + double Mass
+}
+
+class ParticleState {
+    + Vector2D Position
+    + Vector2D Velocity
+}
+
+interface ForceFunction {
+    + bool IsVelocityDependant
+    + Vector2D Apply(ParticleConsts[] consts, ParticleState[] states, int index)
+    + Vector2D GetDerivative(int derivative, ParticleConsts[] consts, ParticleState[] states, int index)
+}
+
+class OsciladorAmortiguadoForce {
+    + double K
+    + double Y
+}
+
+class OsciladoresAcopladosForce {
+    + double K
+    + double Y
+}
+
+class GravityForce {
+    + double G
+}
+
+ForceFunction <|-- OsciladorAmortiguadoForce
+ForceFunction <|-- OsciladoresAcopladosForce
+ForceFunction <|-- GravityForce
+
+interface ParticleRail {
+    + Vector2D getPosition(double time)
+    + Vector2D getVelocity(double time)
+}
+
+class OscillatorRail {
+    + double A
+    + double W
+}
+
+ParticleRail <|-- OscillatorRail
+
+class SimulationConfig {
+    - List<ParticleConsts> consts
+    - List<ParticleState> initialState
+    - List<ParticleRail?> rails
+    + double DeltaTime
+    + uint? MaxSteps
+    + double? MaxSimulationTime
+    + string? OutputFile
+    + uint SaveEverySteps
+    + ForceFunction ForceFunction
+    + this AddParticle(double mass, Vector2D position, Vector2D velocity)
+    + this AddRailedParticle(double mass, ParticleRail rail)
+    + Simulation BuildVerlet()
+    + Simulation BuildBeeman()
+    + Simulation BuildGear5()
+}
+
+class SimulationFileSaver {
+    - StreamWriter stream
+    + string Filename
+    + uint SaveEverySteps
+    + void WriteStart(string integrationType, double deltaTime, ParticleConsts[] particleConsts)
+    + void AppendState(uint step, double time, ParticleState[] state)
+    + void Dispose()
+}
+
+abstract class Simulation {
+    + string IntegrationType
+    + double DeltaTime
+    + uint? MaxSteps
+    + uint Steps
+    + double SecondsElapsed
+    + ForceFunction ForceFunction
+    # ParticleConsts[] Consts
+    # ParticleRail?[] Rails
+    # int StepSaveCount
+    - List<ParticleState[]> states
+    # IReadOnlyList<ParticleState[]> States
+    + ParticleState[] CurrentState
+    + ParticleState[] PreviousState
+    - SimulationFileSaver? saver
+    - void Initialize()
+    # abstract void InitializeImpl()
+    # void AddOlderState(ParticleState[] oldState)
+    + void Step()
+    + abstract void StepImpl(ParticleState[] nextState)
+    + void RunToEnd()
+    + void Dispose()
+}
+
+Simulation *-- SimulationConfig
+Simulation *-- SimulationFileSaver
+
+class VerletSimulation {
+    - Vector2D[] nextStatePositions
+}
+
+class BeemanSimulation {
+    - ParticleState[] predictedStates
+}
+
+class Gear5Simulation {
+    - GearConstants gearConstants
+    - PredictedVars[] predictedVars
+}
+
+Simulation <|-- VerletSimulation
+Simulation <|-- BeemanSimulation
+Simulation <|-- Gear5Simulation
+
+class GearConstants {
+    + double a0
+    + double a1
+    + double a2
+    + double a3
+    + double a4
+    + double a5
+    + {static} GearConstants PositionDependentForces
+    + {static} GearConstants PositionAndVelocityDependentForces
+}
+
+Gear5Simulation *-- GearConstants
+
+@enduml
