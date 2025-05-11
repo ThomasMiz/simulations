@@ -69,9 +69,10 @@ class Program
     {
         //double[] ks = new[] { 1.023e2, 3e2, 1e3, 3e3, 1e4 } // pasa a kg/s²
         double[] ks = new[] { 1.023e2 };
-        //double[] omegas = new[] { 2 * Math.PI, 6 * Math.PI, 12 * Math.PI, 20 * Math.PI };
-        double[] omegas = new[] { 2 * Math.PI };
-        double[] deltaTimes = { 1e-4, 1e-3, 1e-2};
+        double[] omegas = new[] { Math.PI, 2 * Math.PI, 4*Math.PI, 6 * Math.PI, 12 * Math.PI, 20 * Math.PI };
+        //double[] omegas = new[] { 2 * Math.PI };
+        //double[] deltaTimes = { 1e-4, 1e-3, 1e-2};
+        double[] deltaTimes = { 1e-4 };
 
         Parallel.ForEach(ks, k =>
         {
