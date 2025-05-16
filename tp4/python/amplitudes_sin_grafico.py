@@ -52,12 +52,12 @@ print(f"Encontrados {len(sim_files)} archivos con k = {k_target}")
 for fname in sim_files:
     file_path = os.path.join(input_dir, fname)
 
-    omega_match = re.search(r"-w([0-9]+)pi", fname)
+    omega_match = re.search(r"-w([0-9]+)", fname)
     if not omega_match:
         print(f"No se pudo extraer omega de {fname}")
         continue
     omega_str = omega_match.group(1)
-    omega_value = int(omega_str) * np.pi
+    omega_value = int(omega_str)
 
     # Parsear y procesar
     steps = parse_simulation_file(file_path)
@@ -71,7 +71,7 @@ for fname in sim_files:
         max(abs(p.position[1]) for p in step.particles) for step in final_segment
     )
 
-    output_filename = os.path.join(output_dir, f"amplitud-w{omega_str}pi-k{k_target}.csv")
+    output_filename = os.path.join(output_dir, f"amplitud-w{omega_str}-k{k_target}.csv")
     with open(output_filename, "w") as f:
         f.write("omega,k,amplitud_max\n")
         f.write(f"{omega_value},{k_target},{max_amplitud_final}\n")
