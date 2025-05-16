@@ -41,7 +41,7 @@ file_path = "../bin/Debug/net8.0/complex-N1000-gear5-dt1e-004-k1.02e2-w2pi.txt"
 
 # === EXTRAER ω Y k DEL NOMBRE DEL ARCHIVO ===
 omega_match = re.search(r"-w([0-9]+)pi", file_path)
-k_match = re.search(r"-k([\d.eE+-]+)", file_path)
+k_match = re.search(r"-k([0-9]+(?:\.[0-9]+)?e[+-]?[0-9]+)\b", file_path)
 
 omega_str = omega_match.group(1) if omega_match else "UNKNOWN"
 k_str = k_match.group(1) if k_match else "UNKNOWN"
