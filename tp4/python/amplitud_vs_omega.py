@@ -5,13 +5,21 @@ import matplotlib.ticker as ticker
 import numpy as np
 import re
 
+
 # === Ruta a la carpeta de amplitudes ===
 amplitudes_dir = "../bin/Debug/net8.0/amplitudes"
 
 # === Cargar todos los archivos .csv ===
 data = []
 
+# Definir k_deseado al inicio para usarlo en todo el script
+k_deseado = "1.02e2"  # Cambiar este valor por el que quieras analizar  1.02e2
+
 for fname in os.listdir(amplitudes_dir):
+    # === FILTRO: solo incluir archivos con el k deseado ===
+    if f"-k{k_deseado}" not in fname:
+        continue
+
     if not fname.endswith(".csv"):
         continue
     path = os.path.join(amplitudes_dir, fname)
@@ -40,16 +48,11 @@ plt.scatter([omega_resonancia], [amplitud_maxima], color="red", zorder=5)
 def format_func(value, tick_number):
     if value == 0:
         return "0"
-    k = value / np.pi
-    if k == 1:
-        return "π"
-    elif k == -1:
-        return "-π"
-    elif k.is_integer():
-        return f"{int(k)}π"
-    return f"{k:.1f}π"
+    k = value
+    if k.is_integer():
+        return f"{int(k)}"
+    return f"{k:.1f}"
 
-# Establecer los ticks exactos de omega
 plt.gca().set_xticks(omegas)
 plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(format_func))
 
@@ -63,6 +66,7 @@ plt.savefig("amplitud_vs_omega.png")
 plt.show()
 
 
+
 # === AGREGADO: guardar CSV con k y ω₀ ===
 
 # Obtener la lista de archivos válidos
@@ -70,31 +74,23 @@ archivos_validos = [fname for fname in os.listdir(amplitudes_dir) if fname.endsw
 archivo_max = archivos_validos[max_idx] if max_idx < len(archivos_validos) else None
 
 if archivo_max:
-    match = re.search(r"k([0-9.]+e[0-9]+)", archivo_max)
-    if match:
-        k_valor = float(match.group(1))
+    # Usar k_deseado directamente en lugar de extraerlo del nombre del archivo
+    k_valor = float(k_deseado)
 
-        # Calcular múltiplo de π
-        omega_pi = omega_resonancia / np.pi
-        if omega_pi.is_integer():
-            omega_pi_str = f"{int(omega_pi)}"
-        else:
-            omega_pi_str = f"{omega_pi:.2f}"
 
-        # Crear carpeta 'resonancias' si no existe
-        resonancias_dir = os.path.join(os.path.dirname(amplitudes_dir), "resonancias")
-        os.makedirs(resonancias_dir, exist_ok=True)
 
-        # Guardar CSV
-        csv_filename = f"omega_resonancia_k{int(k_valor)}.csv"
-        csv_path = os.path.join(resonancias_dir, csv_filename)
+    # Crear carpeta 'resonancias' si no existe
+    resonancias_dir = os.path.join(os.path.dirname(amplitudes_dir), "resonancias")
+    os.makedirs(resonancias_dir, exist_ok=True)
 
-        with open(csv_path, "w") as f:
-            f.write("k (kg/s^2),omega_resonancia (rad/s),n_de_omega_resonancia (n*π)\n")
-            f.write(f"{k_valor},{omega_resonancia},{omega_pi_str}\n")
+    # Guardar CSV usando k_deseado directamente
+    csv_filename = f"omega_resonancia_k{k_deseado}.csv"
+    csv_path = os.path.join(resonancias_dir, csv_filename)
 
-        print(f"CSV guardado en: {csv_path}")
-    else:
-        print(f"No se encontró 'k' en el nombre del archivo: {archivo_max}")
+    with open(csv_path, "w") as f:
+        f.write("k (kg/s^2),omega_resonancia (rad/s)\n")
+        f.write(f"{k_valor},{omega_resonancia}\n")
+
+    print(f"CSV guardado en: {csv_path}")
 else:
-    print("No se pudo determinar el archivo de máxima amplitud para extraer k.")
+    print("No se pudo determinar el archivo de máxima amplitud.")
