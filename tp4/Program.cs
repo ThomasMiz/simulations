@@ -70,7 +70,7 @@ class Program
         //double[] ks = new[] {  3e2, 1e3, 3e3, 1e4 }; // pasa a kg/s²
         double[] ks = new[] { 1.023e2 };
         //double[] omegas = new[] { 0.5*Math.PI, Math.PI, 1.5*Math.PI, 2 * Math.PI, 2.5*Math.PI, 3*Math.PI, 3.5*Math.PI, 4*Math.PI, 4.5*Math.PI, 5*Math.PI, 6 * Math.PI, 7*Math.PI, 9*Math.PI, 12 * Math.PI };
-        double[] omegas = new[] { 2.0 };
+        double[] omegas = new[] { 1, 1.5, 1.6, 1.65, 1.70, 1.75, 1.8, 1.85, 1.9, 1.95, 2.0 , 2.1};
         //double[] deltaTimes = { 1e-4, 1e-3, 1e-2};
         double[] deltaTimes = { 1e-4 };
 
