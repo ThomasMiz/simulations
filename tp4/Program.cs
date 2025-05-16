@@ -38,7 +38,7 @@ class Program
         var config = new SimulationConfig
         {
             DeltaTime = deltaTime,
-            MaxSimulationTime = 5,
+            MaxSimulationTime = 8,
             OutputFile = $"output-simple-{{type}}-{{steps}}steps-dt{deltaTime:e0}.txt",
             ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: K, y: Gamma)
         }.AddParticle(mass: Mass, position: (1, 0), velocity: (-A * Gamma / (2 * Mass), 0));
@@ -67,10 +67,10 @@ class Program
 
     public static void RunComplexSystemSweep()
     {
-        //double[] ks = new[] { 1.023e2, 3e2, 1e3, 3e3, 1e4 } // pasa a kg/s²
+        //double[] ks = new[] {  3e2, 1e3, 3e3, 1e4 }; // pasa a kg/s²
         double[] ks = new[] { 1.023e2 };
-        double[] omegas = new[] { Math.PI, 2 * Math.PI, 4*Math.PI, 6 * Math.PI, 12 * Math.PI, 20 * Math.PI };
-        //double[] omegas = new[] { 2 * Math.PI };
+        //double[] omegas = new[] { 0.5*Math.PI, Math.PI, 1.5*Math.PI, 2 * Math.PI, 2.5*Math.PI, 3*Math.PI, 3.5*Math.PI, 4*Math.PI, 4.5*Math.PI, 5*Math.PI, 6 * Math.PI, 7*Math.PI, 9*Math.PI, 12 * Math.PI };
+        double[] omegas = new[] { 2.0 };
         //double[] deltaTimes = { 1e-4, 1e-3, 1e-2};
         double[] deltaTimes = { 1e-4 };
 
@@ -101,9 +101,9 @@ class Program
         var config = new SimulationConfig
         {
             DeltaTime = dt,
-            MaxSimulationTime = 5,
+            MaxSimulationTime = 8,
             SaveEverySteps = 10,
-            OutputFile = $"complex-N{N}-{{type}}-dt{dt:e0}-k{k:0.##e0}-w{w / Math.PI:0}pi.txt",
+            OutputFile = $"complex-k{k:0.##e0}-w{w}.txt",
             ForceFunction = new ForceFunctions.OsciladoresAcoplados(k: k, y: gamma)
         };
 
