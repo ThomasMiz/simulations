@@ -42,14 +42,14 @@ res = minimize_scalar(error_cuadratico, bounds=(0.1, 1.0), method='bounded')
 c_opt = res.x
 E_min = res.fun
 
-# === Graficar ajuste
-k_vals = np.linspace(min(ks), max(ks), 300)
-fit_vals = modelo(k_vals, c_opt)
+# === Graficar ajuste extendido al origen
+k_ext = np.linspace(0, max(ks), 300)
+fit_ext = modelo(k_ext, c_opt)
 
 plt.figure()
 plt.plot(ks, omegas, 'o', label='ω₀ simulada')
-plt.plot(k_vals, fit_vals, 'r--', label=f'Fit: ω₀ = {c_opt:.3f}·√k')
-plt.title('Relación ω₀ vs k (ajuste según teoría)')
+plt.plot(k_ext, fit_ext, 'r--', label=f'Fit: ω₀ = {c_opt:.3f}·√k')
+plt.title('Relación ω₀ vs k (ajuste extendido al origen)')
 plt.xlabel('k (kg/s²)')
 plt.ylabel('ω₀ (rad/s)')
 plt.grid(True)
