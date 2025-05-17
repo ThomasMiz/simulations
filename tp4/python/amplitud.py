@@ -37,10 +37,10 @@ def parse_simulation_file(file_path):
     return steps
 
 # CAMBIÁ ESTA RUTA POR TU ARCHIVO
-file_path = "../bin/Debug/net8.0/complex-k1e3-w7.txt"
+file_path = "../bin/Debug/net8.0/complex-k1e3-w6.txt"
 
 # === EXTRAER ω Y k DEL NOMBRE DEL ARCHIVO ===
-omega_match = re.search(r"-w([0-9]+)", file_path)
+omega_match = re.search(r"-w([0-9]+(\.[0-9]+)?)", fname)
 k_match = re.search(r"-k([0-9]+(?:\.[0-9]+)?e[+-]?[0-9]+)\b", file_path)
 
 omega_str = omega_match.group(1) if omega_match else "UNKNOWN"
