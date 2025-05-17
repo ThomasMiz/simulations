@@ -37,7 +37,7 @@ def parse_simulation_file(file_path):
     return steps
 
 # === Parámetros de entrada ===
-k_target = "1.02e2"  # <- cambiar por el k que quieras
+k_target = "1e3"  # <- cambiar por el k que quieras
 input_dir = "../bin/Debug/net8.0"
 output_dir = os.path.join(input_dir, "amplitudes")
 os.makedirs(output_dir, exist_ok=True)
@@ -52,26 +52,27 @@ print(f"Encontrados {len(sim_files)} archivos con k = {k_target}")
 for fname in sim_files:
     file_path = os.path.join(input_dir, fname)
 
-    omega_match = re.search(r"-w([0-9]+)", fname)
+    omega_match = re.search(r"-w([0-9]+(\.[0-9]+)?)", fname)
     if not omega_match:
         print(f"No se pudo extraer omega de {fname}")
         continue
     omega_str = omega_match.group(1)
-    omega_value = int(omega_str)
+    omega_value = float(omega_str)
+    omega_formatted = f"{omega_value:.2f}"  # Formateamos omega con 2 decimales
 
     # Parsear y procesar
     steps = parse_simulation_file(file_path)
 
     cut_low = int(len(steps) * 0.1)
     steps_cut = steps[cut_low:]
-    cut_high = int(len(steps_cut) * 0.7)
+    cut_high = int(len(steps_cut) * 0.7)  ##0.7 => usamos 30% final
     final_segment = steps_cut[cut_high:]
 
     max_amplitud_final = max(
         max(abs(p.position[1]) for p in step.particles) for step in final_segment
     )
 
-    output_filename = os.path.join(output_dir, f"amplitud-w{omega_str}-k{k_target}.csv")
+    output_filename = os.path.join(output_dir, f"amplitud-w{omega_formatted}-k{k_target}.csv")
     with open(output_filename, "w") as f:
         f.write("omega,k,amplitud_max\n")
         f.write(f"{omega_value},{k_target},{max_amplitud_final}\n")

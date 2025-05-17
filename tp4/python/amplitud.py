@@ -37,7 +37,7 @@ def parse_simulation_file(file_path):
     return steps
 
 # CAMBIÁ ESTA RUTA POR TU ARCHIVO
-file_path = "../bin/Debug/net8.0/complex-k1.02e2-w2.txt"
+file_path = "../bin/Debug/net8.0/complex-k1e3-w7.txt"
 
 # === EXTRAER ω Y k DEL NOMBRE DEL ARCHIVO ===
 omega_match = re.search(r"-w([0-9]+)", file_path)
@@ -62,10 +62,14 @@ cut_high = int(len(steps_cut) * 0.7)
 final_segment = steps_cut[cut_high:]
 max_amplitud_final = max(max(abs(p.position[1]) for p in step.particles) for step in final_segment)
 
+omega_value = float(omega_str)
+omega_formatted = f"{omega_value:.2f}"
+
 # === GENERAR ARCHIVO CON ω Y k EN EL NOMBRE ===
 output_dir = "../bin/Debug/net8.0/amplitudes"
 os.makedirs(output_dir, exist_ok=True)
-output_filename = os.path.join(output_dir, f"amplitud-w{omega_str}-k{k_str}.csv")
+output_filename = os.path.join(output_dir, f"amplitud-w{omega_formatted}-k{k_str}.csv")
+
 with open(output_filename, "w") as f:
     f.write("omega,k,amplitud_max\n")
     f.write(f"{omega_value},{k_str},{max_amplitud_final}\n")
