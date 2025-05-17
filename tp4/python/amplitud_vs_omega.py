@@ -7,13 +7,13 @@ import re
 
 
 # === Ruta a la carpeta de amplitudes ===
-amplitudes_dir = "../bin/Debug/net8.0/amplitudes"
+amplitudes_dir = "../bin/Debug/net8.0/k=1e4/amplitudes"
 
 # === Cargar todos los archivos .csv ===
 data = []
 
 # Definir k_deseado al inicio para usarlo en todo el script
-k_deseado = "1.02e2"  # Cambiar este valor por el que quieras analizar  1.02e2
+k_deseado = "1e4"  # Cambiar este valor por el que quieras analizar  1.02e2
 
 for fname in os.listdir(amplitudes_dir):
     # === FILTRO: solo incluir archivos con el k deseado ===
@@ -40,7 +40,7 @@ amplitud_maxima = amplitudes[max_idx]
 
 # === Graficar ===
 plt.figure(figsize=(10, 6))
-plt.plot(omegas, amplitudes, marker="o", linestyle="-", label="Amplitud máxima")
+plt.plot(omegas, amplitudes, marker="o", linestyle="-")
 plt.axvline(omega_resonancia, color="red", linestyle="--", label=f"ω₀ ≈ {omega_resonancia:.2f} rad/s")
 plt.scatter([omega_resonancia], [amplitud_maxima], color="red", zorder=5)
 
@@ -51,16 +51,22 @@ def format_func(value, tick_number):
     k = value
     if k.is_integer():
         return f"{int(k)}"
-    return f"{k:.1f}"
-
+    return f"{k:.2f}"
 plt.gca().set_xticks(omegas)
 plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(format_func))
 
-plt.title("Amplitud máxima vs. Frecuencia ω")
-plt.xlabel("ω (rad/s)")
-plt.ylabel("Amplitud máxima |y| (m)")
+# Formato científico en el eje y
+formatter = ticker.ScalarFormatter(useMathText=True)
+formatter.set_powerlimits((-1, 1))  # notación científica para valores chicos
+plt.gca().yaxis.set_major_formatter(formatter)
+plt.xticks(rotation=45)
+plt.xticks(fontsize=14)
+plt.gca().yaxis.offsetText.set_fontsize(14)
+plt.yticks(fontsize=14)
+plt.legend(fontsize=20)
+plt.xlabel("ω [rad/s]", fontsize=20)
+plt.ylabel("Amplitud máxima |y| [m]", fontsize=20)
 plt.grid(True)
-plt.legend()
 plt.tight_layout()
 plt.savefig("amplitud_vs_omega.png")
 plt.show()
