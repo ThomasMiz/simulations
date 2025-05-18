@@ -17,6 +17,9 @@ class Program
 
         //List<Action> runs = [RunSimpleSystems, RunComplexSystem, RunEightLoopGravitySystem, RunDaisyChainGravitySystem];
         //Parallel.ForEach(runs, a => a());
+        
+        // Parallel.For(0, GravityPeriodicSolutions.All.Length, RunPeriodicSolution);
+        // RunDaisyChainGravitySystem();
 
         Console.WriteLine("Goodbye!");
     }
@@ -160,8 +163,8 @@ class Program
         var config = new SimulationConfig
         {
             DeltaTime = 0.001,
-            MaxSimulationTime = 9,
-            SaveEverySteps = 10,
+            MaxSimulationTime = 25,
+            SaveEverySteps = 20,
             OutputFile = "gravitydaisychain-N{count}-{type}-{steps}steps.txt",
             ForceFunction = new ForceFunctions.Gravity(g: 1)
         };
@@ -180,6 +183,30 @@ class Program
         }
 
         using (Simulation sim = config.BuildVerlet())
+        {
+            sim.RunToEnd();
+        }
+    }
+
+    private static void RunPeriodicSolution(int solutionIndex)
+    {
+        int solutionNumber = solutionIndex + 1;
+        List<ParticleState> solution = GravityPeriodicSolutions.All[solutionIndex];
+
+        var config = new SimulationConfig
+        {
+            DeltaTime = 0.001,
+            MaxSimulationTime = 25,
+            SaveEverySteps = 20,
+            OutputFile = "gravity" + solutionNumber + "-N{count}-{type}-{steps}steps.txt",
+            ForceFunction = new ForceFunctions.Gravity(g: 1)
+        };
+
+        double[] masses = [1, 1, 1, 0.0011];
+        for (int i = 0; i < solution.Count; i++)
+            config.AddParticle(mass: masses[i], position: solution[i].Position, velocity: solution[i].Velocity);
+
+        using (Simulation sim = config.BuildBeeman())
         {
             sim.RunToEnd();
         }

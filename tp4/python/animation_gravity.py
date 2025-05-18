@@ -4,7 +4,9 @@ from matplotlib.patches import Circle
 from file_loader import parse_simulation_file
 
 # === Configuration ===
-FILE_PATH = "../bin/Debug/net8.0/gravitydaisychain-N5-verlet-9000steps.txt"
+#FILE_PATH = "../bin/Debug/net8.0/gravitydaisychain-N5-verlet-9000steps.txt"
+#FILE_PATH = "../bin/Debug/net8.0/gravityeightloop-N3-beeman-5000steps.txt"
+FILE_PATH = "../bin/Debug/net8.0/gravity1-N3-beeman-25000steps.txt"
 PARTICLE_RADIUS = 0.1
 
 # === Load simulation data ===
