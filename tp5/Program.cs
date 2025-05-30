@@ -7,19 +7,28 @@ class Program
 {
     static void Main(string[] args)
     {
+        const float HallwayWidth = 3.6f;
+        const float HallwayLength = 16;
+
+        const float halfSizeX = HallwayLength / 2;
+        const float halfSizeY = HallwayWidth / 2;
+
         SimulationConfig config = new()
         {
-            Bounds = new Rectangle(bottomLeft: (-8, -3), topRight: (8, 3)),
-            DeltaTime = 0.01f,
+            Bounds = new Rectangle(bottomLeft: (-halfSizeX, -halfSizeY), topRight: (halfSizeX, halfSizeY)),
+            DeltaTime = 0.001f,
         };
         
         //config.AddRectangleWall(new Rectangle(bottomLeft: (-4, -2), topRight: (4, 2)));
-        config.AddLineWall(start: (-100, -3), end: (100, -3));
-        config.AddLineWall(start: (-100, 3), end: (100, 3));
+        config.AddLineWall(start: (-(halfSizeX + 10), -halfSizeY), end: ((halfSizeX + 10), -halfSizeY));
+        config.AddLineWall(start: (-(halfSizeX + 10), halfSizeY), end: ((halfSizeX + 10), halfSizeY));
         
-        config.AddParticleHandler(new ConstantForceAvoidingParticleHandler(spawnRate: 4f, force: 1.5f, maxEvasiveForce: 1.5f, particleRadius: 0.25f, particleSensingRadius: 0.75f, isLeftToRight: true));
-        config.AddParticleHandler(new ConstantForceAvoidingParticleHandler(spawnRate: 4f, force: 1.5f, maxEvasiveForce: 1.5f, particleRadius: 0.25f, particleSensingRadius: 0.75f, isLeftToRight: false));
+        //config.AddParticleHandler(new ConstantForceAvoidingParticleHandler(spawnRate: 2f, force: 6f, maxEvasiveForce: 1.5f, particleRadius: 0.25f, particleSensingRadius: 0.75f, isLeftToRight: true));
+        //config.AddParticleHandler(new ConstantForceAvoidingParticleHandler(spawnRate: 2f, force: 6f, maxEvasiveForce: 1.5f, particleRadius: 0.25f, particleSensingRadius: 0.75f, isLeftToRight: false));
 
+        config.AddParticleHandler(new ConstantForceParticleHandler(spawnRate: 6f, force: 6f, particleRadius: 0.25f, isLeftToRight: true));
+        config.AddParticleHandler(new ConstantForceParticleHandler(spawnRate: 6f, force: 6f, particleRadius: 0.25f, isLeftToRight: false));
+        
         using Simulation simulation = config.Build();
         simulation.Initialize();
         

@@ -12,6 +12,8 @@ public class Simulation : IDisposable
     public double SecondsElapsed => Steps * (double)DeltaTime;
 
     private List<ParticleHandler> particleHandlers = new();
+    
+    public IReadOnlyList<ParticleHandler> ParticleHandlers => particleHandlers;
 
     public World PhysicsWorld { get; private set; }
 

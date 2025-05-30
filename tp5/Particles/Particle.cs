@@ -22,6 +22,8 @@ public abstract class Particle
             fixture.Friction = 0;
             fixture.Restitution = 0;
         }
+
+        body.Mass = 1;
     }
     
     protected abstract void OnInitialized();

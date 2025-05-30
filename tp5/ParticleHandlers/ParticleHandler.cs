@@ -10,6 +10,8 @@ namespace tp5.ParticleHandlers;
 public abstract class ParticleHandler
 {
     protected LinkedList<Particle> particles = new();
+    
+    public IReadOnlyCollection<Particle> Particles => particles;
 
     public Simulation Simulation { get; private set; }
 

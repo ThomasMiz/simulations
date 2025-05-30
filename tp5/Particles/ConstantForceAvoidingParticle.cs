@@ -17,7 +17,7 @@ public class ConstantForceAvoidingParticle : CircularSensingParticle
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        
+
         Body.LinearDamping = 2;
         if (Force.X < 0) Body.Rotation = MathF.PI;
     }
@@ -25,16 +25,24 @@ public class ConstantForceAvoidingParticle : CircularSensingParticle
     public override void PreUpdate(float deltaTime, double elapsed)
     {
         Vector2 force = Force;
-        
+
         foreach (Body sensedBody in SensedBodies)
         {
             Vector2 diff = Body.Position - sensedBody.Position;
             float distance = diff.Length();
             Vector2 direction = diff / distance;
-            
-            force += direction * (MaxEvasiveForce * distance / SensingRadius);
+
+            Vector2 evasiveForce = direction * (MaxEvasiveForce * distance / SensingRadius);
+
+            if (Body.LinearVelocity != Vector2.Zero && sensedBody.LinearVelocity != Vector2.Zero)
+            {
+                float dot = -Vector2.Dot(Vector2.Normalize(Body.LinearVelocity), Vector2.Normalize(sensedBody.LinearVelocity));
+                evasiveForce *= new Vector2(Math.Max(dot, 0), dot);
+            }
+
+            force += evasiveForce;
         }
-        
+
         Body.ApplyForce(force);
     }
 

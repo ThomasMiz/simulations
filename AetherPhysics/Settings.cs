@@ -52,17 +52,17 @@ namespace AetherPhysics
         /// <summary>
         /// The number of velocity iterations used in the solver.
         /// </summary>
-        public static int VelocityIterations = 8;
+        public static int VelocityIterations = 1;
 
         /// <summary>
         /// The number of position iterations used in the solver.
         /// </summary>
-        public static int PositionIterations = 3;
+        public static int PositionIterations = 1;
 
         /// <summary>
         /// Enable/Disable Continuous Collision Detection (CCD)
         /// </summary>
-        public static bool ContinuousPhysics = true;
+        public static bool ContinuousPhysics = false;
 
         /// <summary>
         /// If true, it will run a GiftWrap convex hull on all polygon inputs.
@@ -85,7 +85,7 @@ namespace AetherPhysics
         /// <summary>
         /// Maximum number of sub-steps per contact in continuous physics simulation.
         /// </summary>
-        public const int MaxSubSteps = 8;
+        public const int MaxSubSteps = 1;
 
         /// <summary>
         /// Enable/Disable sleeping
