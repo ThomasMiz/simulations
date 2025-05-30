@@ -2,22 +2,20 @@ using System.Numerics;
 
 namespace tp5.Particles;
 
-public class ConstantForceParticle : Particle
+public class ConstantForceParticle : CircularParticle
 {
     public Vector2 Force { get; set; }
-    public float Radius { get; }
 
-    public ConstantForceParticle(float radius, Vector2 force)
+    public ConstantForceParticle(float radius, Vector2 force) : base(radius)
     {
-        Radius = radius;
         Force = force;
     }
 
     protected override void OnInitialized()
     {
-        Body.CreateCircle(Radius, 1f);
-        Body.LinearDamping = 2;
+        base.OnInitialized();
         
+        Body.LinearDamping = 2;
         if (Force.X < 0) Body.Rotation = MathF.PI;
     }
 

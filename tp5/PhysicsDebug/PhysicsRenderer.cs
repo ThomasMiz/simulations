@@ -335,6 +335,11 @@ namespace tp5.PhysicsDebug
 
         public void DrawShape(Fixture fixture, Transform xf, Color4b color)
         {
+            if (fixture.IsSensor)
+            {
+                color.A = (byte)(color.A / 4);
+            }
+            
             switch (fixture.Shape.ShapeType)
             {
                 case ShapeType.Circle:
