@@ -6,10 +6,12 @@ namespace tp5.Particles;
 public class ConstantForceAvoidingParticle : CircularSensingParticle
 {
     public Vector2 Force { get; set; }
+    public float MaxEvasiveForce { get; set; }
 
-    public ConstantForceAvoidingParticle(float radius, float sensingRadius, Vector2 force) : base(radius, sensingRadius)
+    public ConstantForceAvoidingParticle(float radius, float sensingRadius, Vector2 force, float maxEvasiveForce) : base(radius, sensingRadius)
     {
         Force = force;
+        MaxEvasiveForce = maxEvasiveForce;
     }
 
     protected override void OnInitialized()
@@ -26,13 +28,11 @@ public class ConstantForceAvoidingParticle : CircularSensingParticle
         
         foreach (Body sensedBody in SensedBodies)
         {
-            float forceMax = 2;
-            
             Vector2 diff = Body.Position - sensedBody.Position;
             float distance = diff.Length();
             Vector2 direction = diff / distance;
             
-            force += direction * (forceMax * distance / SensingRadius);
+            force += direction * (MaxEvasiveForce * distance / SensingRadius);
         }
         
         Body.ApplyForce(force);

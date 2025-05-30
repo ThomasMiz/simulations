@@ -17,8 +17,8 @@ class Program
         config.AddLineWall(start: (-100, -3), end: (100, -3));
         config.AddLineWall(start: (-100, 3), end: (100, 3));
         
-        config.AddParticleHandler(new ConstantForceAvoidingParticleHandler(spawnRate: 2f, force: 1.5f, particleRadius: 0.25f, isLeftToRight: true));
-        config.AddParticleHandler(new ConstantForceAvoidingParticleHandler(spawnRate: 2f, force: 1.5f, particleRadius: 0.25f, isLeftToRight: false));
+        config.AddParticleHandler(new ConstantForceAvoidingParticleHandler(spawnRate: 4f, force: 1.5f, maxEvasiveForce: 1.5f, particleRadius: 0.25f, particleSensingRadius: 0.75f, isLeftToRight: true));
+        config.AddParticleHandler(new ConstantForceAvoidingParticleHandler(spawnRate: 4f, force: 1.5f, maxEvasiveForce: 1.5f, particleRadius: 0.25f, particleSensingRadius: 0.75f, isLeftToRight: false));
 
         using Simulation simulation = config.Build();
         simulation.Initialize();

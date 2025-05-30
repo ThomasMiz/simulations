@@ -12,7 +12,9 @@ public class ConstantForceAvoidingParticleHandler : ParticleHandler
 
     public bool IsLeftToRight { get; }
     public Vector2 Force { get; }
+    public float MaxEvasiveForce { get; }
     public float ParticleRadius { get; }
+    public float ParticleSensingRadius { get; }
 
     private float spawnX;
     private float spawnMinY, spawnMaxY;
@@ -20,7 +22,7 @@ public class ConstantForceAvoidingParticleHandler : ParticleHandler
 
     private readonly Random random = new();
 
-    public ConstantForceAvoidingParticleHandler(float spawnRate, float force, float particleRadius, bool isLeftToRight)
+    public ConstantForceAvoidingParticleHandler(float spawnRate, float force, float maxEvasiveForce, float particleRadius, float particleSensingRadius, bool isLeftToRight)
     {
         // Will spawn spawnRate particles per second
         SpawnRate = spawnRate;
@@ -28,7 +30,9 @@ public class ConstantForceAvoidingParticleHandler : ParticleHandler
 
         force = MathF.Abs(force);
         Force = new Vector2(isLeftToRight ? force : -force, 0);
+        MaxEvasiveForce = maxEvasiveForce;
         ParticleRadius = particleRadius;
+        ParticleSensingRadius = particleSensingRadius;
         IsLeftToRight = isLeftToRight;
     }
 
@@ -51,7 +55,7 @@ public class ConstantForceAvoidingParticleHandler : ParticleHandler
         {
             nextSpawnTime += spawnEvery;
             float spawnY = random.NextFloat(spawnMinY, spawnMaxY);
-            AddParticle(new Vector2(spawnX, spawnY), new ConstantForceAvoidingParticle(ParticleRadius, ParticleRadius * 4, Force));
+            AddParticle(new Vector2(spawnX, spawnY), new ConstantForceAvoidingParticle(ParticleRadius, ParticleSensingRadius, Force, MaxEvasiveForce));
         }
     }
 
