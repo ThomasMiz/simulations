@@ -12,7 +12,8 @@ public class SimulationWindow : WindowBase
 {
     public Simulation Simulation { get; }
 
-    public (Vector2, Vector2)? SimulationBounds;
+    public bool DynamicBounds { get; set; } = false;
+    public Bounds? CustomSimulationBounds { get; set; } = null;
 
     public double SimulationSpeed { get; set; } = 1;
     private double simulationTargetTime = 0;
@@ -21,10 +22,10 @@ public class SimulationWindow : WindowBase
 
     private DebugRenderer debugRenderer;
 
-    public SimulationWindow(Simulation simulation, (Vector2, Vector2)? simulationBounds)
+    public SimulationWindow(Simulation simulation, Bounds? customSimulationBounds = null)
     {
         Simulation = simulation;
-        SimulationBounds = simulationBounds;
+        CustomSimulationBounds = customSimulationBounds;
     }
 
     protected override void OnLoad()
@@ -80,14 +81,24 @@ public class SimulationWindow : WindowBase
     protected override void OnRender(double dt)
     {
         Vector2D<int> windowSize = Window.Size;
-        (Vector2, Vector2) border = SimulationBounds ?? CalculateSimulationBounds();
+
+        (Vector2, Vector2) border;
+        if (DynamicBounds)
+        {
+            border = CalculateSimulationBounds();
+        }
+        else
+        {
+            Bounds b = CustomSimulationBounds ?? Simulation.Bounds;
+            border = (new Vector2((float)b.Left, (float)b.Bottom), new Vector2((float)b.Right, (float)b.Top));
+        }
 
         float borderWidth = border.Item2.X - border.Item1.X;
         float borderHeight = border.Item2.Y - border.Item1.Y;
         Vector2 borderCenter = (border.Item1 + border.Item2) * 0.5f;
 
         float s = Math.Min(windowSize.Y / borderHeight, windowSize.X / borderWidth) * 0.95f;
-        Matrix4x4 view = Matrix4x4.CreateTranslation(-borderCenter.X / 2f, -borderCenter.Y / 2f, 0) * Matrix4x4.CreateScale(s, -s, 1);
+        Matrix4x4 view = Matrix4x4.CreateTranslation(-borderCenter.X, -borderCenter.Y, 0) * Matrix4x4.CreateScale(s, -s, 1);
         view *= Matrix4x4.CreateTranslation(windowSize.X / 2f, windowSize.Y / 2f, 0);
         Matrix4x4 projection = Matrix4x4.CreateOrthographicOffCenter(0, windowSize.X, windowSize.Y, 0, 0, 1);
 

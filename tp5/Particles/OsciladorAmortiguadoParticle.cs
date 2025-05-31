@@ -10,7 +10,11 @@ public class OsciladorAmortiguadoParticle : Particle
     public override string Name => "OsciladorAmortiguado";
     public override bool IsForceVelocityDependant => true;
 
-    public override void OnInitialized()
+    protected override void OnInitializedImpl()
+    {
+    }
+
+    public override void PostUpdate()
     {
     }
 

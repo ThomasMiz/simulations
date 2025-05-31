@@ -20,9 +20,10 @@ class Program
         {
             DeltaTime = 0.001,
             MaxSimulationTime = 5,
-            OutputFile = "output-simple-{type}.txt",
+            OutputFile = null, //"output-simple-{type}.txt",
             SavingDeltaTime = 0.1f,
             IntegrationMethod = new BeemanIntegration(),
+            SimulationBounds = new Bounds(bottomLeft: (-2, -1), topRight: (2, 1))
         };
 
         config.AddParticle(new OsciladorAmortiguadoParticle()
@@ -35,9 +36,8 @@ class Program
             Y = 100,
         });
 
-        using Simulation beeman = config.Build();
-
-        using SimulationWindow window = new(simulation: beeman, simulationBounds: (new Vector2(-1, -1), new Vector2(1, 1)));
+        using Simulation sim = config.Build();
+        using SimulationWindow window = new(sim);
         window.SimulationSpeed = 1;
         window.Run();
 

@@ -1,3 +1,4 @@
+using Silk.NET.Maths;
 using tp5.Integration;
 using tp5.Particles;
 
@@ -9,6 +10,8 @@ public class Simulation : IDisposable
 
     public double DeltaTime { get; }
 
+    public Bounds Bounds { get; }
+
     public uint? MaxSteps { get; set; } = null;
 
     public uint Steps { get; private set; } = 0;
@@ -19,13 +22,17 @@ public class Simulation : IDisposable
     public LinkedList<Particle> Particles { get; }
     private long particleIdCounter = 1;
 
+    private readonly NeighborsFinder neighborsFinder;
+    private bool neighborsFinderDirty = true;
+
     private SimulationFileSaver? saver;
 
-    public Simulation(IntegrationMethod integrationMethod, double deltaTime, uint? maxSteps, LinkedList<Particle> particles, SimulationFileSaver? saver)
+    public Simulation(IntegrationMethod integrationMethod, double deltaTime, uint? maxSteps, Bounds bounds, LinkedList<Particle> particles, SimulationFileSaver? saver)
     {
         IntegrationMethod = integrationMethod;
         DeltaTime = deltaTime;
         MaxSteps = maxSteps;
+        Bounds = bounds;
         Particles = particles;
         this.saver = saver;
 
@@ -42,6 +49,8 @@ public class Simulation : IDisposable
 
         Parallel.ForEach(Particles, particle => particle.OnInitialized());
         Parallel.ForEach(Particles, particle => IntegrationMethod.InitializeParticle(particle, DeltaTime));
+
+        neighborsFinderDirty = true;
     }
 
     public void AddParticle(Particle particle)
@@ -51,6 +60,8 @@ public class Simulation : IDisposable
         particle.Simulation = this;
         particle.OnInitialized();
         IntegrationMethod.InitializeParticle(particle, DeltaTime);
+
+        neighborsFinderDirty = true;
     }
 
     public void RemoveParticle(Particle particle)
@@ -61,6 +72,19 @@ public class Simulation : IDisposable
         particle.Simulation = null;
         particle.Node = null;
         particle.OnRemoved();
+
+        neighborsFinderDirty = true;
+    }
+
+    public void FindParticlesWithinRadius(in Vector2D<double> position, double particleRadius, double distance, ICollection<Particle> result)
+    {
+        if (neighborsFinderDirty)
+        {
+            neighborsFinder.Recalculate();
+            neighborsFinderDirty = false;
+        }
+
+        neighborsFinder.FindWithinRadius(position, particleRadius, distance, result);
     }
 
     public void Step()
@@ -74,6 +98,8 @@ public class Simulation : IDisposable
 
         Steps++;
         IntegrationMethod.Step(Particles, DeltaTime);
+
+        neighborsFinderDirty = true;
 
         foreach (Particle particle in Particles)
         {

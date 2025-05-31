@@ -9,6 +9,7 @@ public class SimulationConfig
     private LinkedList<Particle> particles = new();
     public double? DeltaTime { get; set; } = null;
     public double? SavingDeltaTime { get; set; } = null;
+    public Bounds? SimulationBounds { get; set; } = null;
 
     public uint? MaxSteps { get; set; } = null;
     public double? MaxSimulationTime { get; set; } = null;
@@ -27,6 +28,7 @@ public class SimulationConfig
     {
         if (DeltaTime == null) throw new ArgumentNullException(nameof(DeltaTime));
         if (IntegrationMethod == null) throw new ArgumentNullException(nameof(IntegrationMethod));
+        if (SimulationBounds == null) throw new ArgumentNullException(nameof(SimulationBounds));
 
         if (OutputFile == null) Console.WriteLine("Warning: no output file, simulation state will not be saved");
     }
@@ -58,6 +60,6 @@ public class SimulationConfig
 
         SimulationFileSaver? saver = OutputFile == null ? null : new(MakeOutputFilename(), SavingDeltaTime);
 
-        return new Simulation(IntegrationMethod, DeltaTime.Value, CalculateMaxSteps(), list, saver);
+        return new Simulation(IntegrationMethod, DeltaTime.Value, CalculateMaxSteps(), SimulationBounds.Value, list, saver);
     }
 }
