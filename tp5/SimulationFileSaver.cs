@@ -27,6 +27,11 @@ public class SimulationFileSaver : IDisposable
         stream.Write("}\n");
 
         WriteState(simulation);
+
+        if (SavingDeltaTime.HasValue)
+        {
+            nextSaveTime = SavingDeltaTime.Value;
+        }
     }
 
     public void OnStep(Simulation simulation)
@@ -61,21 +66,23 @@ public class SimulationFileSaver : IDisposable
 
         foreach (Particle p in simulation.Particles)
         {
-            stream.Write(" ; {\"id\": \"");
+            stream.Write(" ; {\"id\": ");
             stream.Write(p.Id);
-            stream.Write("\", \"mass\": \"");
+            stream.Write(", \"name\": \"");
+            stream.Write(p.Name);
+            stream.Write("\", \"mass\": ");
             stream.Write(p.Mass);
-            stream.Write("\", \"radius\": \"");
+            stream.Write(", \"radius\": ");
             stream.Write(p.Radius);
-            stream.Write("\", \"x\": \"");
+            stream.Write(", \"x\": ");
             stream.Write(p.Position.X);
-            stream.Write("\", \"y\": \"");
+            stream.Write(", \"y\": ");
             stream.Write(p.Position.Y);
-            stream.Write("\", \"vx\": \"");
+            stream.Write(", \"vx\": ");
             stream.Write(p.Velocity.X);
-            stream.Write("\", \"vy\": \"");
+            stream.Write(", \"vy\": ");
             stream.Write(p.Velocity.Y);
-            stream.Write("\"}");
+            stream.Write('}');
         }
 
         stream.Write('\n');

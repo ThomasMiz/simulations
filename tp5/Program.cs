@@ -20,7 +20,8 @@ class Program
         {
             DeltaTime = 0.001,
             MaxSimulationTime = 5,
-            OutputFile = null, //$"output-simple-{{type}}-{{steps}}steps-dt0.001.txt",
+            OutputFile = "output-simple-{type}.txt",
+            SavingDeltaTime = 0.1f,
             IntegrationMethod = new BeemanIntegration(),
         };
 
