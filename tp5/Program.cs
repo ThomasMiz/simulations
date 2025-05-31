@@ -15,7 +15,7 @@ class Program
         const double HallwayWidth = 3.6f;
         const double HallwayLength = 16;
 
-        const double spawnRate = 4;
+        const double spawnRate = 8;
         const double particleRadius = 0.25;
 
         const double spawnAreaLength = 1;
@@ -51,7 +51,7 @@ class Program
             TargetX = -(halfSizeX - particleRadius * 1.2),
         };*/
 
-        ParticleCreator spawnLeftToRightParticle = position => new SocialForceParticle()
+        /*ParticleCreator spawnLeftToRightParticle = position => new SocialForceParticle()
         {
             Position = position,
             Radius = particleRadius,
@@ -61,6 +61,24 @@ class Program
         };
 
         ParticleCreator spawnRightToLeftParticle = position => new SocialForceParticle()
+        {
+            Position = position,
+            Radius = particleRadius,
+            TargetHorizontalVelocity = -1.5,
+            Acceleration = 10,
+            TargetX = spawnAreaLength,
+        };*/
+
+        ParticleCreator spawnLeftToRightParticle = position => new RightDrivingTrainParticle()
+        {
+            Position = position,
+            Radius = particleRadius,
+            TargetHorizontalVelocity = 1.5,
+            Acceleration = 10,
+            TargetX = HallwayLength - spawnAreaLength,
+        };
+
+        ParticleCreator spawnRightToLeftParticle = position => new RightDrivingTrainParticle()
         {
             Position = position,
             Radius = particleRadius,

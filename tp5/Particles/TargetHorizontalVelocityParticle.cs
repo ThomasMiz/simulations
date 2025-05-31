@@ -32,9 +32,9 @@ public class TargetHorizontalVelocityParticle : Particle
     public override Vector2D<double> CalculateForce()
     {
         Vector2D<double> requiredAsceleration = new Vector2D<double>(TargetHorizontalVelocity - Velocity.X, -Velocity.Y) / Simulation.DeltaTime;
-        Vector2D<double> absoluteAscelerationX = Vector2D.Min(Vector2D.Abs(requiredAsceleration), new Vector2D<double>(Acceleration, -Velocity.Y * Ky));
-        double ax = Math.CopySign(absoluteAscelerationX.X, requiredAsceleration.X);
-        double ay = Math.CopySign(absoluteAscelerationX.Y, requiredAsceleration.Y);
+        Vector2D<double> absoluteAsceleration = Vector2D.Min(Vector2D.Abs(requiredAsceleration), new Vector2D<double>(Acceleration, -Velocity.Y * Ky));
+        double ax = Math.CopySign(absoluteAsceleration.X, requiredAsceleration.X);
+        double ay = Math.CopySign(absoluteAsceleration.Y, requiredAsceleration.Y);
 
         return new Vector2D<double>(ax, ay) * Mass;
     }
