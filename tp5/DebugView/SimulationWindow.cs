@@ -12,6 +12,8 @@ public class SimulationWindow : WindowBase
 {
     public Simulation Simulation { get; }
 
+    public bool RenderEveryStep { get; } = false;
+
     public bool DynamicBounds { get; set; } = false;
     public Bounds? CustomSimulationBounds { get; set; } = null;
 
@@ -43,18 +45,21 @@ public class SimulationWindow : WindowBase
     {
         base.OnUpdate(dt);
 
-        if (!Simulation.HasStopped)
+        if (!RenderEveryStep)
         {
-            simulationTargetTime += dt * SimulationSpeed;
-        }
-
-        while (!Simulation.HasStopped && Simulation.SecondsElapsed < simulationTargetTime)
-        {
-            Simulation.Step();
-
-            if (Simulation.Steps % 1000 == 0)
+            if (!Simulation.HasStopped)
             {
-                Console.WriteLine("Simulated step {0}", Simulation.Steps);
+                simulationTargetTime += dt * SimulationSpeed;
+            }
+
+            while (!Simulation.HasStopped && Simulation.SecondsElapsed < simulationTargetTime)
+            {
+                Simulation.Step();
+
+                if (Simulation.Steps % 1000 == 0)
+                {
+                    Console.WriteLine("Simulated step {0}", Simulation.Steps);
+                }
             }
         }
     }
@@ -80,6 +85,24 @@ public class SimulationWindow : WindowBase
 
     protected override void OnRender(double dt)
     {
+        if (RenderEveryStep)
+        {
+            if (!Simulation.HasStopped)
+            {
+                simulationTargetTime += dt * SimulationSpeed;
+            }
+
+            if (!Simulation.HasStopped && Simulation.SecondsElapsed < simulationTargetTime)
+            {
+                Simulation.Step();
+
+                if (Simulation.Steps % 1000 == 0)
+                {
+                    Console.WriteLine("Simulated step {0}", Simulation.Steps);
+                }
+            }
+        }
+        
         Vector2D<int> windowSize = Window.Size;
 
         (Vector2, Vector2) border;

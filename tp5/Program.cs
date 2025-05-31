@@ -14,33 +14,62 @@ class Program
     {
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
-        // RunAllDeltaTimes();
+        const double HallwayWidth = 3.6f;
+        const double HallwayLength = 16;
 
+        const double halfSizeX = HallwayLength / 2;
+        const double halfSizeY = HallwayWidth / 2;
 
+        const double spawnRate = 1;
+        const double particleRadius = 0.25;
+
+        const double spawnAreaLength = 1;
+
+        Bounds simulationBounds = new Bounds(bottomLeft: (-halfSizeX, 0), topRight: (halfSizeX, HallwayWidth));
+        
         var config = new SimulationConfig
         {
             DeltaTime = 0.001,
-            MaxSimulationTime = 5,
+            //MaxSimulationTime = 25,
             OutputFile = null, //"output-simple-{type}.txt",
             SavingDeltaTime = 0.1f,
             IntegrationMethod = new BeemanIntegration(),
-            SimulationBounds = new Bounds(bottomLeft: (-2, -2), topRight: (2, 2))
+            SimulationBounds = simulationBounds,
         };
 
-        config.AddParticleSpawner(new TestyParticleSpawner(1));
-        /*config.AddParticle(new OsciladorAmortiguadoParticle()
+        ParticleCreator spawnLeftToRightParticle = position => new TargetHorizontalVelocityParticle()
         {
-            Mass = 70,
-            Radius = 0.25,
-            Position = new Vector2D<double>(1, 0),
-            Velocity = new Vector2D<double>(-1 * 100.0 / (2 * 70), 0),
-            K = 10000,
-            Y = 100,
-        });*/
+            Position = position,
+            Radius = particleRadius,
+            TargetHorizontalVelocity = 1.5,
+            Acceleration = 10,
+            TargetX = halfSizeX - particleRadius * 1.2,
+        };
+
+        ParticleCreator spawnRightToLeftParticle = position => new TargetHorizontalVelocityParticle()
+        {
+            Position = position,
+            Radius = particleRadius,
+            TargetHorizontalVelocity = -1.5,
+            Acceleration = 10,
+            TargetX = -(halfSizeX - particleRadius * 1.2),
+        };
+
+        config.AddParticleSpawner(new GenericRateParticleSpawner(
+            spawnRate: spawnRate,
+            spawnArea: new Bounds(simulationBounds.Left, simulationBounds.Bottom + particleRadius, simulationBounds.Left + spawnAreaLength, simulationBounds.Top - particleRadius),
+            particleCreator: spawnLeftToRightParticle
+        ));
+
+        config.AddParticleSpawner(new GenericRateParticleSpawner(
+            spawnRate: spawnRate,
+            spawnArea: new Bounds(simulationBounds.Right - spawnAreaLength, simulationBounds.Bottom + particleRadius, simulationBounds.Right, simulationBounds.Top - particleRadius),
+            particleCreator: spawnRightToLeftParticle
+        ));
 
         using Simulation sim = config.Build();
         using SimulationWindow window = new(sim);
-        window.SimulationSpeed = 1;
+        window.SimulationSpeed = 3;
         window.Run();
 
         Console.WriteLine("Goodbye!");

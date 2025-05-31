@@ -16,7 +16,7 @@ public abstract class Particle
 
     public LinkedListNode<Particle> Node { get; set; }
 
-    public double Mass { get; init; }
+    public double Mass { get; init; } = 1;
 
     private void CalculateMinMaxPositions()
     {
@@ -84,11 +84,22 @@ public abstract class Particle
 
     public abstract void PostUpdate();
 
-    public abstract void OnRemoved();
+    public virtual void OnRemoved()
+    {
+    }
 
     public abstract Vector2D<double> CalculateForce();
 
-    public abstract Vector2D<double> CalculateDerivative(int derivative);
+    public virtual Vector2D<double> CalculateDerivative(int derivative)
+    {
+        return derivative switch
+        {
+            0 => Position, // x
+            1 => Velocity, // v
+            2 => CalculateForce() / Mass, // a
+            _ => Vector2D<double>.Zero
+        };
+    }
 
     // Auxiliary vectors for exclusive use by the simulation integrator
     public Vector2D<double> Aux0;

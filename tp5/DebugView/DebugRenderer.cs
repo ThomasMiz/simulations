@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Text;
 using Silk.NET.Maths;
 using tp5.Particles;
+using tp5.Spawners;
 using TrippyGL;
 using DRectangle = System.Drawing.Rectangle;
 
@@ -32,6 +33,8 @@ namespace tp5.DebugView
 
         //Shapes
         public readonly Color4b DefaultShapeColor = new(0.9f, 0.7f, 0.7f);
+        public readonly Color4b SpawnAreaColor = new(0.5f, 0.9f, 0.5f, 0.25f);
+
         public readonly Color4b InactiveShapeColor = new(0.5f, 0.5f, 0.3f);
         public readonly Color4b KinematicShapeColor = new(0.5f, 0.5f, 0.9f);
         public readonly Color4b SleepingShapeColor = new(0.6f, 0.6f, 0.6f);
@@ -49,6 +52,7 @@ namespace tp5.DebugView
         public Vector2 GridMaximumCoords;
         public Vector2 GridStep = new(1, 1);
         public bool DrawGrid = true;
+        public bool DrawBounds = true;
 
         public DebugRenderer(Simulation simulation, GraphicsDevice graphicsDevice, TextureFont font)
         {
@@ -96,9 +100,38 @@ namespace tp5.DebugView
                     renderer.DrawSegment(new Vector2(GridMinimumCoords.X, y), new Vector2(GridMaximumCoords.X, y), GridColor);
             }
 
+            foreach (ParticleSpawner spawner in Simulation.ParticleSpawners)
+            {
+                if (spawner is RandomAreaParticleSpawner areaSpawner)
+                {
+                    ReadOnlySpan<Vector2> vertices =
+                    [
+                        areaSpawner.SpawnArea.BottomLeft.As<float>().ToSystem(),
+                        areaSpawner.SpawnArea.BottomRight.As<float>().ToSystem(),
+                        areaSpawner.SpawnArea.TopRight.As<float>().ToSystem(),
+                        areaSpawner.SpawnArea.TopLeft.As<float>().ToSystem(),
+                    ];
+                    renderer.DrawSolidPolygon(vertices, SpawnAreaColor);
+                }
+            }
+
             foreach (Particle p in Simulation.Particles)
             {
-                renderer.DrawSolidCircle(p.Position.As<float>().ToSystem(), (float)p.Radius, new Vector2(1, 0), DefaultShapeColor);
+                bool isLefty = p.Name.Contains("left", StringComparison.InvariantCultureIgnoreCase);
+                Vector2 axis = new Vector2(isLefty ? 1 : -1, 0);
+                renderer.DrawSolidCircle(p.Position.As<float>().ToSystem(), (float)p.Radius, axis, DefaultShapeColor);
+            }
+
+            if (DrawBounds)
+            {
+                ReadOnlySpan<Vector2> vertices =
+                [
+                    Simulation.Bounds.BottomLeft.As<float>().ToSystem(),
+                    Simulation.Bounds.BottomRight.As<float>().ToSystem(),
+                    Simulation.Bounds.TopRight.As<float>().ToSystem(),
+                    Simulation.Bounds.TopLeft.As<float>().ToSystem(),
+                ];
+                renderer.DrawPolygon(vertices, StaticShapeColor);
             }
 
             if (ShowDebugPanel)
@@ -113,6 +146,7 @@ namespace tp5.DebugView
             debugPanelSbObjects.Append("Steps: ").AppendNumber(Simulation.Steps);
             debugPanelSbObjects.Append("\nTime: ").AppendNumber(Simulation.SecondsElapsed).Append('s');
             debugPanelSbObjects.Append("\nParticles: ").AppendNumber(Simulation.Particles.Count);
+            debugPanelSbObjects.Append("\nSpawners: ").AppendNumber(Simulation.ParticleSpawners.Count);
 
             if (Simulation.HasStopped)
             {

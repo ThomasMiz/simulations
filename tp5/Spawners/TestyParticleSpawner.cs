@@ -9,6 +9,10 @@ public class TestyParticleSpawner : RateBasedParticleSpawner
     {
     }
 
+    protected override void OnInitializedImpl()
+    {
+    }
+
     protected override Particle CreateParticle(Vector2D<double> position)
     {
         return new OsciladorAmortiguadoParticle()

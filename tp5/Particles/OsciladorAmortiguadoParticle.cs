@@ -20,10 +20,6 @@ public class OsciladorAmortiguadoParticle : Particle
             Remove();
     }
 
-    public override void OnRemoved()
-    {
-    }
-
     public override Vector2D<double> CalculateForce()
     {
         return new Vector2D<double>(-K * Position.X - Y * Velocity.X, 0);

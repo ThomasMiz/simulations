@@ -1,27 +1,18 @@
 using Silk.NET.Maths;
 using tp5.Particles;
-using TrippyGL.Utils;
 
 namespace tp5.Spawners;
 
-public abstract class RateBasedParticleSpawner : ParticleSpawner
+public abstract class RateBasedParticleSpawner : RandomAreaParticleSpawner
 {
     public double SpawnRate { get; set; }
     private readonly double spawnEvery;
     private double nextSpawnTime = 0;
 
-    public Bounds SpawnArea { get; set; }
-    private Random random = new();
-
-    public RateBasedParticleSpawner(double spawnRate, Bounds spawnArea)
+    public RateBasedParticleSpawner(double spawnRate, Bounds spawnArea) : base(spawnArea)
     {
         SpawnRate = spawnRate;
         spawnEvery = 1.0 / SpawnRate;
-        SpawnArea = spawnArea;
-    }
-
-    protected override void OnInitializedImpl()
-    {
     }
 
     public override void PreUpdate()
@@ -30,12 +21,7 @@ public abstract class RateBasedParticleSpawner : ParticleSpawner
 
         while (nextSpawnTime < elapsed)
         {
-            Vector2D<double> position = new()
-            {
-                X = random.NextDouble(SpawnArea.Left, SpawnArea.Right),
-                Y = random.NextDouble(SpawnArea.Bottom, SpawnArea.Top),
-            };
-
+            Vector2D<double> position = GetSpawningPosition();
             Simulation.AddParticle(CreateParticle(position));
             nextSpawnTime += spawnEvery;
         }
