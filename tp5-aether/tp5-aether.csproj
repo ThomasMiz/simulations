@@ -5,14 +5,19 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
+        <RootNamespace>tp5</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AetherPhysics\AetherPhysics.csproj" />
       <ProjectReference Include="..\SimulationBase\SimulationBase.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <None Update="Content\arial16regular.tglf">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Content\tuki.tglf">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>

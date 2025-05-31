@@ -1,78 +1,83 @@
-using tp5.ParticleHandlers;
 using tp5.Particles;
 
 namespace tp5;
 
 public class SimulationFileSaver : IDisposable
 {
-    public float? SavingDeltaTime { get; set; }
-
-    public string Filename { get; set; }
-
     private readonly StreamWriter stream;
-    private double nextSaveTime = 0;
 
-    public SimulationFileSaver(string filename)
+    public SimulationFileSaver(string filename, uint? saveEveryStep, string integrationType, double deltaTime, IReadOnlyCollection<Particle> particles)
     {
-        stream = File.CreateText(filename);
         Filename = filename;
+        SaveEverySteps = saveEveryStep ?? 1;
+        stream = File.CreateText(filename);
+        WriteStart(integrationType, deltaTime, particles);
     }
 
-    public void OnStep(Simulation simulation, float deltaTime, double elapsed)
-    {
-        if (elapsed >= nextSaveTime)
-        {
-            while (nextSaveTime < elapsed)
-            {
-                nextSaveTime += deltaTime;
-            }
-            
-            WriteState(simulation, elapsed);
-        }
-    }
-
-    private void WriteState(Simulation simulation, double elapsed)
-    {
-        stream.Write("Time=");
-        stream.Write(elapsed);
-
-        foreach (ParticleHandler ph in simulation.ParticleHandlers)
-        {
-            stream.Write(';');
-
-            stream.Write('[');
-            bool isFirstParticle = true;
-            foreach (Particle particle in ph.Particles)
-            {
-                if (isFirstParticle)
-                {
-                    isFirstParticle = false;
-                }
-                else
-                {
-                    stream.Write(',');
-                }
-
-                stream.Write("{x=");
-                stream.Write(particle.Body.Position.X);
-                stream.Write(",y=");
-                stream.Write(particle.Body.Position.Y);
-                stream.Write(",vx=");
-                stream.Write(particle.Body.LinearVelocity.X);
-                stream.Write(",vy}");
-                stream.Write(particle.Body.LinearVelocity.Y);
-            }
-
-            stream.Write(']');
-        }
-        
-        stream.WriteLine();
-    }
+    public string Filename { get; }
+    public uint SaveEverySteps { get; }
 
     public void Dispose()
     {
         Console.WriteLine($"Saved to {Filename}");
         stream.Flush();
         stream.Dispose();
+    }
+
+    private void WriteStart(string integrationType, double deltaTime, IReadOnlyCollection<Particle> particles)
+    {
+        stream.Write("IntegrationType: ");
+        stream.Write(integrationType);
+        stream.Write('\n');
+
+        stream.Write("DeltaTime: ");
+        stream.Write(deltaTime.ToString("G17"));
+        stream.Write('\n');
+
+        stream.Write("Masses: [");
+        bool isFirst = true;
+        foreach (Particle particle in particles)
+        {
+            if (isFirst)
+            {
+                isFirst = false;
+            }
+            else
+            {
+                stream.Write(", ");
+            }
+
+            stream.Write(particle.Mass.ToString("G17"));
+        }
+
+        stream.Write("]\n");
+    }
+
+    public void AppendState(uint step, double time, IReadOnlyCollection<Particle> particles)
+    {
+        if (step % SaveEverySteps != 0)
+            return;
+
+        stream.Write('[');
+        stream.Write(step);
+        stream.Write(' ');
+        stream.Write(time.ToString("G17"));
+        stream.Write(']');
+
+        bool isFirst = true;
+        foreach (Particle particle in particles)
+        {
+            stream.Write(isFirst ? " " : " ; ");
+            isFirst = false;
+            stream.Write(particle.Position.X.ToString("G17"));
+            stream.Write(' ');
+            stream.Write(particle.Position.Y.ToString("G17"));
+            stream.Write(' ');
+            stream.Write(particle.Velocity.X.ToString("G17"));
+            stream.Write(' ');
+            stream.Write(particle.Velocity.Y.ToString("G17"));
+        }
+
+        stream.Write('\n');
     }
 }

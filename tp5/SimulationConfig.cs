@@ -1,56 +1,82 @@
-using System.Numerics;
-using AetherPhysics.Collision.Shapes;
-using AetherPhysics.Common;
-using AetherPhysics.Dynamics;
-using tp5.ParticleHandlers;
+using Silk.NET.Maths;
+using tp5.Integration;
+using tp5.Particles;
 
 namespace tp5;
 
 public class SimulationConfig
 {
-    public float DeltaTime { get; set; }
-    public float? SavingDeltaTime { get; set; }
+    private LinkedList<Particle> particles = new();
+    public double DeltaTime { get; set; }
 
     public uint? MaxSteps { get; set; } = null;
     public double? MaxSimulationTime { get; set; } = null;
 
-    public Rectangle Bounds { get; set; }
-
-    private World physicsWorld = new(gravity: Vector2.Zero);
-    private List<ParticleHandler> particleHandlers = new();
-
     public string? OutputFile { get; set; } = null;
+    public uint SaveEverySteps { get; set; } = 1;
 
-    public void AddLineWall((float, float) start, (float, float) end)
+    public ForceFunction ForceFunction { get; set; }
+
+    public SimulationConfig AddParticle(double mass, Vector2D<double> position, Vector2D<double> velocity)
     {
-        physicsWorld.CreateBody().CreateFixture(new EdgeShape(new Vector2(start.Item1, start.Item2), new Vector2(end.Item1, end.Item2)));
+        particles.AddLast(new Particle { Mass = mass, Position = position, Velocity = velocity});
+        return this;
     }
 
-    public void AddRectangleWall(Rectangle rectangle)
+    public SimulationConfig AddParticle(double mass, (double, double) position, (double, double) velocity)
     {
-        Vertices vertices = new(4);
-        vertices.Add(rectangle.BottomLeft);
-        vertices.Add(rectangle.BottomRight);
-        vertices.Add(rectangle.TopRight);
-        vertices.Add(rectangle.TopLeft);
-
-        physicsWorld.CreateBody().CreateFixture(new ChainShape(vertices, true));
+        return AddParticle(mass, new Vector2D<double>(position.Item1, position.Item2), new Vector2D<double>(velocity.Item1, velocity.Item2));
     }
 
-    public void AddParticleHandler(ParticleHandler handler)
+    private void CheckValidity()
     {
-        particleHandlers.Add(handler);
+        if (ForceFunction == null) throw new ArgumentNullException(nameof(ForceFunction));
+        if (particles.Count == 0) throw new ArgumentOutOfRangeException(nameof(particles), particles.Count, "Must specify at least one particle");
+
+        if (MaxSteps == null && MaxSimulationTime == null)
+            Console.WriteLine("Warning: simulation has no end condition");
     }
 
-    public Simulation Build()
+    public uint? CalculateMaxSteps()
     {
-        World physicsWorld2 = physicsWorld;
-        List<ParticleHandler> particleHandlers2 = particleHandlers;
+        uint? maxStepsByTime = MaxSimulationTime == null ? null : (uint)Math.Ceiling(MaxSimulationTime.Value / DeltaTime - 0.2);
 
-        // Not reusable
-        physicsWorld = new World();
-        particleHandlers = new List<ParticleHandler>();
+        if (maxStepsByTime != null && MaxSteps != null) return Math.Min(maxStepsByTime.Value, MaxSteps.Value);
+        return maxStepsByTime ?? MaxSteps;
+    }
 
-        return new Simulation(DeltaTime, MaxSteps, physicsWorld2, Bounds, particleHandlers2);
+    private string? MakeOutputFilename(string integrationType)
+    {
+        if (OutputFile == null) return null;
+
+        return OutputFile
+            .Replace("{type}", integrationType)
+            .Replace("{steps}", CalculateMaxSteps().ToString())
+            .Replace("{count}", particles.Count.ToString());
+    }
+    
+    public LinkedList<Particle> GetParticles()
+    {
+        LinkedList<Particle> list = particles;
+        particles = new LinkedList<Particle>();
+        return list;
+    }
+
+    /*public Simulation BuildVerlet()
+    {
+        CheckValidity();
+        return new VerletSimulation(MakeOutputFilename(VerletSimulation.TypeName), this);
+    }*/
+
+    public Simulation BuildBeeman()
+    {
+        CheckValidity();
+        return new BeemanSimulation(MakeOutputFilename(BeemanSimulation.TypeName), this);
+    }
+
+    public Simulation BuildGear5()
+    {
+        CheckValidity();
+        return new Gear5Simulation(MakeOutputFilename(Gear5Simulation.TypeName), this);
     }
 }

@@ -1,69 +1,99 @@
-using AetherPhysics.Dynamics;
-using tp5.ParticleHandlers;
+using tp5.Particles;
 
 namespace tp5;
 
-public class Simulation : IDisposable
+public abstract class Simulation : IDisposable
 {
-    public float DeltaTime { get; }
+    public string IntegrationType { get; }
 
-    public uint? MaxSteps { get; }
+    public double DeltaTime { get; }
+
+    public uint? MaxSteps { get; } = null;
+
     public uint Steps { get; private set; } = 0;
-    public double SecondsElapsed => Steps * (double)DeltaTime;
+    public double SecondsElapsed => Steps * DeltaTime;
 
-    private List<ParticleHandler> particleHandlers = new();
-    
-    public IReadOnlyList<ParticleHandler> ParticleHandlers => particleHandlers;
+    public ForceFunction ForceFunction { get; }
 
-    public World PhysicsWorld { get; private set; }
+    protected LinkedList<Particle> Particles { get; }
 
-    public Rectangle Bounds { get; }
+    private SimulationFileSaver? saver;
 
-    public bool HasStopped { get; private set; } = false;
-
-    public Simulation(float deltaTime, uint? maxSteps, World physicsWorld, Rectangle bounds, List<ParticleHandler> particleHandlers)
+    protected Simulation(string integrationType, string? outputFile, SimulationConfig config)
     {
-        DeltaTime = deltaTime;
-        MaxSteps = maxSteps;
-        PhysicsWorld = physicsWorld;
-        Bounds = bounds;
-        this.particleHandlers = particleHandlers;
-    }
+        IntegrationType = integrationType;
+        DeltaTime = config.DeltaTime;
+        MaxSteps = config.CalculateMaxSteps();
+        ForceFunction = config.ForceFunction ?? throw new ArgumentNullException("config.ForceFunction");
 
-    public void Initialize()
-    {
-        foreach (ParticleHandler particleHandler in particleHandlers)
+        Particles = config.GetParticles();
+
+        if (outputFile != null)
         {
-            particleHandler.Initialize(this);
+            saver = new SimulationFileSaver(outputFile, config.SaveEverySteps, IntegrationType, DeltaTime, Particles);
+            saver.AppendState(0, 0, Particles);
         }
     }
+
+    private void Initialize()
+    {
+        InitializeImpl();
+    }
+
+    protected abstract void InitializeImpl();
 
     public void Step()
     {
-        if (HasStopped) return;
-
-        foreach (ParticleHandler particleHandler in particleHandlers)
+        if (Steps == 0)
         {
-            particleHandler.PreUpdate(DeltaTime, SecondsElapsed);
+            Initialize();
         }
-
-        PhysicsWorld.Step(DeltaTime);
 
         Steps++;
-
-        foreach (ParticleHandler particleHandler in particleHandlers)
+        StepImpl();
+        
+        foreach (Particle particle in Particles)
         {
-            particleHandler.PostUpdate(DeltaTime, SecondsElapsed);
+            particle.Position = particle.NextPosition;
+            particle.Velocity = particle.NextVelocity;
         }
 
-        if (MaxSteps.HasValue && Steps >= MaxSteps.Value)
+        saver?.AppendState(Steps, SecondsElapsed, Particles);
+    }
+
+    protected abstract void StepImpl();
+
+    public void RunToEnd()
+    {
+        Console.WriteLine("Running simulation...");
+
+        while (true)
         {
-            Console.WriteLine($"Stopping simulation after {Steps} steps; limit reached.");
-            HasStopped = true;
+            Step();
+
+            bool badFloatDetected = Particles.Any(p =>
+                !double.IsFinite(p.Position.X) || !double.IsFinite(p.Position.Y) || !double.IsFinite(p.Velocity.X) || !double.IsFinite(p.Velocity.Y)
+            );
+
+            if (badFloatDetected)
+            {
+                Console.WriteLine("WARNING! NaN or infinite value detected, stopping simulation after {0} steps", Steps);
+                break;
+            }
+
+            if (MaxSteps.HasValue && Steps >= MaxSteps)
+            {
+                Console.WriteLine("Stopping simulation after {0} steps and {1} seconds; limit reached", Steps, SecondsElapsed);
+                break;
+            }
+
+            if (Steps % 1000 == 0)
+                Console.WriteLine("Ran {0} steps", Steps);
         }
     }
 
     public void Dispose()
     {
+        saver?.Dispose();
     }
 }

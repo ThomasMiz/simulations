@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using tp5.ParticleHandlers;
+﻿using System.Globalization;
 
 namespace tp5;
 
@@ -7,32 +6,62 @@ class Program
 {
     static void Main(string[] args)
     {
-        const float HallwayWidth = 3.6f;
-        const float HallwayLength = 16;
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
-        const float halfSizeX = HallwayLength / 2;
-        const float halfSizeY = HallwayWidth / 2;
+        RunAllDeltaTimes();
 
-        SimulationConfig config = new()
-        {
-            Bounds = new Rectangle(bottomLeft: (-halfSizeX, -halfSizeY), topRight: (halfSizeX, halfSizeY)),
-            DeltaTime = 0.001f,
-        };
-        
-        //config.AddRectangleWall(new Rectangle(bottomLeft: (-4, -2), topRight: (4, 2)));
-        config.AddLineWall(start: (-(halfSizeX + 10), -halfSizeY), end: ((halfSizeX + 10), -halfSizeY));
-        config.AddLineWall(start: (-(halfSizeX + 10), halfSizeY), end: ((halfSizeX + 10), halfSizeY));
-        
-        //config.AddParticleHandler(new ConstantForceAvoidingParticleHandler(spawnRate: 2f, force: 6f, maxEvasiveForce: 1.5f, particleRadius: 0.25f, particleSensingRadius: 0.75f, isLeftToRight: true));
-        //config.AddParticleHandler(new ConstantForceAvoidingParticleHandler(spawnRate: 2f, force: 6f, maxEvasiveForce: 1.5f, particleRadius: 0.25f, particleSensingRadius: 0.75f, isLeftToRight: false));
+        Console.WriteLine("Goodbye!");
+    }
 
-        config.AddParticleHandler(new ConstantForceParticleHandler(spawnRate: 6f, force: 6f, particleRadius: 0.25f, isLeftToRight: true));
-        config.AddParticleHandler(new ConstantForceParticleHandler(spawnRate: 6f, force: 6f, particleRadius: 0.25f, isLeftToRight: false));
-        
-        using Simulation simulation = config.Build();
-        simulation.Initialize();
-        
-        using SimulationWindow window = new(simulation);
-        window.Run();
+    private static void RunAllDeltaTimes()
+    {
+        double[] deltaTimes = { 1e-6, 1e-5, 1e-4, 1e-3, 1e-2 };
+        Parallel.ForEach(deltaTimes, RunSimpleSystems);
+    }
+
+    private static void RunSimpleSystems(double deltaTime)
+    {
+        // All mass units are in kg, all time units are in seconds
+        const double A = 1;
+        const double Mass = 70;
+        const double K = 10000;
+        const double Gamma = 100;
+
+        List<Action> runs =
+        [
+            /*() =>
+            {
+                using Simulation verlet = config.BuildVerlet();
+                verlet.RunToEnd();
+            },*/
+            () =>
+            {
+                var config = new SimulationConfig
+                {
+                    DeltaTime = deltaTime,
+                    MaxSimulationTime = 5,
+                    OutputFile = $"output-simple-{{type}}-{{steps}}steps-dt{deltaTime:e0}.txt",
+                    ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: K, y: Gamma)
+                }.AddParticle(mass: Mass, position: (1, 0), velocity: (-A * Gamma / (2 * Mass), 0));
+
+                using Simulation beeman = config.BuildBeeman();
+                beeman.RunToEnd();
+            },
+            () =>
+            {
+                var config = new SimulationConfig
+                {
+                    DeltaTime = deltaTime,
+                    MaxSimulationTime = 5,
+                    OutputFile = $"output-simple-{{type}}-{{steps}}steps-dt{deltaTime:e0}.txt",
+                    ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: K, y: Gamma)
+                }.AddParticle(mass: Mass, position: (1, 0), velocity: (-A * Gamma / (2 * Mass), 0));
+
+                using Simulation gear5 = config.BuildGear5();
+                gear5.RunToEnd();
+            },
+        ];
+
+        Parallel.ForEach(runs, a => a());
     }
 }

@@ -1,34 +1,26 @@
-using AetherPhysics.Dynamics;
+using Silk.NET.Maths;
 
 namespace tp5.Particles;
 
-public abstract class Particle
+public class Particle
 {
-    public Body Body { get; private set; }
+    public long Id { get; set; }
 
-    public LinkedListNode<Particle> Node { get; set; } = null;
+    public double Mass { get; init; }
+    public virtual double Radius { get; set; }
 
-    public void Initialize(Body body)
-    {
-        Body = body;
-        body.Tag = this;
-        body.FixedRotation = true;
-        body.BodyType = BodyType.Dynamic;
-        
-        OnInitialized();
-        
-        foreach (Fixture fixture in body.FixtureList)
-        {
-            fixture.Friction = 0;
-            fixture.Restitution = 0;
-        }
+    public LinkedListNode<Particle> Node { get; set; }
 
-        body.Mass = 1;
-    }
-    
-    protected abstract void OnInitialized();
-    
-    public abstract void PreUpdate(float deltaTime, double elapsed);
-    
-    public abstract void PostUpdate(float deltaTime, double elapsed);
+    public virtual Vector2D<double> Position { get; set; }
+    public virtual Vector2D<double> NextPosition { get; set; }
+    public virtual Vector2D<double> Velocity { get; set; }
+    public virtual Vector2D<double> NextVelocity { get; set; }
+
+    // Auxiliary vectors for exclusive use by the simulation integrator
+    public Vector2D<double> Aux0;
+    public Vector2D<double> Aux1;
+    public Vector2D<double> Aux2;
+    public Vector2D<double> Aux3;
+    public Vector2D<double> Aux4;
+    public Vector2D<double> Aux5;
 }
