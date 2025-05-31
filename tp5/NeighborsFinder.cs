@@ -44,8 +44,8 @@ public class NeighborsFinder
         // Iterate through all the particles and add each one to the cell it's in
         foreach (Particle particle in particles)
         {
-            int cellX = (int)(particle.Position.X / binSize.X);
-            int cellY = (int)(particle.Position.Y / binSize.Y);
+            int cellX = Math.Clamp((int)(particle.Position.X / binSize.X), 0, gridWidth - 1);
+            int cellY = Math.Clamp((int)(particle.Position.Y / binSize.Y), 0, gridHeight - 1);
             grid[cellX, cellY] ??= new List<Particle>();
             grid[cellX, cellY].Add(particle);
         }
@@ -68,7 +68,50 @@ public class NeighborsFinder
         grid[cellX, cellY]?.Remove(particle);
     }
 
-    public void FindWithinRadius(in Vector2D<double> position, double particleRadius, double distance, ICollection<Particle> result)
+    public bool ExistsAnyAtPoint(Vector2D<double> point, double particleRadius)
+    {
+        Vector2D<double> binSize = BinSize;
+
+        int cellX = Math.Max((int)((point.X) / binSize.X), 0);
+        int cellY = Math.Max((int)((point.Y) / binSize.Y), 0);
+
+        double particleRadiusSquared = particleRadius * particleRadius;
+        return grid?[cellX, cellY]?.Any(p => (p.Position - point).LengthSquared < particleRadiusSquared) ?? false;
+    }
+
+    public bool ExistsAnyWithinDistance(in Vector2D<double> position, double particleRadius, double distance)
+    {
+        Vector2D<double> binSize = BinSize;
+        double particleRadius2 = particleRadius * 2;
+
+        int minCellX = Math.Max((int)((position.X - distance - particleRadius2) / binSize.X), 0);
+        int minCellY = Math.Max((int)((position.Y - distance - particleRadius2) / binSize.Y), 0);
+        int maxCellX = Math.Min((int)((position.X + distance + particleRadius2) / binSize.X), gridWidth - 1);
+        int maxCellY = Math.Min((int)((position.Y + distance + particleRadius2) / binSize.Y), gridHeight - 1);
+
+        for (int gridX = minCellX; gridX <= maxCellX; gridX++)
+        {
+            int x = (gridX + gridWidth) % gridWidth;
+            for (int gridY = minCellY; gridY <= maxCellY; gridY++)
+            {
+                int y = (gridY + gridHeight) % gridHeight;
+
+                if (grid[x, y] == null) continue;
+
+                foreach (Particle candidate in grid[x, y])
+                {
+                    Vector2D<double> v = position - candidate.Position;
+                    double maxDistance = distance + candidate.Radius + particleRadius;
+                    if (v.LengthSquared <= maxDistance * maxDistance)
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public void FindWithinDistance(in Vector2D<double> position, double particleRadius, double distance, ICollection<Particle> result)
     {
         Vector2D<double> binSize = BinSize;
         double particleRadius2 = particleRadius * 2;
@@ -100,10 +143,10 @@ public class NeighborsFinder
         }
     }
 
-    public List<Particle> FindWithinRadius(in Vector2D<double> position, double particleRadius, double distance)
+    public List<Particle> FindWithinDistance(in Vector2D<double> position, double particleRadius, double distance)
     {
         List<Particle> result = new();
-        FindWithinRadius(position, particleRadius, distance, result);
+        FindWithinDistance(position, particleRadius, distance, result);
         return result;
     }
 

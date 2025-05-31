@@ -1,4 +1,5 @@
 using Silk.NET.Maths;
+using tp5.Exceptions;
 using TrippyGL.Utils;
 
 namespace tp5.Spawners;
@@ -15,11 +16,30 @@ public abstract class RandomAreaParticleSpawner : ParticleSpawner
 
     protected Vector2D<double> GetSpawningPosition()
     {
-        // TODO: Check that position is not already occupied, try find one that isn't
-        return new()
+        // Try to generate a random position that is not taken
+        const int randomCheckLimit = 5;
+        for (int i = 0; i < randomCheckLimit; i++)
         {
-            X = random.NextDouble(SpawnArea.Left, SpawnArea.Right),
-            Y = random.NextDouble(SpawnArea.Bottom, SpawnArea.Top),
-        };
+            Vector2D<double> position = new()
+            {
+                X = random.NextDouble(SpawnArea.Left, SpawnArea.Right),
+                Y = random.NextDouble(SpawnArea.Bottom, SpawnArea.Top),
+            };
+
+            if (!Simulation.ExistsAnyWithinDistance(position, 0.25f, 0.25f))
+                return position;
+        }
+
+        // Force check that there are no possible spawn places before aborting the sim
+        for (double x = SpawnArea.Left; x <= SpawnArea.Right; x += 0.1)
+        for (double y = SpawnArea.Bottom; y <= SpawnArea.Top; y += 0.1)
+        {
+            Vector2D<double> position = new(x, y);
+
+            if (!Simulation.ExistsAnyWithinDistance(position, 0.25f, 0.25f))
+                return position;
+        }
+
+        throw new CannotGenerateParticleException("Cannot spawn particle, there is no space!");
     }
 }

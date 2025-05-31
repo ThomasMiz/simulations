@@ -14,6 +14,7 @@ public class Simulation : IDisposable
     public Bounds Bounds { get; }
 
     public uint? MaxSteps { get; set; } = null;
+    public uint? MaxParticles { get; set; } = null;
 
     public uint Steps { get; private set; } = 0;
     public double SecondsElapsed => Steps * DeltaTime;
@@ -29,14 +30,15 @@ public class Simulation : IDisposable
     private bool neighborsFinderDirty = true;
 
     private SimulationFileSaver? saver;
-    
+
     private List<Particle> tmpParticles = new();
 
-    public Simulation(IntegrationMethod integrationMethod, double deltaTime, uint? maxSteps, Bounds bounds, List<Particle> initialParticles, List<ParticleSpawner> particleSpawners, SimulationFileSaver? saver)
+    public Simulation(IntegrationMethod integrationMethod, double deltaTime, uint? maxSteps, uint? maxParticles, Bounds bounds, List<Particle> initialParticles, List<ParticleSpawner> particleSpawners, SimulationFileSaver? saver)
     {
         IntegrationMethod = integrationMethod;
         DeltaTime = deltaTime;
         MaxSteps = maxSteps;
+        MaxParticles = maxParticles;
         Bounds = bounds;
         this.saver = saver;
 
@@ -118,16 +120,28 @@ public class Simulation : IDisposable
             neighborsFinderDirty = false;
         }
     }
-    
-    public void FindParticlesWithinRadius(in Vector2D<double> position, double particleRadius, double distance, ICollection<Particle> result)
+
+    public bool ExistsAnyAtPoint(Vector2D<double> point, double particleRadius)
     {
         EnsureNeighborsUsable();
-        neighborsFinder.FindWithinRadius(position, particleRadius, distance, result);
+        return neighborsFinder.ExistsAnyAtPoint(point, particleRadius);
     }
 
-    public void FindParticlesWithinRadius(Particle particle, double distance, ICollection<Particle> result)
+    public bool ExistsAnyWithinDistance(Vector2D<double> point, double particleRadius, double distance)
     {
-        FindParticlesWithinRadius(particle.Position, particle.Radius, distance, result);
+        EnsureNeighborsUsable();
+        return neighborsFinder.ExistsAnyAtPoint(point, particleRadius);
+    }
+
+    public void FindParticlesWithinDistance(in Vector2D<double> position, double particleRadius, double distance, ICollection<Particle> result)
+    {
+        EnsureNeighborsUsable();
+        neighborsFinder.FindWithinDistance(position, particleRadius, distance, result);
+    }
+
+    public void FindParticlesWithinDistance(Particle particle, double distance, ICollection<Particle> result)
+    {
+        FindParticlesWithinDistance(particle.Position, particle.Radius, distance, result);
         result.Remove(particle);
     }
 
@@ -137,7 +151,7 @@ public class Simulation : IDisposable
 
         foreach (Particle particle in Particles)
         {
-            FindParticlesWithinRadius(particle, 0, tmpParticles);
+            FindParticlesWithinDistance(particle, 0, tmpParticles);
             foreach (Particle other in tmpParticles)
             {
                 Vector2D<double> d = other.Position - particle.Position;
@@ -148,7 +162,7 @@ public class Simulation : IDisposable
                 other.Position += dnorm * moveDistance;
                 particle.Position -= dnorm * moveDistance;
             }
-            
+
             tmpParticles.Clear();
         }
     }
@@ -169,7 +183,7 @@ public class Simulation : IDisposable
         }
 
         EnsureNeighborsUsable();
-        
+
         Steps++;
         IntegrationMethod.Step(Particles, DeltaTime);
 
@@ -204,7 +218,12 @@ public class Simulation : IDisposable
         }
         else if (MaxSteps.HasValue && Steps >= MaxSteps)
         {
-            Console.WriteLine("Stopping simulation after {0} steps and {1} seconds; limit reached", Steps, SecondsElapsed);
+            Console.WriteLine("Stopping simulation after {0} steps and {1} seconds; step limit reached", Steps, SecondsElapsed);
+            HasStopped = true;
+        }
+        else if (MaxParticles.HasValue && Particles.Count >= MaxParticles)
+        {
+            Console.WriteLine("Stopping simulation after {0} steps and {1} seconds; {2} particle limit reached", Steps, SecondsElapsed, MaxParticles.Value);
             HasStopped = true;
         }
         else if (Steps % 1000 == 0)

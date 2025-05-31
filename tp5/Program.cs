@@ -1,6 +1,4 @@
 ﻿using System.Globalization;
-using System.Numerics;
-using Silk.NET.Maths;
 using tp5.DebugView;
 using tp5.Integration;
 using tp5.Particles;
@@ -17,13 +15,13 @@ class Program
         const double HallwayWidth = 3.6f;
         const double HallwayLength = 16;
 
-        const double spawnRate = 1;
+        const double spawnRate = 4;
         const double particleRadius = 0.25;
 
         const double spawnAreaLength = 1;
 
         Bounds simulationBounds = new(bottomLeft: (0, 0), topRight: (HallwayLength, HallwayWidth));
-        
+
         var config = new SimulationConfig
         {
             DeltaTime = 0.001,
@@ -32,6 +30,7 @@ class Program
             SavingDeltaTime = 0.1f,
             IntegrationMethod = new BeemanIntegration(),
             SimulationBounds = simulationBounds,
+            MaxParticles = 200,
         };
 
         /*ParticleCreator spawnLeftToRightParticle = position => new TargetHorizontalVelocityParticle()
@@ -51,14 +50,14 @@ class Program
             Acceleration = 10,
             TargetX = -(halfSizeX - particleRadius * 1.2),
         };*/
-        
+
         ParticleCreator spawnLeftToRightParticle = position => new SocialForceParticle()
         {
             Position = position,
             Radius = particleRadius,
             TargetHorizontalVelocity = 1.5,
             Acceleration = 10,
-            TargetX = HallwayLength - particleRadius * 1.2,
+            TargetX = HallwayLength - spawnAreaLength,
         };
 
         ParticleCreator spawnRightToLeftParticle = position => new SocialForceParticle()
@@ -67,7 +66,7 @@ class Program
             Radius = particleRadius,
             TargetHorizontalVelocity = -1.5,
             Acceleration = 10,
-            TargetX = particleRadius * 1.2,
+            TargetX = spawnAreaLength,
         };
 
         config.AddParticleSpawner(new GenericRateParticleSpawner(
@@ -84,7 +83,7 @@ class Program
 
         using Simulation sim = config.Build();
         using SimulationWindow window = new(sim);
-        window.SimulationSpeed = 3;
+        window.SimulationSpeed = 2;
         window.Run();
 
         Console.WriteLine("Goodbye!");

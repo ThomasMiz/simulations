@@ -16,6 +16,7 @@ public class SimulationConfig
 
     public uint? MaxSteps { get; set; } = null;
     public double? MaxSimulationTime { get; set; } = null;
+    public uint? MaxParticles { get; set; } = null;
 
     public string? OutputFile { get; set; } = null;
 
@@ -72,6 +73,6 @@ public class SimulationConfig
 
         SimulationFileSaver? saver = OutputFile == null ? null : new(MakeOutputFilename(), SavingDeltaTime);
 
-        return new Simulation(IntegrationMethod, DeltaTime.Value, CalculateMaxSteps(), SimulationBounds.Value, particleList, spawnersList, saver);
+        return new Simulation(IntegrationMethod, DeltaTime.Value, CalculateMaxSteps(), MaxParticles, SimulationBounds.Value, particleList, spawnersList, saver);
     }
 }
