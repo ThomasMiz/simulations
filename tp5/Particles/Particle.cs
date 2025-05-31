@@ -25,7 +25,13 @@ public abstract class Particle
     public Vector2D<double> Aux4;
     public Vector2D<double> Aux5;
 
+    public void Remove()
+    {
+        Simulation.RemoveParticle(this);
+    }
+
     public abstract void OnInitialized();
+    public abstract void OnRemoved();
 
     public abstract Vector2D<double> CalculateForce();
 

@@ -4,9 +4,9 @@ namespace tp5;
 
 public class SimulationFileSaver : IDisposable
 {
-    public double? SavingDeltaTime { get; set; }
+    public double? SavingDeltaTime { get; }
 
-    public string Filename { get; set; }
+    public string Filename { get; }
 
     private readonly StreamWriter stream;
     private double nextSaveTime = 0;
@@ -33,13 +33,20 @@ public class SimulationFileSaver : IDisposable
     {
         double elapsed = simulation.SecondsElapsed;
 
-        if (elapsed >= nextSaveTime)
-        {
-            do
-            {
-                nextSaveTime += simulation.DeltaTime;
-            } while (elapsed > nextSaveTime);
+        bool shouldSave = false;
 
+        if (!SavingDeltaTime.HasValue)
+        {
+            shouldSave = true;
+        }
+        else if (elapsed >= nextSaveTime)
+        {
+            shouldSave = true;
+            nextSaveTime += SavingDeltaTime.Value;
+        }
+
+        if (shouldSave)
+        {
             WriteState(simulation);
         }
     }
@@ -76,7 +83,15 @@ public class SimulationFileSaver : IDisposable
 
     public void Dispose()
     {
-        Console.WriteLine($"Saved to {Filename}");
+        if (nextSaveTime == 0)
+        {
+            Console.WriteLine($"Warning: empty output file. Is the SavingDeltaTime too high? File {Filename}");
+        }
+        else
+        {
+            Console.WriteLine($"Saved to {Filename}");
+        }
+
         stream.Flush();
         stream.Dispose();
     }

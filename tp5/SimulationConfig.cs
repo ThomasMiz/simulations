@@ -7,21 +7,21 @@ namespace tp5;
 public class SimulationConfig
 {
     private LinkedList<Particle> particles = new();
-    public double DeltaTime { get; set; }
-    public double? SavingDeltaTime { get; set; }
+    public double? DeltaTime { get; set; } = null;
+    public double? SavingDeltaTime { get; set; } = null;
 
     public uint? MaxSteps { get; set; } = null;
     public double? MaxSimulationTime { get; set; } = null;
 
     public string? OutputFile { get; set; } = null;
 
-    public ForceFunction ForceFunction { get; set; }
+    public ForceFunction ForceFunction { get; set; } // TODO: Remove
 
-    public IntegrationMethod IntegrationMethod { get; set; }
+    public IntegrationMethod? IntegrationMethod { get; set; } = null;
 
     public SimulationConfig AddParticle(double mass, Vector2D<double> position, Vector2D<double> velocity)
     {
-        Particle particle = new ControlledParticle { Mass = mass, Position = position, Velocity = velocity, ForceFunction = this.ForceFunction };
+        Particle particle = new ControlledParticle { Mass = mass, Position = position, Velocity = velocity, ForceFunction = this.ForceFunction, Radius = 0.25f};
         particle.Node = particles.AddLast(particle);
         return this;
     }
@@ -33,16 +33,18 @@ public class SimulationConfig
 
     private void CheckValidity()
     {
-        if (ForceFunction == null) throw new ArgumentNullException(nameof(ForceFunction));
-        if (particles.Count == 0) throw new ArgumentOutOfRangeException(nameof(particles), particles.Count, "Must specify at least one particle");
+        if (DeltaTime == null) throw new ArgumentNullException(nameof(DeltaTime));
+        if (IntegrationMethod == null) throw new ArgumentNullException(nameof(IntegrationMethod));
 
         if (MaxSteps == null && MaxSimulationTime == null)
-            Console.WriteLine("Warning: simulation has no end condition");
+            throw new ArgumentException("Simulation has no end condition! Specify either " + nameof(MaxSteps) + " or " + nameof(MaxSimulationTime) + ".");
+
+        if (OutputFile == null) Console.WriteLine("Warning: no output file, simulation state will not be saved");
     }
 
     private uint? CalculateMaxSteps()
     {
-        uint? maxStepsByTime = MaxSimulationTime == null ? null : (uint)Math.Ceiling(MaxSimulationTime.Value / DeltaTime - 0.2);
+        uint? maxStepsByTime = MaxSimulationTime == null || DeltaTime == null ? null : (uint)Math.Ceiling(MaxSimulationTime.Value / DeltaTime.Value - 0.2);
 
         if (maxStepsByTime != null && MaxSteps != null) return Math.Min(maxStepsByTime.Value, MaxSteps.Value);
         return maxStepsByTime ?? MaxSteps;
@@ -65,7 +67,8 @@ public class SimulationConfig
         LinkedList<Particle> list = particles;
         particles = new LinkedList<Particle>(); // Not reusable
 
-        SimulationFileSaver saver = new SimulationFileSaver(MakeOutputFilename(), SavingDeltaTime);
-        return new Simulation(IntegrationMethod, DeltaTime, CalculateMaxSteps(), list, saver);
+        SimulationFileSaver? saver = OutputFile == null ? null : new(MakeOutputFilename(), SavingDeltaTime);
+
+        return new Simulation(IntegrationMethod, DeltaTime.Value, CalculateMaxSteps(), list, saver);
     }
 }

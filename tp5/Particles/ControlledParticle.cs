@@ -10,6 +10,10 @@ public class ControlledParticle : Particle
     {
     }
 
+    public override void OnRemoved()
+    {
+    }
+
     public override Vector2D<double> CalculateForce()
     {
         return ForceFunction.Apply(this);

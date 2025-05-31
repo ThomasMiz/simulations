@@ -14,6 +14,8 @@ public class Simulation : IDisposable
     public uint Steps { get; private set; } = 0;
     public double SecondsElapsed => Steps * DeltaTime;
 
+    public bool HasStopped { get; private set; } = false;
+
     public LinkedList<Particle> Particles { get; }
 
     private SimulationFileSaver? saver;
@@ -25,7 +27,7 @@ public class Simulation : IDisposable
         MaxSteps = maxSteps;
         Particles = particles;
         this.saver = saver;
-        
+
         saver?.WriteStart(this);
     }
 
@@ -35,13 +37,33 @@ public class Simulation : IDisposable
         {
             particle.Simulation = this;
         }
-        
+
         Parallel.ForEach(Particles, particle => particle.OnInitialized());
         Parallel.ForEach(Particles, particle => IntegrationMethod.InitializeParticle(particle, DeltaTime));
     }
 
+    public void AddParticle(Particle particle)
+    {
+        particle.Node = Particles.AddLast(particle);
+        particle.Simulation = this;
+        IntegrationMethod.InitializeParticle(particle, DeltaTime);
+        particle.OnInitialized();
+    }
+
+    public void RemoveParticle(Particle particle)
+    {
+        if (particle.Simulation != this) throw new Exception("Tried to remove a particle that is not from this sim");
+
+        Particles.Remove(particle.Node);
+        particle.Simulation = null;
+        particle.Node = null;
+        particle.OnRemoved();
+    }
+
     public void Step()
     {
+        if (HasStopped) return;
+
         if (Steps == 0)
         {
             Initialize();
@@ -49,7 +71,7 @@ public class Simulation : IDisposable
 
         Steps++;
         IntegrationMethod.Step(Particles, DeltaTime);
-        
+
         foreach (Particle particle in Particles)
         {
             particle.Position = particle.NextPosition;
@@ -57,34 +79,32 @@ public class Simulation : IDisposable
         }
 
         saver?.OnStep(this);
+
+        bool badFloatDetected = Particles.Any(p =>
+            !double.IsFinite(p.Position.X) || !double.IsFinite(p.Position.Y) || !double.IsFinite(p.Velocity.X) || !double.IsFinite(p.Velocity.Y)
+        );
+
+        if (badFloatDetected)
+        {
+            Console.WriteLine("WARNING! NaN or infinite value detected, stopping simulation after {0} steps", Steps);
+            HasStopped = true;
+        }
+        else if (MaxSteps.HasValue && Steps >= MaxSteps)
+        {
+            Console.WriteLine("Stopping simulation after {0} steps and {1} seconds; limit reached", Steps, SecondsElapsed);
+            HasStopped = true;
+        }
+        else if (Steps % 1000 == 0)
+            Console.WriteLine("Ran {0} steps", Steps);
     }
 
     public void RunToEnd()
     {
         Console.WriteLine("Running simulation...");
 
-        while (true)
+        while (!HasStopped)
         {
             Step();
-
-            bool badFloatDetected = Particles.Any(p =>
-                !double.IsFinite(p.Position.X) || !double.IsFinite(p.Position.Y) || !double.IsFinite(p.Velocity.X) || !double.IsFinite(p.Velocity.Y)
-            );
-
-            if (badFloatDetected)
-            {
-                Console.WriteLine("WARNING! NaN or infinite value detected, stopping simulation after {0} steps", Steps);
-                break;
-            }
-
-            if (MaxSteps.HasValue && Steps >= MaxSteps)
-            {
-                Console.WriteLine("Stopping simulation after {0} steps and {1} seconds; limit reached", Steps, SecondsElapsed);
-                break;
-            }
-
-            if (Steps % 1000 == 0)
-                Console.WriteLine("Ran {0} steps", Steps);
         }
     }
 

@@ -1,4 +1,6 @@
 ﻿using System.Globalization;
+using System.Numerics;
+using tp5.DebugView;
 using tp5.Integration;
 
 namespace tp5;
@@ -10,6 +12,22 @@ class Program
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
         // RunAllDeltaTimes();
+        
+        
+        var config = new SimulationConfig
+        {
+            DeltaTime = 0.001,
+            MaxSimulationTime = 5,
+            OutputFile = null,//$"output-simple-{{type}}-{{steps}}steps-dt0.001.txt",
+            ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: 10000, y: 100),
+            IntegrationMethod = new BeemanIntegration(),
+        }.AddParticle(mass: 70, position: (1, 0), velocity: (-1 * 100.0 / (2 * 70), 0));
+
+        using Simulation beeman = config.Build();
+
+        using SimulationWindow window = new(simulation: beeman, simulationBounds: (new Vector2(-1, -1), new Vector2(1, 1)));
+        window.SimulationSpeed = 1;
+        window.Run();
 
         Console.WriteLine("Goodbye!");
     }
