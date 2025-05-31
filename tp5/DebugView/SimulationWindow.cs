@@ -1,4 +1,5 @@
 using System.Numerics;
+using Silk.NET.Input;
 using Silk.NET.Maths;
 using SimulationBase;
 using tp5.Particles;
@@ -41,7 +42,11 @@ public class SimulationWindow : WindowBase
     {
         base.OnUpdate(dt);
 
-        simulationTargetTime += dt * SimulationSpeed;
+        if (!Simulation.HasStopped)
+        {
+            simulationTargetTime += dt * SimulationSpeed;
+        }
+
         while (!Simulation.HasStopped && Simulation.SecondsElapsed < simulationTargetTime)
         {
             Simulation.Step();
@@ -98,6 +103,17 @@ public class SimulationWindow : WindowBase
         graphicsDevice.Clear(ClearBuffers.Color);
 
         debugRenderer.RenderDebugData();
+    }
+
+    protected override void OnKeyDown(IKeyboard sender, Key key, int n)
+    {
+        // Resume simulation if Simulation.HasStopped
+        if (Simulation.HasStopped && sender.IsKeyPressed(Key.C) && sender.IsKeyPressed(Key.V))
+        {
+            Console.WriteLine("Resuming simulation");
+            Simulation.MaxSteps *= 2;
+            Simulation.HasStopped = false;
+        }
     }
 
     protected override void OnResized(Vector2D<int> size)

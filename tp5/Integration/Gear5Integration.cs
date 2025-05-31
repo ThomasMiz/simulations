@@ -6,7 +6,7 @@ namespace tp5.Integration;
 public class Gear5Integration : IntegrationMethod
 {
     public string Name => "gear5";
-    
+
     public void InitializeParticle(Particle particle, double deltaTime)
     {
         particle.Aux0 = particle.CalculateDerivative(0);
@@ -52,8 +52,8 @@ public class Gear5Integration : IntegrationMethod
 
         Parallel.ForEach(particles, particle =>
         {
-            GearConstants gearConstants = GearConstants.PositionAndVelocityDependentForces; // TODO: choose dynamically?
-            
+            GearConstants gearConstants = particle.IsForceVelocityDependant ? GearConstants.PositionAndVelocityDependentForces : GearConstants.PositionDependentForces;
+
             Vector2D<double> force = particle.CalculateForce();
             Vector2D<double> a = force / particle.Mass;
 

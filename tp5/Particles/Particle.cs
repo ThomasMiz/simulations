@@ -4,6 +4,9 @@ namespace tp5.Particles;
 
 public abstract class Particle
 {
+    public abstract String Name { get; }
+    public abstract bool IsForceVelocityDependant { get; }
+    
     public long Id { get; set; }
     public Simulation Simulation { get; set; }
 

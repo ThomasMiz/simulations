@@ -9,14 +9,15 @@ public class Simulation : IDisposable
 
     public double DeltaTime { get; }
 
-    public uint? MaxSteps { get; } = null;
+    public uint? MaxSteps { get; set; } = null;
 
     public uint Steps { get; private set; } = 0;
     public double SecondsElapsed => Steps * DeltaTime;
 
-    public bool HasStopped { get; private set; } = false;
+    public bool HasStopped { get; set; } = false;
 
     public LinkedList<Particle> Particles { get; }
+    private long particleIdCounter = 1;
 
     private SimulationFileSaver? saver;
 
@@ -35,6 +36,7 @@ public class Simulation : IDisposable
     {
         foreach (Particle particle in Particles)
         {
+            particle.Id = particleIdCounter++;
             particle.Simulation = this;
         }
 
@@ -44,10 +46,11 @@ public class Simulation : IDisposable
 
     public void AddParticle(Particle particle)
     {
+        particle.Id = particleIdCounter++;
         particle.Node = Particles.AddLast(particle);
         particle.Simulation = this;
-        IntegrationMethod.InitializeParticle(particle, DeltaTime);
         particle.OnInitialized();
+        IntegrationMethod.InitializeParticle(particle, DeltaTime);
     }
 
     public void RemoveParticle(Particle particle)
@@ -100,6 +103,9 @@ public class Simulation : IDisposable
 
     public void RunToEnd()
     {
+        if (MaxSteps == null)
+            throw new ArgumentException("Simulation has no end condition! Specify either MaxSteps or MaxSimulationTime.");
+
         Console.WriteLine("Running simulation...");
 
         while (!HasStopped)
