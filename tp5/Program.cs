@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using tp5.Integration;
 
 namespace tp5;
 
@@ -8,7 +9,7 @@ class Program
     {
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
-        RunAllDeltaTimes();
+        // RunAllDeltaTimes();
 
         Console.WriteLine("Goodbye!");
     }
@@ -29,11 +30,6 @@ class Program
 
         List<Action> runs =
         [
-            /*() =>
-            {
-                using Simulation verlet = config.BuildVerlet();
-                verlet.RunToEnd();
-            },*/
             () =>
             {
                 var config = new SimulationConfig
@@ -41,10 +37,11 @@ class Program
                     DeltaTime = deltaTime,
                     MaxSimulationTime = 5,
                     OutputFile = $"output-simple-{{type}}-{{steps}}steps-dt{deltaTime:e0}.txt",
-                    ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: K, y: Gamma)
+                    ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: K, y: Gamma),
+                    IntegrationMethod = new BeemanIntegration(),
                 }.AddParticle(mass: Mass, position: (1, 0), velocity: (-A * Gamma / (2 * Mass), 0));
 
-                using Simulation beeman = config.BuildBeeman();
+                using Simulation beeman = config.Build();
                 beeman.RunToEnd();
             },
             () =>
@@ -54,10 +51,11 @@ class Program
                     DeltaTime = deltaTime,
                     MaxSimulationTime = 5,
                     OutputFile = $"output-simple-{{type}}-{{steps}}steps-dt{deltaTime:e0}.txt",
-                    ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: K, y: Gamma)
+                    ForceFunction = new ForceFunctions.OsciladorAmortiguado(k: K, y: Gamma),
+                    IntegrationMethod = new Gear5Integration(),
                 }.AddParticle(mass: Mass, position: (1, 0), velocity: (-A * Gamma / (2 * Mass), 0));
 
-                using Simulation gear5 = config.BuildGear5();
+                using Simulation gear5 = config.Build();
                 gear5.RunToEnd();
             },
         ];

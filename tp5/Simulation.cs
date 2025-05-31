@@ -1,10 +1,11 @@
+using tp5.Integration;
 using tp5.Particles;
 
 namespace tp5;
 
-public abstract class Simulation : IDisposable
+public class Simulation : IDisposable
 {
-    public string IntegrationType { get; }
+    public IntegrationMethod IntegrationMethod { get; }
 
     public double DeltaTime { get; }
 
@@ -13,34 +14,31 @@ public abstract class Simulation : IDisposable
     public uint Steps { get; private set; } = 0;
     public double SecondsElapsed => Steps * DeltaTime;
 
-    public ForceFunction ForceFunction { get; }
-
-    protected LinkedList<Particle> Particles { get; }
+    public LinkedList<Particle> Particles { get; }
 
     private SimulationFileSaver? saver;
 
-    protected Simulation(string integrationType, string? outputFile, SimulationConfig config)
+    public Simulation(IntegrationMethod integrationMethod, double deltaTime, uint? maxSteps, LinkedList<Particle> particles, SimulationFileSaver? saver)
     {
-        IntegrationType = integrationType;
-        DeltaTime = config.DeltaTime;
-        MaxSteps = config.CalculateMaxSteps();
-        ForceFunction = config.ForceFunction ?? throw new ArgumentNullException("config.ForceFunction");
-
-        Particles = config.GetParticles();
-
-        if (outputFile != null)
-        {
-            saver = new SimulationFileSaver(outputFile, config.SaveEverySteps, IntegrationType, DeltaTime, Particles);
-            saver.AppendState(0, 0, Particles);
-        }
+        IntegrationMethod = integrationMethod;
+        DeltaTime = deltaTime;
+        MaxSteps = maxSteps;
+        Particles = particles;
+        this.saver = saver;
+        
+        saver?.WriteStart(this);
     }
 
     private void Initialize()
     {
-        InitializeImpl();
+        foreach (Particle particle in Particles)
+        {
+            particle.Simulation = this;
+        }
+        
+        Parallel.ForEach(Particles, particle => particle.OnInitialized());
+        Parallel.ForEach(Particles, particle => IntegrationMethod.InitializeParticle(particle, DeltaTime));
     }
-
-    protected abstract void InitializeImpl();
 
     public void Step()
     {
@@ -50,7 +48,7 @@ public abstract class Simulation : IDisposable
         }
 
         Steps++;
-        StepImpl();
+        IntegrationMethod.Step(Particles, DeltaTime);
         
         foreach (Particle particle in Particles)
         {
@@ -58,10 +56,8 @@ public abstract class Simulation : IDisposable
             particle.Velocity = particle.NextVelocity;
         }
 
-        saver?.AppendState(Steps, SecondsElapsed, Particles);
+        saver?.OnStep(this);
     }
-
-    protected abstract void StepImpl();
 
     public void RunToEnd()
     {

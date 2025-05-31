@@ -8,18 +8,21 @@ public class SimulationConfig
 {
     private LinkedList<Particle> particles = new();
     public double DeltaTime { get; set; }
+    public double? SavingDeltaTime { get; set; }
 
     public uint? MaxSteps { get; set; } = null;
     public double? MaxSimulationTime { get; set; } = null;
 
     public string? OutputFile { get; set; } = null;
-    public uint SaveEverySteps { get; set; } = 1;
 
     public ForceFunction ForceFunction { get; set; }
 
+    public IntegrationMethod IntegrationMethod { get; set; }
+
     public SimulationConfig AddParticle(double mass, Vector2D<double> position, Vector2D<double> velocity)
     {
-        particles.AddLast(new Particle { Mass = mass, Position = position, Velocity = velocity});
+        Particle particle = new ControlledParticle { Mass = mass, Position = position, Velocity = velocity, ForceFunction = this.ForceFunction };
+        particle.Node = particles.AddLast(particle);
         return this;
     }
 
@@ -37,7 +40,7 @@ public class SimulationConfig
             Console.WriteLine("Warning: simulation has no end condition");
     }
 
-    public uint? CalculateMaxSteps()
+    private uint? CalculateMaxSteps()
     {
         uint? maxStepsByTime = MaxSimulationTime == null ? null : (uint)Math.Ceiling(MaxSimulationTime.Value / DeltaTime - 0.2);
 
@@ -45,38 +48,24 @@ public class SimulationConfig
         return maxStepsByTime ?? MaxSteps;
     }
 
-    private string? MakeOutputFilename(string integrationType)
+    private string? MakeOutputFilename()
     {
         if (OutputFile == null) return null;
 
         return OutputFile
-            .Replace("{type}", integrationType)
+            .Replace("{type}", IntegrationMethod.Name)
             .Replace("{steps}", CalculateMaxSteps().ToString())
             .Replace("{count}", particles.Count.ToString());
     }
-    
-    public LinkedList<Particle> GetParticles()
+
+    public Simulation Build()
     {
+        CheckValidity();
+
         LinkedList<Particle> list = particles;
-        particles = new LinkedList<Particle>();
-        return list;
-    }
+        particles = new LinkedList<Particle>(); // Not reusable
 
-    /*public Simulation BuildVerlet()
-    {
-        CheckValidity();
-        return new VerletSimulation(MakeOutputFilename(VerletSimulation.TypeName), this);
-    }*/
-
-    public Simulation BuildBeeman()
-    {
-        CheckValidity();
-        return new BeemanSimulation(MakeOutputFilename(BeemanSimulation.TypeName), this);
-    }
-
-    public Simulation BuildGear5()
-    {
-        CheckValidity();
-        return new Gear5Simulation(MakeOutputFilename(Gear5Simulation.TypeName), this);
+        SimulationFileSaver saver = new SimulationFileSaver(MakeOutputFilename(), SavingDeltaTime);
+        return new Simulation(IntegrationMethod, DeltaTime, CalculateMaxSteps(), list, saver);
     }
 }

@@ -4,80 +4,80 @@ namespace tp5;
 
 public class SimulationFileSaver : IDisposable
 {
-    private readonly StreamWriter stream;
+    public double? SavingDeltaTime { get; set; }
 
-    public SimulationFileSaver(string filename, uint? saveEveryStep, string integrationType, double deltaTime, IReadOnlyCollection<Particle> particles)
+    public string Filename { get; set; }
+
+    private readonly StreamWriter stream;
+    private double nextSaveTime = 0;
+
+    public SimulationFileSaver(string filename, double? savingDeltaTime)
     {
-        Filename = filename;
-        SaveEverySteps = saveEveryStep ?? 1;
         stream = File.CreateText(filename);
-        WriteStart(integrationType, deltaTime, particles);
+        Filename = filename;
+        SavingDeltaTime = savingDeltaTime;
     }
 
-    public string Filename { get; }
-    public uint SaveEverySteps { get; }
+    public void WriteStart(Simulation simulation)
+    {
+        stream.Write("{\"integrationType\": \"");
+        stream.Write(simulation.IntegrationMethod.Name);
+        stream.Write("\", \"deltaTime\": ");
+        stream.Write(simulation.DeltaTime);
+        stream.Write("}\n");
+
+        WriteState(simulation);
+    }
+
+    public void OnStep(Simulation simulation)
+    {
+        double elapsed = simulation.SecondsElapsed;
+
+        if (elapsed >= nextSaveTime)
+        {
+            do
+            {
+                nextSaveTime += simulation.DeltaTime;
+            } while (elapsed > nextSaveTime);
+
+            WriteState(simulation);
+        }
+    }
+
+    public void WriteState(Simulation simulation)
+    {
+        stream.Write("{\"step\": ");
+        stream.Write(simulation.Steps);
+        stream.Write(", \"time\": ");
+        stream.Write(simulation.SecondsElapsed);
+        stream.Write("}");
+
+        foreach (Particle p in simulation.Particles)
+        {
+            stream.Write(" ; {\"id\": \"");
+            stream.Write(p.Id);
+            stream.Write("\", \"mass\": \"");
+            stream.Write(p.Mass);
+            stream.Write("\", \"radius\": \"");
+            stream.Write(p.Radius);
+            stream.Write("\", \"x\": \"");
+            stream.Write(p.Position.X);
+            stream.Write("\", \"y\": \"");
+            stream.Write(p.Position.Y);
+            stream.Write("\", \"vx\": \"");
+            stream.Write(p.Velocity.X);
+            stream.Write("\", \"vy\": \"");
+            stream.Write(p.Velocity.Y);
+            stream.Write("\"}");
+        }
+
+        stream.Write('\n');
+    }
 
     public void Dispose()
     {
         Console.WriteLine($"Saved to {Filename}");
         stream.Flush();
         stream.Dispose();
-    }
-
-    private void WriteStart(string integrationType, double deltaTime, IReadOnlyCollection<Particle> particles)
-    {
-        stream.Write("IntegrationType: ");
-        stream.Write(integrationType);
-        stream.Write('\n');
-
-        stream.Write("DeltaTime: ");
-        stream.Write(deltaTime.ToString("G17"));
-        stream.Write('\n');
-
-        stream.Write("Masses: [");
-        bool isFirst = true;
-        foreach (Particle particle in particles)
-        {
-            if (isFirst)
-            {
-                isFirst = false;
-            }
-            else
-            {
-                stream.Write(", ");
-            }
-
-            stream.Write(particle.Mass.ToString("G17"));
-        }
-
-        stream.Write("]\n");
-    }
-
-    public void AppendState(uint step, double time, IReadOnlyCollection<Particle> particles)
-    {
-        if (step % SaveEverySteps != 0)
-            return;
-
-        stream.Write('[');
-        stream.Write(step);
-        stream.Write(' ');
-        stream.Write(time.ToString("G17"));
-        stream.Write(']');
-
-        bool isFirst = true;
-        foreach (Particle particle in particles)
-        {
-            stream.Write(isFirst ? " " : " ; ");
-            isFirst = false;
-            stream.Write(particle.Position.X.ToString("G17"));
-            stream.Write(' ');
-            stream.Write(particle.Position.Y.ToString("G17"));
-            stream.Write(' ');
-            stream.Write(particle.Velocity.X.ToString("G17"));
-            stream.Write(' ');
-            stream.Write(particle.Velocity.Y.ToString("G17"));
-        }
-
-        stream.Write('\n');
     }
 }

@@ -2,19 +2,20 @@ using Silk.NET.Maths;
 
 namespace tp5.Particles;
 
-public class Particle
+public abstract class Particle
 {
     public long Id { get; set; }
+    public Simulation Simulation { get; set; }
 
     public double Mass { get; init; }
-    public virtual double Radius { get; set; }
+    public double Radius { get; set; }
 
     public LinkedListNode<Particle> Node { get; set; }
 
-    public virtual Vector2D<double> Position { get; set; }
-    public virtual Vector2D<double> NextPosition { get; set; }
-    public virtual Vector2D<double> Velocity { get; set; }
-    public virtual Vector2D<double> NextVelocity { get; set; }
+    public Vector2D<double> Position { get; set; }
+    public Vector2D<double> NextPosition { get; set; }
+    public Vector2D<double> Velocity { get; set; }
+    public Vector2D<double> NextVelocity { get; set; }
 
     // Auxiliary vectors for exclusive use by the simulation integrator
     public Vector2D<double> Aux0;
@@ -23,4 +24,10 @@ public class Particle
     public Vector2D<double> Aux3;
     public Vector2D<double> Aux4;
     public Vector2D<double> Aux5;
+
+    public abstract void OnInitialized();
+
+    public abstract Vector2D<double> CalculateForce();
+
+    public abstract Vector2D<double> CalculateDerivative(int derivative);
 }
