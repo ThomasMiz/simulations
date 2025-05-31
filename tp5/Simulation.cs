@@ -29,6 +29,8 @@ public class Simulation : IDisposable
     private bool neighborsFinderDirty = true;
 
     private SimulationFileSaver? saver;
+    
+    private List<Particle> tmpParticles = new();
 
     public Simulation(IntegrationMethod integrationMethod, double deltaTime, uint? maxSteps, Bounds bounds, List<Particle> initialParticles, List<ParticleSpawner> particleSpawners, SimulationFileSaver? saver)
     {
@@ -53,10 +55,14 @@ public class Simulation : IDisposable
             particle.Node = Particles.AddLast(particle);
             particle.Simulation = this;
         }
+
+        neighborsFinder = new NeighborsFinder(Bounds.TopRight, new Vector2D<int>(1, 1), Particles);
     }
 
     private void Initialize()
     {
+        neighborsFinder.Recalculate();
+
         Parallel.ForEach(Particles, particle => particle.OnInitialized());
         Parallel.ForEach(Particles, particle => IntegrationMethod.InitializeParticle(particle, DeltaTime));
 
@@ -80,6 +86,7 @@ public class Simulation : IDisposable
 
         if (!neighborsFinderDirty)
             neighborsFinder.ManualAddParticle(particle);
+        // neighborsFinderDirty = true;
     }
 
     private void PerformRemoveParticle(Particle particle)
@@ -93,6 +100,7 @@ public class Simulation : IDisposable
 
         if (!neighborsFinderDirty)
             neighborsFinder.ManualRemoveParticle(particle);
+        // neighborsFinderDirty = true;
     }
 
     public void RemoveParticle(Particle particle)
@@ -102,15 +110,47 @@ public class Simulation : IDisposable
         particleRemovalQueue.Enqueue(particle);
     }
 
-    public void FindParticlesWithinRadius(in Vector2D<double> position, double particleRadius, double distance, ICollection<Particle> result)
+    private void EnsureNeighborsUsable()
     {
         if (neighborsFinderDirty)
         {
             neighborsFinder.Recalculate();
             neighborsFinderDirty = false;
         }
-
+    }
+    
+    public void FindParticlesWithinRadius(in Vector2D<double> position, double particleRadius, double distance, ICollection<Particle> result)
+    {
+        EnsureNeighborsUsable();
         neighborsFinder.FindWithinRadius(position, particleRadius, distance, result);
+    }
+
+    public void FindParticlesWithinRadius(Particle particle, double distance, ICollection<Particle> result)
+    {
+        FindParticlesWithinRadius(particle.Position, particle.Radius, distance, result);
+        result.Remove(particle);
+    }
+
+    private void PostprocessNoCollisions()
+    {
+        tmpParticles.Clear();
+
+        foreach (Particle particle in Particles)
+        {
+            FindParticlesWithinRadius(particle, 0, tmpParticles);
+            foreach (Particle other in tmpParticles)
+            {
+                Vector2D<double> d = other.Position - particle.Position;
+                double distance = d.Length;
+                double overlapDistance = (particle.Radius + other.Radius - distance) / 2;
+                double moveDistance = overlapDistance;
+                Vector2D<double> dnorm = d / distance;
+                other.Position += dnorm * moveDistance;
+                particle.Position -= dnorm * moveDistance;
+            }
+            
+            tmpParticles.Clear();
+        }
     }
 
     public void Step()
@@ -122,22 +162,29 @@ public class Simulation : IDisposable
             Initialize();
         }
 
+        EnsureNeighborsUsable();
         foreach (ParticleSpawner particleSpawner in ParticleSpawners)
         {
             particleSpawner.PreUpdate();
         }
 
+        EnsureNeighborsUsable();
+        
         Steps++;
         IntegrationMethod.Step(Particles, DeltaTime);
 
         neighborsFinderDirty = true;
-
         foreach (Particle particle in Particles)
         {
             particle.Position = particle.NextPosition;
             particle.Velocity = particle.NextVelocity;
             particle.PostUpdate();
         }
+
+        neighborsFinderDirty = true;
+        EnsureNeighborsUsable();
+        PostprocessNoCollisions();
+        neighborsFinderDirty = true;
 
         while (particleRemovalQueue.TryDequeue(out Particle particle))
         {

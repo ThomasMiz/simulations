@@ -17,15 +17,12 @@ class Program
         const double HallwayWidth = 3.6f;
         const double HallwayLength = 16;
 
-        const double halfSizeX = HallwayLength / 2;
-        const double halfSizeY = HallwayWidth / 2;
-
         const double spawnRate = 1;
         const double particleRadius = 0.25;
 
         const double spawnAreaLength = 1;
 
-        Bounds simulationBounds = new Bounds(bottomLeft: (-halfSizeX, 0), topRight: (halfSizeX, HallwayWidth));
+        Bounds simulationBounds = new(bottomLeft: (0, 0), topRight: (HallwayLength, HallwayWidth));
         
         var config = new SimulationConfig
         {
@@ -37,7 +34,7 @@ class Program
             SimulationBounds = simulationBounds,
         };
 
-        ParticleCreator spawnLeftToRightParticle = position => new TargetHorizontalVelocityParticle()
+        /*ParticleCreator spawnLeftToRightParticle = position => new TargetHorizontalVelocityParticle()
         {
             Position = position,
             Radius = particleRadius,
@@ -53,6 +50,24 @@ class Program
             TargetHorizontalVelocity = -1.5,
             Acceleration = 10,
             TargetX = -(halfSizeX - particleRadius * 1.2),
+        };*/
+        
+        ParticleCreator spawnLeftToRightParticle = position => new SocialForceParticle()
+        {
+            Position = position,
+            Radius = particleRadius,
+            TargetHorizontalVelocity = 1.5,
+            Acceleration = 10,
+            TargetX = HallwayLength - particleRadius * 1.2,
+        };
+
+        ParticleCreator spawnRightToLeftParticle = position => new SocialForceParticle()
+        {
+            Position = position,
+            Radius = particleRadius,
+            TargetHorizontalVelocity = -1.5,
+            Acceleration = 10,
+            TargetX = particleRadius * 1.2,
         };
 
         config.AddParticleSpawner(new GenericRateParticleSpawner(

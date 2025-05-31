@@ -5,7 +5,7 @@ namespace tp5.Particles;
 public class TargetHorizontalVelocityParticle : Particle
 {
     public override string Name => IsLeftToRight ? "TargetHorizontalVelocityLeft" : "TargetHorizontalVelocityRight";
-    public override bool IsForceVelocityDependant => false;
+    public override bool IsForceVelocityDependant => true;
 
     public double TargetHorizontalVelocity { get; set; }
 
@@ -14,6 +14,8 @@ public class TargetHorizontalVelocityParticle : Particle
     public double TargetX { get; set; }
 
     public bool IsLeftToRight => TargetHorizontalVelocity > 0;
+
+    public float Ky { get; set; } = 5;
 
     protected override void OnInitializedImpl()
     {
@@ -29,10 +31,11 @@ public class TargetHorizontalVelocityParticle : Particle
 
     public override Vector2D<double> CalculateForce()
     {
-        double requiredAsceleration = (TargetHorizontalVelocity - Velocity.X) / Simulation.DeltaTime;
-        double absoluteAscelerationX = Math.Min(Math.Abs(requiredAsceleration), Acceleration);
-        double fx = Math.CopySign(absoluteAscelerationX, requiredAsceleration) * Mass;
+        Vector2D<double> requiredAsceleration = new Vector2D<double>(TargetHorizontalVelocity - Velocity.X, -Velocity.Y) / Simulation.DeltaTime;
+        Vector2D<double> absoluteAscelerationX = Vector2D.Min(Vector2D.Abs(requiredAsceleration), new Vector2D<double>(Acceleration, -Velocity.Y * Ky));
+        double ax = Math.CopySign(absoluteAscelerationX.X, requiredAsceleration.X);
+        double ay = Math.CopySign(absoluteAscelerationX.Y, requiredAsceleration.Y);
 
-        return new Vector2D<double>(fx, 0);
+        return new Vector2D<double>(ax, ay) * Mass;
     }
 }
