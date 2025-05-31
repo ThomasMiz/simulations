@@ -110,7 +110,15 @@ namespace tp5.DebugView
         private void DrawDebugPanel()
         {
             debugPanelSbObjects.Clear();
-            debugPanelSbObjects.Append("Particles: ").AppendNumber(Simulation.Particles.Count);
+            debugPanelSbObjects.Append("Steps: ").AppendNumber(Simulation.Steps);
+            debugPanelSbObjects.Append("\nTime: ").AppendNumber(Simulation.SecondsElapsed).Append('s');
+            debugPanelSbObjects.Append("\nParticles: ").AppendNumber(Simulation.Particles.Count);
+
+            if (Simulation.HasStopped)
+            {
+                debugPanelSbObjects.Append("\nStopped. Press C+V to continue.");
+            }
+
             DrawString(DebugPanelPosition, debugPanelSbObjects);
         }
 

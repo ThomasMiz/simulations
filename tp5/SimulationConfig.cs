@@ -1,12 +1,15 @@
 using Silk.NET.Maths;
 using tp5.Integration;
 using tp5.Particles;
+using tp5.Spawners;
 
 namespace tp5;
 
 public class SimulationConfig
 {
-    private LinkedList<Particle> particles = new();
+    private List<Particle> particles = new();
+    private List<ParticleSpawner> particleSpawners = new();
+
     public double? DeltaTime { get; set; } = null;
     public double? SavingDeltaTime { get; set; } = null;
     public Bounds? SimulationBounds { get; set; } = null;
@@ -20,7 +23,13 @@ public class SimulationConfig
 
     public SimulationConfig AddParticle(Particle particle)
     {
-        particle.Node = particles.AddLast(particle);
+        particles.Add(particle);
+        return this;
+    }
+
+    public SimulationConfig AddParticleSpawner(ParticleSpawner spawner)
+    {
+        particleSpawners.Add(spawner);
         return this;
     }
 
@@ -55,11 +64,14 @@ public class SimulationConfig
     {
         CheckValidity();
 
-        LinkedList<Particle> list = particles;
-        particles = new LinkedList<Particle>(); // Not reusable
+        // These lists are not reusable
+        List<ParticleSpawner> spawnersList = particleSpawners;
+        List<Particle> particleList = particles;
+        particleSpawners = new List<ParticleSpawner>();
+        particles = new List<Particle>();
 
         SimulationFileSaver? saver = OutputFile == null ? null : new(MakeOutputFilename(), SavingDeltaTime);
 
-        return new Simulation(IntegrationMethod, DeltaTime.Value, CalculateMaxSteps(), SimulationBounds.Value, list, saver);
+        return new Simulation(IntegrationMethod, DeltaTime.Value, CalculateMaxSteps(), SimulationBounds.Value, particleList, spawnersList, saver);
     }
 }

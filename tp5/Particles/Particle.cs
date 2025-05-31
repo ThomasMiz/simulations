@@ -20,20 +20,16 @@ public abstract class Particle
 
     private void CalculateMinMaxPositions()
     {
-        if (Simulation == null)
-        {
-            _minPosition = new Vector2D<double>(double.MinValue);
-            _maxPosition = new Vector2D<double>(double.MaxValue);
-        }
-        else
-        {
-            _minPosition = Simulation.Bounds.BottomLeft + new Vector2D<double>(_radius);
-            _maxPosition = Simulation.Bounds.TopRight - new Vector2D<double>(_radius);
-        }
+        if (Simulation == null) return;
+
+        _minPosition = Simulation.Bounds.BottomLeft + new Vector2D<double>(_radius);
+        _maxPosition = Simulation.Bounds.TopRight - new Vector2D<double>(_radius);
     }
 
     private void ClampPositionToBounds()
     {
+        if (Simulation == null) return;
+
         _position = Vector2D.Clamp(_position, _minPosition, _maxPosition);
     }
 

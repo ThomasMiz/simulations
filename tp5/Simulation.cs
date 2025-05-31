@@ -1,6 +1,7 @@
 using Silk.NET.Maths;
 using tp5.Integration;
 using tp5.Particles;
+using tp5.Spawners;
 
 namespace tp5;
 
@@ -19,7 +20,9 @@ public class Simulation : IDisposable
 
     public bool HasStopped { get; set; } = false;
 
+    public List<ParticleSpawner> ParticleSpawners { get; }
     public LinkedList<Particle> Particles { get; }
+    private Queue<Particle> particleRemovalQueue = new();
     private long particleIdCounter = 1;
 
     private readonly NeighborsFinder neighborsFinder;
@@ -27,28 +30,42 @@ public class Simulation : IDisposable
 
     private SimulationFileSaver? saver;
 
-    public Simulation(IntegrationMethod integrationMethod, double deltaTime, uint? maxSteps, Bounds bounds, LinkedList<Particle> particles, SimulationFileSaver? saver)
+    public Simulation(IntegrationMethod integrationMethod, double deltaTime, uint? maxSteps, Bounds bounds, List<Particle> initialParticles, List<ParticleSpawner> particleSpawners, SimulationFileSaver? saver)
     {
         IntegrationMethod = integrationMethod;
         DeltaTime = deltaTime;
         MaxSteps = maxSteps;
         Bounds = bounds;
-        Particles = particles;
         this.saver = saver;
 
-        saver?.WriteStart(this);
+        ParticleSpawners = new List<ParticleSpawner>();
+        Particles = new LinkedList<Particle>();
+
+        foreach (ParticleSpawner particleSpawner in particleSpawners)
+        {
+            particleSpawner.Simulation = this;
+            ParticleSpawners.Add(particleSpawner);
+        }
+
+        foreach (Particle particle in initialParticles)
+        {
+            particle.Id = particleIdCounter++;
+            particle.Node = Particles.AddLast(particle);
+            particle.Simulation = this;
+        }
     }
 
     private void Initialize()
     {
-        foreach (Particle particle in Particles)
-        {
-            particle.Id = particleIdCounter++;
-            particle.Simulation = this;
-        }
-
         Parallel.ForEach(Particles, particle => particle.OnInitialized());
         Parallel.ForEach(Particles, particle => IntegrationMethod.InitializeParticle(particle, DeltaTime));
+
+        foreach (ParticleSpawner particleSpawner in ParticleSpawners)
+        {
+            particleSpawner.OnInitialized();
+        }
+
+        saver?.WriteStart(this);
 
         neighborsFinderDirty = true;
     }
@@ -61,19 +78,28 @@ public class Simulation : IDisposable
         particle.OnInitialized();
         IntegrationMethod.InitializeParticle(particle, DeltaTime);
 
-        neighborsFinderDirty = true;
+        if (!neighborsFinderDirty)
+            neighborsFinder.ManualAddParticle(particle);
     }
 
-    public void RemoveParticle(Particle particle)
+    private void PerformRemoveParticle(Particle particle)
     {
-        if (particle.Simulation != this) throw new Exception("Tried to remove a particle that is not from this sim");
+        if (particle.Simulation == null) return;
 
         Particles.Remove(particle.Node);
         particle.Simulation = null;
         particle.Node = null;
         particle.OnRemoved();
 
-        neighborsFinderDirty = true;
+        if (!neighborsFinderDirty)
+            neighborsFinder.ManualRemoveParticle(particle);
+    }
+
+    public void RemoveParticle(Particle particle)
+    {
+        if (particle.Simulation != this) throw new Exception("Tried to remove a particle that is not from this sim");
+
+        particleRemovalQueue.Enqueue(particle);
     }
 
     public void FindParticlesWithinRadius(in Vector2D<double> position, double particleRadius, double distance, ICollection<Particle> result)
@@ -96,6 +122,11 @@ public class Simulation : IDisposable
             Initialize();
         }
 
+        foreach (ParticleSpawner particleSpawner in ParticleSpawners)
+        {
+            particleSpawner.PreUpdate();
+        }
+
         Steps++;
         IntegrationMethod.Step(Particles, DeltaTime);
 
@@ -105,6 +136,12 @@ public class Simulation : IDisposable
         {
             particle.Position = particle.NextPosition;
             particle.Velocity = particle.NextVelocity;
+            particle.PostUpdate();
+        }
+
+        while (particleRemovalQueue.TryDequeue(out Particle particle))
+        {
+            PerformRemoveParticle(particle);
         }
 
         saver?.OnStep(this);

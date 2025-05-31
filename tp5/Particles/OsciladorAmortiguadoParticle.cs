@@ -16,6 +16,8 @@ public class OsciladorAmortiguadoParticle : Particle
 
     public override void PostUpdate()
     {
+        if (Math.Abs(Position.X) < 0.1 && Math.Abs(Velocity.X) < 0.1)
+            Remove();
     }
 
     public override void OnRemoved()

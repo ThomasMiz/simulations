@@ -46,6 +46,27 @@ namespace System.Text
             }
 
             return sb;
+        }     
+
+        public static StringBuilder AppendNumber(this StringBuilder sb, double value, int precision = 7)
+        {
+            AppendNumber(sb, (int)value);
+            
+            if (value % 1 > 0)
+                sb.Append('.');
+
+            int mag = 1;
+            double valMag = value;
+            while (valMag % 1 > 0 && precision-- > 0)
+            {
+                mag *= 10;
+                valMag = value * mag;
+                var i = (int)((valMag) % 10);
+                char ch = (char)('0' + i);
+                sb.Append(ch);
+            }
+
+            return sb;
         }        
     }   
 }

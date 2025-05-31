@@ -51,6 +51,23 @@ public class NeighborsFinder
         }
     }
 
+    public void ManualAddParticle(Particle particle)
+    {
+        Vector2D<double> binSize = BinSize;
+        int cellX = (int)(particle.Position.X / binSize.X);
+        int cellY = (int)(particle.Position.Y / binSize.Y);
+        grid[cellX, cellY] ??= new List<Particle>();
+        grid[cellX, cellY].Add(particle);
+    }
+
+    public void ManualRemoveParticle(Particle particle)
+    {
+        Vector2D<double> binSize = BinSize;
+        int cellX = (int)(particle.Position.X / binSize.X);
+        int cellY = (int)(particle.Position.Y / binSize.Y);
+        grid[cellX, cellY]?.Remove(particle);
+    }
+
     public void FindWithinRadius(in Vector2D<double> position, double particleRadius, double distance, ICollection<Particle> result)
     {
         Vector2D<double> binSize = BinSize;
