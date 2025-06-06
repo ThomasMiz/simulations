@@ -15,7 +15,7 @@ class Program
         const double HallwayWidth = 3.6f;
         const double HallwayLength = 16;
 
-        const double spawnRate = 4;
+        const double spawnRate = 2;
         const double particleRadius = 0.25;
 
         const double spawnAreaLength = 1;
@@ -30,7 +30,7 @@ class Program
             SavingDeltaTime = 0.1f,
             IntegrationMethod = new BeemanIntegration(),
             SimulationBounds = simulationBounds,
-            MaxParticles = 200,
+            // MaxParticles = 200,
         };
 
         /*ParticleCreator spawnLeftToRightParticle = position => new TargetHorizontalVelocityParticle()
@@ -38,7 +38,8 @@ class Program
             Position = position,
             Radius = particleRadius,
             TargetHorizontalVelocity = 1.5,
-            TargetX = halfSizeX - particleRadius * 1.2,
+            TargetX = HallwayLength - spawnAreaLength,
+            Tao = 0.5,
         };
 
         ParticleCreator spawnRightToLeftParticle = position => new TargetHorizontalVelocityParticle()
@@ -46,15 +47,20 @@ class Program
             Position = position,
             Radius = particleRadius,
             TargetHorizontalVelocity = -1.5,
-            TargetX = -(halfSizeX - particleRadius * 1.2),
+            TargetX = spawnAreaLength,
+            Tao = 0.5,
         };*/
 
-        ParticleCreator spawnLeftToRightParticle = position => new SocialForceParticle()
+        /*ParticleCreator spawnLeftToRightParticle = position => new SocialForceParticle()
         {
             Position = position,
             Radius = particleRadius,
             TargetHorizontalVelocity = 1.5,
             TargetX = HallwayLength - spawnAreaLength,
+            Tao = 0.5f,
+            A = 20,
+            B = 0.08,
+            Kn = 1.2e5,
         };
 
         ParticleCreator spawnRightToLeftParticle = position => new SocialForceParticle()
@@ -63,14 +69,22 @@ class Program
             Radius = particleRadius,
             TargetHorizontalVelocity = -1.5,
             TargetX = spawnAreaLength,
-        };
+            Tao = 0.5f,
+            A = 20,
+            B = 0.08,
+            Kn = 1.2e5,
+        };*/
 
-        /*ParticleCreator spawnLeftToRightParticle = position => new TrainPromotingSfmParticle()
+        ParticleCreator spawnLeftToRightParticle = position => new TrainPromotingSfmParticle()
         {
             Position = position,
             Radius = particleRadius,
             TargetHorizontalVelocity = 1.5,
             TargetX = HallwayLength - spawnAreaLength,
+            Tao = 0.5f,
+            A = 20,
+            B = 0.08,
+            Kn = 1.2e5,
         };
 
         ParticleCreator spawnRightToLeftParticle = position => new TrainPromotingSfmParticle()
@@ -79,7 +93,11 @@ class Program
             Radius = particleRadius,
             TargetHorizontalVelocity = -1.5,
             TargetX = spawnAreaLength,
-        };*/
+            Tao = 0.5f,
+            A = 20,
+            B = 0.08,
+            Kn = 1.2e5,
+        };
 
         config.AddParticleSpawner(new GenericRateParticleSpawner(
             spawnRate: spawnRate,

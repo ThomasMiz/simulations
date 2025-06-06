@@ -13,7 +13,7 @@ public class TrainPromotingSfmParticle : TargetHorizontalVelocityParticle
 
     public double Kn { get; set; } = 1.2e5;
     public double A { get; set; } = 10;
-    public double B { get; set; } = 0.2; //0.08;
+    public double B { get; set; } = 0.08;
 
     protected override Vector2D<double> CalculateForceImpl()
     {
