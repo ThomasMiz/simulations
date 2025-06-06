@@ -17,6 +17,7 @@ class Program
 
         const double spawnRate = 2;
         const double particleRadius = 0.25;
+        const uint maxParticles = 100;
 
         const double spawnAreaLength = 1;
 
@@ -109,19 +110,19 @@ class Program
             spawnRate: spawnRate,
             spawnArea: new Bounds(simulationBounds.Left, simulationBounds.Bottom + particleRadius, simulationBounds.Left + spawnAreaLength, simulationBounds.Top - particleRadius),
             particleCreator: spawnLeftToRightParticle,
-            maxParticles: 25
+            maxParticles: maxParticles
         ));
 
         config.AddParticleSpawner(new GenericRateParticleSpawner(
             spawnRate: spawnRate,
             spawnArea: new Bounds(simulationBounds.Right - spawnAreaLength, simulationBounds.Bottom + particleRadius, simulationBounds.Right, simulationBounds.Top - particleRadius),
             particleCreator: spawnRightToLeftParticle,
-            maxParticles: 25
+            maxParticles: maxParticles
         ));
 
         using Simulation sim = config.Build();
         using SimulationWindow window = new(sim);
-        window.SimulationSpeed = 3;
+        window.SimulationSpeed = 2;
         window.Run();
 
         Console.WriteLine("Goodbye!");
