@@ -39,6 +39,7 @@ class Program
             Radius = particleRadius,
             TargetHorizontalVelocity = 1.5,
             TargetX = HallwayLength - spawnAreaLength,
+            Mass = 80,
             Tao = 0.5,
         };
 
@@ -48,6 +49,7 @@ class Program
             Radius = particleRadius,
             TargetHorizontalVelocity = -1.5,
             TargetX = spawnAreaLength,
+            Mass = 80,
             Tao = 0.5,
         };*/
 
@@ -57,8 +59,9 @@ class Program
             Radius = particleRadius,
             TargetHorizontalVelocity = 1.5,
             TargetX = HallwayLength - spawnAreaLength,
+            Mass = 80,
             Tao = 0.5f,
-            A = 20,
+            A = 2000,
             B = 0.08,
             Kn = 1.2e5,
         };
@@ -69,8 +72,9 @@ class Program
             Radius = particleRadius,
             TargetHorizontalVelocity = -1.5,
             TargetX = spawnAreaLength,
+            Mass = 80,
             Tao = 0.5f,
-            A = 20,
+            A = 2000,
             B = 0.08,
             Kn = 1.2e5,
         };
@@ -81,8 +85,9 @@ class Program
             Radius = particleRadius,
             TargetHorizontalVelocity = 1.5,
             TargetX = HallwayLength - spawnAreaLength,
+           Mass = 80,
             Tao = 0.5f,
-            A = 20,
+            A = 2000,
             B = 0.08,
             Kn = 1.2e5,
         };
@@ -93,8 +98,9 @@ class Program
             Radius = particleRadius,
             TargetHorizontalVelocity = -1.5,
             TargetX = spawnAreaLength,
+           Mass = 80,
             Tao = 0.5f,
-            A = 20,
+            A = 2000,
             B = 0.08,
             Kn = 1.2e5,
         };*/

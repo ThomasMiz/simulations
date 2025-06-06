@@ -47,8 +47,8 @@ public class SocialForceParticle : TargetHorizontalVelocityParticle
         // Force against the walls
         const double wr = 0.1;
         const double wf_max = 5;
-        force.Y += (wr - Math.Min(Position.Y - Radius - Simulation.Bounds.Bottom, wr)) / wr * wf_max;
-        force.Y -= (wr - Math.Min(Simulation.Bounds.Top - Position.Y - Radius, wr)) / wr * wf_max;
+        force.Y += (wr - Math.Min(Position.Y - Radius - Simulation.Bounds.Bottom, wr)) / wr * wf_max * Mass;
+        force.Y -= (wr - Math.Min(Simulation.Bounds.Top - Position.Y - Radius, wr)) / wr * wf_max * Mass;
 
         return force + base.CalculateForceImpl();
     }
