@@ -6,6 +6,9 @@ namespace tp5.Spawners;
 public abstract class RateBasedParticleSpawner : RandomAreaParticleSpawner
 {
     public double SpawnRate { get; set; }
+    public uint? MaxParticles { get; set; }
+    public uint SpawnedParticleCount { get; private set; } = 0;
+
     private readonly double spawnEvery;
     private double nextSpawnTime = 0;
 
@@ -17,6 +20,8 @@ public abstract class RateBasedParticleSpawner : RandomAreaParticleSpawner
 
     public override void PreUpdate()
     {
+        if (IsDone) return;
+
         double elapsed = Simulation.SecondsElapsed;
 
         //while
@@ -26,6 +31,8 @@ public abstract class RateBasedParticleSpawner : RandomAreaParticleSpawner
             if (position != null)
             {
                 Simulation.AddParticle(CreateParticle(position.Value));
+                SpawnedParticleCount++;
+                IsDone = MaxParticles.HasValue && SpawnedParticleCount >= MaxParticles;
             }
 
             nextSpawnTime += spawnEvery;

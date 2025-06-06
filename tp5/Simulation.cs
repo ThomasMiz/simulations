@@ -222,9 +222,14 @@ public class Simulation : IDisposable
             Console.WriteLine("Stopping simulation after {0} steps and {1} seconds; step limit reached", Steps, SecondsElapsed);
             HasStopped = true;
         }
-        else if (NoSpace)
+        /*else if (NoSpace)
         {
             Console.WriteLine("Stopping simulation after {0} steps and {1} seconds; no space to spawn particles", Steps, SecondsElapsed);
+            HasStopped = true;
+        }*/
+        else if (ParticleSpawners.All(s => s.IsDone) && !Particles.Any())
+        {
+            Console.WriteLine("Stopping simulation after {0} steps and {1} seconds; heat death of the universe reached", Steps, SecondsElapsed);
             HasStopped = true;
         }
         else if (MaxParticles.HasValue && Particles.Count >= MaxParticles)

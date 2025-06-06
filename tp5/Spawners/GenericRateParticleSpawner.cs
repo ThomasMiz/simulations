@@ -9,9 +9,10 @@ public class GenericRateParticleSpawner : RateBasedParticleSpawner
 {
     public ParticleCreator ParticleCreator { get; set; }
 
-    public GenericRateParticleSpawner(double spawnRate, Bounds spawnArea, ParticleCreator particleCreator) : base(spawnRate, spawnArea)
+    public GenericRateParticleSpawner(double spawnRate, Bounds spawnArea, ParticleCreator particleCreator, uint? maxParticles = null) : base(spawnRate, spawnArea)
     {
         ParticleCreator = particleCreator;
+        MaxParticles = maxParticles;
     }
 
     protected override void OnInitializedImpl()

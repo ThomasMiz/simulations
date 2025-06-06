@@ -51,7 +51,7 @@ class Program
             Tao = 0.5,
         };*/
 
-        /*ParticleCreator spawnLeftToRightParticle = position => new SocialForceParticle()
+        ParticleCreator spawnLeftToRightParticle = position => new SocialForceParticle()
         {
             Position = position,
             Radius = particleRadius,
@@ -73,9 +73,9 @@ class Program
             A = 20,
             B = 0.08,
             Kn = 1.2e5,
-        };*/
+        };
 
-        ParticleCreator spawnLeftToRightParticle = position => new TrainPromotingSfmParticle()
+        /*ParticleCreator spawnLeftToRightParticle = position => new TrainPromotingSfmParticle()
         {
             Position = position,
             Radius = particleRadius,
@@ -97,23 +97,25 @@ class Program
             A = 20,
             B = 0.08,
             Kn = 1.2e5,
-        };
+        };*/
 
         config.AddParticleSpawner(new GenericRateParticleSpawner(
             spawnRate: spawnRate,
             spawnArea: new Bounds(simulationBounds.Left, simulationBounds.Bottom + particleRadius, simulationBounds.Left + spawnAreaLength, simulationBounds.Top - particleRadius),
-            particleCreator: spawnLeftToRightParticle
+            particleCreator: spawnLeftToRightParticle,
+            maxParticles: 25
         ));
 
         config.AddParticleSpawner(new GenericRateParticleSpawner(
             spawnRate: spawnRate,
             spawnArea: new Bounds(simulationBounds.Right - spawnAreaLength, simulationBounds.Bottom + particleRadius, simulationBounds.Right, simulationBounds.Top - particleRadius),
-            particleCreator: spawnRightToLeftParticle
+            particleCreator: spawnRightToLeftParticle,
+            maxParticles: 25
         ));
 
         using Simulation sim = config.Build();
         using SimulationWindow window = new(sim);
-        window.SimulationSpeed = 1;
+        window.SimulationSpeed = 3;
         window.Run();
 
         Console.WriteLine("Goodbye!");
