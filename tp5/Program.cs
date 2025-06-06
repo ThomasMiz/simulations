@@ -38,7 +38,6 @@ class Program
             Position = position,
             Radius = particleRadius,
             TargetHorizontalVelocity = 1.5,
-            Acceleration = 10,
             TargetX = halfSizeX - particleRadius * 1.2,
         };
 
@@ -47,16 +46,14 @@ class Program
             Position = position,
             Radius = particleRadius,
             TargetHorizontalVelocity = -1.5,
-            Acceleration = 10,
             TargetX = -(halfSizeX - particleRadius * 1.2),
         };*/
 
-        /*ParticleCreator spawnLeftToRightParticle = position => new SocialForceParticle()
+        ParticleCreator spawnLeftToRightParticle = position => new SocialForceParticle()
         {
             Position = position,
             Radius = particleRadius,
             TargetHorizontalVelocity = 1.5,
-            Acceleration = 10,
             TargetX = HallwayLength - spawnAreaLength,
         };
 
@@ -65,27 +62,24 @@ class Program
             Position = position,
             Radius = particleRadius,
             TargetHorizontalVelocity = -1.5,
-            Acceleration = 10,
             TargetX = spawnAreaLength,
-        };*/
+        };
 
-        ParticleCreator spawnLeftToRightParticle = position => new RightDrivingTrainParticle()
+        /*ParticleCreator spawnLeftToRightParticle = position => new TrainPromotingSfmParticle()
         {
             Position = position,
             Radius = particleRadius,
             TargetHorizontalVelocity = 1.5,
-            Acceleration = 10,
             TargetX = HallwayLength - spawnAreaLength,
         };
 
-        ParticleCreator spawnRightToLeftParticle = position => new RightDrivingTrainParticle()
+        ParticleCreator spawnRightToLeftParticle = position => new TrainPromotingSfmParticle()
         {
             Position = position,
             Radius = particleRadius,
             TargetHorizontalVelocity = -1.5,
-            Acceleration = 10,
             TargetX = spawnAreaLength,
-        };
+        };*/
 
         config.AddParticleSpawner(new GenericRateParticleSpawner(
             spawnRate: spawnRate,

@@ -9,7 +9,7 @@ namespace tp5.Particles;
 /// The expectation is that in a horizontal hallway, particles going left would tend towards the top and particles going
 /// right would tend towards the bottom. 
 /// </summary>
-public class RightDrivingTrainParticle : TargetHorizontalVelocityParticle
+/*public class RightDrivingTrainParticle : TargetHorizontalVelocityParticle
 {
     public override string Name => IsLeftToRight ? "TP-Left" : "TP-Right";
 
@@ -101,4 +101,4 @@ public class RightDrivingTrainParticle : TargetHorizontalVelocityParticle
 
         return force + base.CalculateForceImpl();
     }
-}
+}*/

@@ -9,7 +9,7 @@ public class TargetHorizontalVelocityParticle : Particle
 
     public double TargetHorizontalVelocity { get; set; }
 
-    public double Acceleration { get; set; }
+    public double Tao { get; set; } = 0.5;
 
     public double TargetX { get; set; }
 
@@ -31,11 +31,6 @@ public class TargetHorizontalVelocityParticle : Particle
 
     protected override Vector2D<double> CalculateForceImpl()
     {
-        Vector2D<double> requiredAsceleration = new Vector2D<double>(TargetHorizontalVelocity - Velocity.X, -Velocity.Y) / Simulation.DeltaTime;
-        Vector2D<double> absoluteAsceleration = Vector2D.Min(Vector2D.Abs(requiredAsceleration), new Vector2D<double>(Acceleration, -Velocity.Y * Ky));
-        double ax = Math.CopySign(absoluteAsceleration.X, requiredAsceleration.X);
-        double ay = Math.CopySign(absoluteAsceleration.Y, requiredAsceleration.Y);
-
-        return new Vector2D<double>(ax, ay) * Mass;
+        return new Vector2D<double>((TargetHorizontalVelocity - Velocity.X) / Tao, -Velocity.Y * Ky) * Mass;
     }
 }
