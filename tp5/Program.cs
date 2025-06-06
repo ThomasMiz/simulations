@@ -15,9 +15,10 @@ class Program
         const double HallwayWidth = 3.6f;
         const double HallwayLength = 16;
 
-        const double spawnRate = 2;
+        const double spawnRate = 4;
         const double particleRadius = 0.25;
         const uint maxParticles = 100;
+        const double targetVelocity = 1.5;
 
         const double spawnAreaLength = 1;
 
@@ -38,7 +39,7 @@ class Program
         {
             Position = position,
             Radius = particleRadius,
-            TargetHorizontalVelocity = 1.5,
+            TargetHorizontalVelocity = targetVelocity,
             TargetX = HallwayLength - spawnAreaLength,
             Mass = 80,
             Tao = 0.5,
@@ -48,7 +49,7 @@ class Program
         {
             Position = position,
             Radius = particleRadius,
-            TargetHorizontalVelocity = -1.5,
+            TargetHorizontalVelocity = -targetVelocity,
             TargetX = spawnAreaLength,
             Mass = 80,
             Tao = 0.5,
@@ -58,7 +59,7 @@ class Program
         {
             Position = position,
             Radius = particleRadius,
-            TargetHorizontalVelocity = 1.5,
+            TargetHorizontalVelocity = targetVelocity,
             TargetX = HallwayLength - spawnAreaLength,
             Mass = 80,
             Tao = 0.5f,
@@ -71,7 +72,7 @@ class Program
         {
             Position = position,
             Radius = particleRadius,
-            TargetHorizontalVelocity = -1.5,
+            TargetHorizontalVelocity = -targetVelocity,
             TargetX = spawnAreaLength,
             Mass = 80,
             Tao = 0.5f,
@@ -84,12 +85,12 @@ class Program
         {
             Position = position,
             Radius = particleRadius,
-            TargetHorizontalVelocity = 1.5,
+            TargetHorizontalVelocity = targetVelocity,
             TargetX = HallwayLength - spawnAreaLength,
-           Mass = 80,
+            Mass = 80,
             Tao = 0.5f,
-            A = 2000,
-            B = 0.08,
+            A = 100,
+            B = 0.3,
             Kn = 1.2e5,
         };
 
@@ -97,12 +98,12 @@ class Program
         {
             Position = position,
             Radius = particleRadius,
-            TargetHorizontalVelocity = -1.5,
+            TargetHorizontalVelocity = -targetVelocity,
             TargetX = spawnAreaLength,
-           Mass = 80,
+            Mass = 80,
             Tao = 0.5f,
-            A = 2000,
-            B = 0.08,
+            A = 100,
+            B = 0.3,
             Kn = 1.2e5,
         };*/
 

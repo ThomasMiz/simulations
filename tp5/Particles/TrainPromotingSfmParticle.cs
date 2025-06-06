@@ -45,10 +45,16 @@ public class TrainPromotingSfmParticle : TargetHorizontalVelocityParticle
                 if (Velocity != Vector2D<double>.Zero && other.Velocity != Vector2D<double>.Zero)
                 {
                     double dot = -Vector2D.Dot(Vector2D.Normalize(Velocity), Vector2D.Normalize(other.Velocity));
-                    evasiveForce *= new Vector2D<double>(Math.Max(dot, 0), dot);
+                    evasiveForce *= new Vector2D<double>(1, dot);
                 }
 
                 force += evasiveForce;
+        
+                // Force against the walls
+                const double wr = 0.1;
+                const double wf_max = 5;
+                force.Y += (wr - Math.Min(Position.Y - Radius - Simulation.Bounds.Bottom, wr)) / wr * wf_max * Mass;
+                force.Y -= (wr - Math.Min(Simulation.Bounds.Top - Position.Y - Radius, wr)) / wr * wf_max * Mass;
             }
         }
 
