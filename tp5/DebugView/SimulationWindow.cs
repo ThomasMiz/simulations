@@ -26,7 +26,6 @@ public class SimulationWindow : WindowBase
     {
         Simulation = simulation;
         CustomSimulationBounds = customSimulationBounds;
-        Window.UpdatesPerSecond = 1 / simulation.DeltaTime;
     }
 
     protected override void OnLoad()
@@ -38,6 +37,8 @@ public class SimulationWindow : WindowBase
         {
             BlendState = BlendState.NonPremultiplied,
         };
+        
+        Window.UpdatesPerSecond = SimulationSpeed / Simulation.DeltaTime;
     }
 
     protected override void OnUpdate(double dt)
@@ -126,6 +127,7 @@ public class SimulationWindow : WindowBase
             if (Simulation.Steps >= Simulation.MaxSteps) Simulation.MaxSteps *= 2;
             if (Simulation.Particles.Count >= Simulation.MaxParticles) Simulation.MaxParticles += 20;
             Simulation.HasStopped = false;
+            Simulation.NoSpace = false;
         }
     }
 

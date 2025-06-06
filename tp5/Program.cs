@@ -15,7 +15,7 @@ class Program
         const double HallwayWidth = 3.6f;
         const double HallwayLength = 16;
 
-        const double spawnRate = 8;
+        const double spawnRate = 4;
         const double particleRadius = 0.25;
 
         const double spawnAreaLength = 1;
@@ -24,7 +24,7 @@ class Program
 
         var config = new SimulationConfig
         {
-            DeltaTime = 0.001,
+            DeltaTime = 10e-4,
             //MaxSimulationTime = 25,
             OutputFile = null, //"output-simple-{type}.txt",
             SavingDeltaTime = 0.1f,
@@ -101,7 +101,7 @@ class Program
 
         using Simulation sim = config.Build();
         using SimulationWindow window = new(sim);
-        window.SimulationSpeed = 2;
+        window.SimulationSpeed = 1;
         window.Run();
 
         Console.WriteLine("Goodbye!");

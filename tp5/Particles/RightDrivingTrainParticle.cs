@@ -14,8 +14,10 @@ public class RightDrivingTrainParticle : TargetHorizontalVelocityParticle
     public override string Name => IsLeftToRight ? "TP-Left" : "TP-Right";
 
     private List<Particle> neighborsList = new();
+
+    public double Kn { get; set; } = 1.2e5;
     public double A { get; set; } = 10;
-    public double B { get; set; } = 0.2; //0.08;
+    public double B { get; set; } = 0.08;
 
     public double RighteousForce { get; set; } = 2;
 
@@ -26,7 +28,7 @@ public class RightDrivingTrainParticle : TargetHorizontalVelocityParticle
         initialForceEndTime = Simulation.SecondsElapsed + 1;
     }
 
-    public override Vector2D<double> CalculateForce()
+    protected override Vector2D<double> CalculateForceImpl()
     {
         // During the first second/s of existence, focus on moving towards its right
         if (Simulation.SecondsElapsed < initialForceEndTime)
@@ -57,18 +59,27 @@ public class RightDrivingTrainParticle : TargetHorizontalVelocityParticle
 
             Vector2D<double> n = diff / distance;
             // Vector2D<double> t = n.Y > 0 ? new(n.Y, -n.X) : new(-n.Y, n.X);
-
-            // Social force
-            Vector2D<double> evasiveForce = -A * Math.Exp(-e / B) * n;
-
-            // Train-promoting formula
-            if (Velocity != Vector2D<double>.Zero && other.Velocity != Vector2D<double>.Zero)
+            
+            // Contact force
+            // double vt = Vector2D.Dot(Velocity, t);
+            if (e < 0)
             {
-                double dot = -Vector2D.Dot(Vector2D.Normalize(Velocity), Vector2D.Normalize(other.Velocity));
-                evasiveForce *= new Vector2D<double>(Math.Max(dot, 0), dot);
+                force -= (-e * Kn) * n;// + (e * Kt * vt) * t;
             }
+            else
+            {
+                // Social force
+                Vector2D<double> evasiveForce = -A * Math.Exp(-e / B) * n;
 
-            force += evasiveForce;
+                // Train-promoting formula
+                if (Velocity != Vector2D<double>.Zero && other.Velocity != Vector2D<double>.Zero)
+                {
+                    double dot = -Vector2D.Dot(Vector2D.Normalize(Velocity), Vector2D.Normalize(other.Velocity));
+                    evasiveForce *= new Vector2D<double>(Math.Max(dot, 0), dot);
+                }
+
+                force += evasiveForce;
+            }
         }
 
         neighborsList.Clear();
@@ -88,6 +99,6 @@ public class RightDrivingTrainParticle : TargetHorizontalVelocityParticle
             }
         }
 
-        return force + base.CalculateForce();
+        return force + base.CalculateForceImpl();
     }
 }

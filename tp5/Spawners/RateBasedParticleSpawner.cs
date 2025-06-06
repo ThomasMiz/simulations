@@ -19,10 +19,15 @@ public abstract class RateBasedParticleSpawner : RandomAreaParticleSpawner
     {
         double elapsed = Simulation.SecondsElapsed;
 
-        while (nextSpawnTime < elapsed)
+        //while
+        if (nextSpawnTime < elapsed)
         {
-            Vector2D<double> position = GetSpawningPosition();
-            Simulation.AddParticle(CreateParticle(position));
+            Vector2D<double>? position = GetSpawningPosition();
+            if (position != null)
+            {
+                Simulation.AddParticle(CreateParticle(position.Value));
+            }
+
             nextSpawnTime += spawnEvery;
         }
     }

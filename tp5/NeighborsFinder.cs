@@ -75,8 +75,12 @@ public class NeighborsFinder
         int cellX = Math.Max((int)((point.X) / binSize.X), 0);
         int cellY = Math.Max((int)((point.Y) / binSize.Y), 0);
 
-        double particleRadiusSquared = particleRadius * particleRadius;
-        return grid?[cellX, cellY]?.Any(p => (p.Position - point).LengthSquared < particleRadiusSquared) ?? false;
+        return grid?[cellX, cellY]?.Any(p =>
+        {
+            Vector2D<double> v = point - p.Position;
+            double maxDistance = particleRadius + p.Radius + particleRadius;
+            return v.LengthSquared <= maxDistance * maxDistance;
+        }) ?? false;
     }
 
     public bool ExistsAnyWithinDistance(in Vector2D<double> position, double particleRadius, double distance)

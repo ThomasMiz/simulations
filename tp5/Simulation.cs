@@ -20,6 +20,7 @@ public class Simulation : IDisposable
     public double SecondsElapsed => Steps * DeltaTime;
 
     public bool HasStopped { get; set; } = false;
+    public bool NoSpace { get; set; } = false;
 
     public List<ParticleSpawner> ParticleSpawners { get; }
     public LinkedList<Particle> Particles { get; }
@@ -196,9 +197,9 @@ public class Simulation : IDisposable
         }
 
         neighborsFinderDirty = true;
-        EnsureNeighborsUsable();
-        PostprocessNoCollisions();
-        neighborsFinderDirty = true;
+        // EnsureNeighborsUsable();
+        // PostprocessNoCollisions();
+        // neighborsFinderDirty = true;
 
         while (particleRemovalQueue.TryDequeue(out Particle particle))
         {
@@ -219,6 +220,11 @@ public class Simulation : IDisposable
         else if (MaxSteps.HasValue && Steps >= MaxSteps)
         {
             Console.WriteLine("Stopping simulation after {0} steps and {1} seconds; step limit reached", Steps, SecondsElapsed);
+            HasStopped = true;
+        }
+        else if (NoSpace)
+        {
+            Console.WriteLine("Stopping simulation after {0} steps and {1} seconds; no space to spawn particles", Steps, SecondsElapsed);
             HasStopped = true;
         }
         else if (MaxParticles.HasValue && Particles.Count >= MaxParticles)

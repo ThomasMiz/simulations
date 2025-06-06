@@ -88,7 +88,12 @@ public abstract class Particle
     {
     }
 
-    public abstract Vector2D<double> CalculateForce();
+    public Vector2D<double> CalculateForce()
+    {
+        return CalculateForceImpl();
+    }
+
+    protected abstract Vector2D<double> CalculateForceImpl();
 
     public virtual Vector2D<double> CalculateDerivative(int derivative)
     {

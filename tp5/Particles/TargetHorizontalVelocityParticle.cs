@@ -15,7 +15,7 @@ public class TargetHorizontalVelocityParticle : Particle
 
     public bool IsLeftToRight => TargetHorizontalVelocity > 0;
 
-    public float Ky { get; set; } = 5;
+    public float Ky { get; set; } = 1;
 
     protected override void OnInitializedImpl()
     {
@@ -29,7 +29,7 @@ public class TargetHorizontalVelocityParticle : Particle
         }
     }
 
-    public override Vector2D<double> CalculateForce()
+    protected override Vector2D<double> CalculateForceImpl()
     {
         Vector2D<double> requiredAsceleration = new Vector2D<double>(TargetHorizontalVelocity - Velocity.X, -Velocity.Y) / Simulation.DeltaTime;
         Vector2D<double> absoluteAsceleration = Vector2D.Min(Vector2D.Abs(requiredAsceleration), new Vector2D<double>(Acceleration, -Velocity.Y * Ky));

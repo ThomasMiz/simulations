@@ -1,5 +1,4 @@
 using Silk.NET.Maths;
-using tp5.Exceptions;
 using TrippyGL.Utils;
 
 namespace tp5.Spawners;
@@ -14,7 +13,7 @@ public abstract class RandomAreaParticleSpawner : ParticleSpawner
         SpawnArea = spawnArea;
     }
 
-    protected Vector2D<double> GetSpawningPosition()
+    protected Vector2D<double>? GetSpawningPosition()
     {
         // Try to generate a random position that is not taken
         const int randomCheckLimit = 5;
@@ -40,6 +39,7 @@ public abstract class RandomAreaParticleSpawner : ParticleSpawner
                 return position;
         }
 
-        throw new CannotGenerateParticleException("Cannot spawn particle, there is no space!");
+        Simulation.NoSpace = true;
+        return null;
     }
 }

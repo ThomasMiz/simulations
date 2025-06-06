@@ -10,10 +10,10 @@ public class SocialForceParticle : TargetHorizontalVelocityParticle
 
     public double Kn { get; set; } = 1.2e5;
     public double Kt { get; set; } = 2.4e5;
-    public double A { get; set; } = 10;
+    public double A { get; set; } = 20;
     public double B { get; set; } = 0.2;//0.08;
 
-    public override Vector2D<double> CalculateForce()
+    protected override Vector2D<double> CalculateForceImpl()
     {
         Vector2D<double> force = Vector2D<double>.Zero;
         
@@ -29,12 +29,17 @@ public class SocialForceParticle : TargetHorizontalVelocityParticle
             
             // Vector2D<double> t = n.Y > 0 ? new(n.Y, -n.X) : new(-n.Y, n.X);
 
-            // Contact force | Not used as simulation prevents overlaps
-            //double vt = Vector2D.Dot(Velocity, t);
-            //force += (-e * Kn) * n + (-e * Kt * vt) * t;
-            
-            // Social force
-            force -= A * Math.Exp(-e / B) * n;
+            // Contact force
+            // double vt = Vector2D.Dot(Velocity, t);
+            if (e < 0)
+            {
+                force -= (-e * Kn) * n;// + (e * Kt * vt) * t;
+            }
+            else
+            {
+                // Social force
+                force -= A * Math.Exp(-e / B) * n;
+            }
         }
 
         neighborsList.Clear();
@@ -45,6 +50,6 @@ public class SocialForceParticle : TargetHorizontalVelocityParticle
         force.Y += (wr - Math.Min(Position.Y - Radius - Simulation.Bounds.Bottom, wr)) / wr * wf_max;
         force.Y -= (wr - Math.Min(Simulation.Bounds.Top - Position.Y - Radius, wr)) / wr * wf_max;
 
-        return force + base.CalculateForce();
+        return force + base.CalculateForceImpl();
     }
 }
