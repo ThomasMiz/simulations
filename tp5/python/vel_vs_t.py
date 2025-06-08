@@ -1,67 +1,91 @@
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
+from collections import defaultdict
 
 # Ruta al archivo de output
-file_path = "../bin/Debug/net8.0/output-simple-Q8-beeman.txt"
+file_path = "../bin/Debug/net8.0/output-simple-Q8-1-beeman.txt"
 
-# Leer el archivo línea por línea
+# Leer líneas del archivo
 with open(file_path, 'r') as f:
     lines = f.readlines()
 
-# Procesar los datos en frames
+# Parsear datos
 frames = []
 current_frame = None
 
 for line in lines:
     line = line.strip()
     if line.startswith("{\"step\""):
-        if current_frame is not None and "particles" in current_frame:
+        if current_frame and "particles" in current_frame:
             frames.append(current_frame)
         parts = line.split(" ; ")
         step_info = json.loads(parts[0])
-        current_frame = {"step": step_info["step"], "time": step_info["time"], "particles": []}
+        current_frame = {"time": step_info["time"], "particles": []}
         if len(parts) > 1:
             try:
                 current_frame["particles"].append(json.loads(parts[1]))
             except json.JSONDecodeError:
                 pass
-    elif current_frame is not None:
+    elif current_frame:
         try:
             current_frame["particles"].append(json.loads(line))
         except json.JSONDecodeError:
             continue
 
-# Agregar el último frame
-if current_frame is not None and "particles" in current_frame:
+if current_frame and "particles" in current_frame:
     frames.append(current_frame)
 
-# Calcular <|vx|> para cada instante de tiempo
-time_list = []
-avg_vx_abs_list = []
-
+# Historial de posiciones por partícula
+particle_history = defaultdict(list)
 for frame in frames:
-    time = frame["time"]
-    particles = frame["particles"]
-    if not particles:
-        continue
-    vx_vals = [abs(p["vx"]) for p in particles]
-    avg_vx_abs = sum(vx_vals) / len(vx_vals)
-    time_list.append(time)
-    avg_vx_abs_list.append(avg_vx_abs)
+    t = frame["time"]
+    for p in frame["particles"]:
+        particle_history[p["id"]].append((t, p["x"]))
+
+# Calcular <|vx|> en bloques de 1 segundo
+start_time = min(frame["time"] for frame in frames)
+end_time = max(frame["time"] for frame in frames)
+step_size = 1.0  # segundos
+
+times = []
+avg_abs_vx_per_second = []
+
+t = start_time
+while t + step_size <= end_time:
+    vx_list = []
+    for particle_id, history in particle_history.items():
+        # buscar posiciones en t y t + 1
+        x0 = x1 = None
+        for i in range(len(history) - 1):
+            if history[i][0] <= t < history[i+1][0]:
+                x0 = history[i][1]
+            if history[i][0] <= t + step_size < history[i+1][0]:
+                x1 = history[i][1]
+                break
+        if x0 is not None and x1 is not None:
+            vx = (x1 - x0) / step_size
+            vx_list.append(abs(vx))
+
+    if vx_list:
+        avg_vx = sum(vx_list) / len(vx_list)
+        times.append(t + step_size / 2)
+        avg_abs_vx_per_second.append(avg_vx)
+
+    t += step_size
 
 # Crear DataFrame
 df = pd.DataFrame({
-    "time": time_list,
-    "avg_abs_vx": avg_vx_abs_list
+    "time": times,
+    "avg_abs_vx_1s": avg_abs_vx_per_second
 })
 
-# Mostrar gráfica
+# Graficar
 plt.figure(figsize=(10, 5))
-plt.plot(df["time"], df["avg_abs_vx"], label="<|vx|>(t)")
+plt.plot(df["time"], df["avg_abs_vx_1s"], label="<|vx|> promedio en Δt=1s", marker='o')  # <- agregado marker
 plt.xlabel("Tiempo (s)")
 plt.ylabel("Velocidad promedio en x (m/s)")
-plt.title("Evolución temporal de <|vx|>")
+plt.title("Evolución temporal de <|v_x|>")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
