@@ -1,0 +1,76 @@
+@startuml
+
+class SimulationConfig {
+    - List<Particle> particles
+    - List<ParticleSpawner> particleSpawners
+    + double? DeltaTime
+    + double? SavingDeltaTime
+    + Bounds? SimulationBounds
+    + uint? MaxSteps
+    + double? MaxSimulationTime
+    + uint? MaxParticles
+    + string? OutputFile
+    + IntegrationMethod? IntegrationMethod
+    + this AddParticle(Particle particle)
+    + this AddParticleSpawner(ParticleSpawner spawner)
+    - void CheckValidity()
+    - uint? CalculateMaxSteps()
+    - string? MakeOutputFilename()
+    + Simulation Build()
+}
+
+class Simulation {
+    + IntegrationMethod IntegrationMethod
+    + double DeltaTime
+    + Bounds Bounds
+    + uint? MaxSteps
+    + uint? MaxParticles
+    + uint Steps
+    + double SecondsElapsed
+    + bool HasStopped
+    + bool NoSpace
+    + List<ParticleSpawner> ParticleSpawners
+    + LinkedList<Particle> Particles
+    - Queue<Particle> particleRemovalQueue
+    - long particleIdCounter
+    - NeighborsFinder neighborsFinder
+    - bool neighborsFinderDirty
+    - SimulationFileSaver? saver
+    - void Initialize()
+    + void AddParticle(Particle particle)
+    - void PerformRemoveParticle(Particle particle)
+    + void RemoveParticle(Particle particle)
+    - void EnsureNeighborsUsable()
+    + bool ExistsAnyWithinDistance(...)
+    + void FindParticlesWithinDistance(...)
+    + void Step()
+    + void RunToEnd()
+    + void Dispose()
+}
+
+class SimulationFileSaver {
+    + double? SavingDeltaTime
+    + string Filename
+    - StreamWriter stream
+    - double nextSaveTime
+    + void WriteStart(Simulation simulation)
+    + void OnStep(Simulation simulation)
+    + void WriteState(Simulation simulation)
+    + void Dispose()
+}
+
+class NeighborsFinder {
+    + Vector2D SimulationSize
+    + Vector2D<int> BinCount
+    + Vector2D BinSize
+    - IReadOnlyCollection<Particle> particles
+    - List<Particle>?[,]? grid
+    - int gridWidth, gridHeight
+    + void Recalculate()
+    + void ManualAddParticle(Particle particle)
+    + void ManualRemoveParticle(Particle particle)
+    + bool ExistsAnyAtPoint(...)
+    + void FindWithinDistance(...)
+}
+
+@enduml

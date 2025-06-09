@@ -1,0 +1,33 @@
+@startuml
+
+class ParticleSpawner {
+    + Simulation Simulation
+    + bool IsDone
+    + void OnInitialized()
+    + abstract void PreUpdate()
+}
+
+ParticleSpawner <|-- RandomAreaParticleSpawner
+class RandomAreaParticleSpawner {
+    + Bounds SpawnArea
+    - Random random
+    # Vector2D? GetSpawningPosition()
+}
+
+RandomAreaParticleSpawner <|-- RateBasedParticleSpawner
+class RateBasedParticleSpawner {
+    + double SpawnRate
+    + uint? MaxParticles
+    + uint SpawnedParticleCount
+    - readonly double spawnEvery
+    - double nextSpawnTime
+    + void PreUpdate()
+    # abstract Particle createParticle(Vector2D position)
+}
+
+RateBasedParticleSpawner <|-- GenericRateParticleSpawner
+class GenericRateParticleSpawner {
+    + ParticleCreator ParticleCreator
+}
+
+@enduml

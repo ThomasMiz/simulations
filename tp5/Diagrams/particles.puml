@@ -1,0 +1,49 @@
+@startuml
+
+class Particle {
+    + abstract String Name
+    + abstract bool IsForceVelocityDependant
+    + long Id
+    + Simulation Simulation
+    + LinkedListNode<Particle> Node
+    + double Mass
+    + double Radius
+    + Vector2D Position
+    + Vector2D NextPosition
+    + Vector2D Velocity
+    + Vector2D NextVelocity
+    - void ClampPositionToBounds()
+    + void OnInitialized()
+    # abstract void OnInitializedImpl()
+    + void Remove()
+    + virtual void OnRemoved()
+    + abstract void PostUpdate();
+    + Vector2D CalculateForce()
+    + Vector2D Aux0..Aux5
+}
+
+Particle <|-- TargetHorizontalVelocityParticle
+class TargetHorizontalVelocityParticle {
+    + double TargetHorizontalVelocity
+    + double Tao
+    + double TargetX
+    + bool IsLeftToRight
+    + Vector2D CalculateForce()
+}
+
+TargetHorizontalVelocityParticle <|-- SocialForceParticle
+class SocialForceParticle {
+    + double Kn
+    + double A
+    + double B
+    + Vector2D CalculateForce()
+}
+
+Particle <|-- OsciladorAmortiguadoParticle
+class OsciladorAmortiguadoParticle {
+    + double K
+    + double Y
+    + Vector2D CalculateForce()
+}
+
+@enduml

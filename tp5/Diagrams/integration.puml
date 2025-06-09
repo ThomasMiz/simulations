@@ -1,0 +1,27 @@
+@startuml
+
+interface IntegrationMethod {
+    + String Name
+    + void InitializeParticle(Particle particle, double deltaTime)
+    + void Step(IEnumerable<Particle> particles, double deltaTime)
+}
+
+IntegrationMethod <|-- BeemanIntegration
+class BeemanIntegration {
+    + void InitializeParticle(Particle particle, double deltaTime)
+    + void Step(IEnumerable<Particle> particles, double deltaTime)
+}
+
+IntegrationMethod <|-- Gear5Integration
+class Gear5Integration {
+    + void InitializeParticle(Particle particle, double deltaTime)
+    + void Step(IEnumerable<Particle> particles, double deltaTime)
+}
+
+IntegrationMethod <|-- TaylorIntegration
+class TaylorIntegration {
+    + void InitializeParticle(Particle particle, double deltaTime)
+    + void Step(IEnumerable<Particle> particles, double deltaTime)
+}
+
+@enduml
