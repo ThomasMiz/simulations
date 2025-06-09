@@ -6,11 +6,11 @@ import numpy as np
 
 # Archivo por valor de Qin (renombrar según corresponda)
 qin_files = {
-    2: "output_qin2.txt",
-    4: "output_qin4.txt",
-    6: "output_qin6.txt",
-    8: "../bin/Debug/net8.0/output-simple-Q8-beeman.txt",
-    10: "output_qin10.txt",
+    2: "../bin/Debug/net8.0/outputs/output-simple-Q2-beeman.txt",
+    4: "../bin/Debug/net8.0/outputs/output-simple-Q4-beeman.txt",
+    6: "../bin/Debug/net8.0/outputs/output-simple-Q6-beeman.txt",
+    8: "../bin/Debug/net8.0/outputs/output-simple-Q8-beeman.txt",
+    10: "../bin/Debug/net8.0/outputs/output-simple-Q10-beeman.txt",
 }
 
 # Intervalo base
@@ -83,10 +83,12 @@ for qin, filename in qin_files.items():
 
 # Graficar
 plt.errorbar(qin_vals, mean_vx_vals, yerr=error_vx_vals, fmt='o-', capsize=5, label="⟨|vx|⟩")
-plt.xlabel("Qin [1/s]")
-plt.ylabel("⟨|vx|⟩ promedio entre 10s y 40s [m/s]")
-plt.title("⟨|vx|⟩ vs Qin")
+plt.xlabel(r"$Q_{\mathrm{in}}$ [1/s]", fontsize=20)
+plt.ylabel(r"$\langle |v_{x}| \rangle$ [m/s]", fontsize=20)
+#plt.title("⟨|vx|⟩ vs Qin")
 plt.grid(True)
-plt.legend()
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
+#plt.legend()
 plt.tight_layout()
 plt.show()
