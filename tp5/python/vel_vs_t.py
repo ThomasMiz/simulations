@@ -5,7 +5,7 @@ from collections import defaultdict
 import os
 
 # Lista de valores de Qin
-q_values = [2, 4, 6,8,10]
+q_values = [2, 4, 10]
 file_template = "../bin/Debug/net8.0/outputs/output-simple-Q{}-beeman.txt"
 
 # Diccionario para almacenar curvas por Q
