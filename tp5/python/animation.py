@@ -38,7 +38,7 @@ def parse_output(filename):
                 frames.append(state)
     return frames, times
 
-frames, times = parse_output("../bin/Debug/net8.0/output-simple-beeman.txt")
+frames, times = parse_output("../bin/Debug/net8.0/output-simple-Q8-B0.08-beeman-run.txt")
 
 fig, ax = plt.subplots(figsize=(12, 4))
 ax.set_xlim(0, HALLWAY_LENGTH)
