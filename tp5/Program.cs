@@ -28,7 +28,7 @@ class Program
         {
             DeltaTime = 10e-4,
             //MaxSimulationTime = 25,
-            OutputFile = null, //"output-simple-{type}.txt",
+            OutputFile = "output-simple-{type}.txt",
             SavingDeltaTime = 0.1f,
             IntegrationMethod = new BeemanIntegration(),
             SimulationBounds = simulationBounds,
