@@ -15,7 +15,7 @@ class Program
         const double HallwayWidth = 3.6f;
         const double HallwayLength = 16;
 
-        const double spawnRate = 4;
+        const double spawnRate = 8;
         const double particleRadius = 0.25;
         const uint maxParticles = 100;
         const double targetVelocity = 1.5;
@@ -28,7 +28,7 @@ class Program
         {
             DeltaTime = 10e-4,
             //MaxSimulationTime = 25,
-            OutputFile = "output-simple-{type}.txt",
+            OutputFile = $"output-simple-Q{spawnRate}-{{type}}-run.txt",
             SavingDeltaTime = 0.1f,
             IntegrationMethod = new BeemanIntegration(),
             SimulationBounds = simulationBounds,
