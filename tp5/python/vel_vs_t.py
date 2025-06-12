@@ -6,7 +6,7 @@ import os
 
 # Lista de valores de Qin
 q_values = [2, 4, 10]
-file_template = "../bin/Debug/net8.0/outputs/output-simple-Q{}-beeman.txt"
+file_template = "../bin/Debug/net8.0/outputs/vel_vs_t/output-simple-Q{}-beeman-run.txt"
 
 # Diccionario para almacenar curvas por Q
 results = {}

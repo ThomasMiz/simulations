@@ -8,6 +8,7 @@ q_values = [2, 4, 6, 8]
 num_runs = 10
 output_dir = "../bin/Debug/net8.0/q_vs_t/"
 file_template = "output-simple-Q{}-beeman-run-{}"
+penalized_tf = 90.0  # valor a usar si la corrida está bloqueada
 
 qins = []
 tf_means = []
@@ -17,20 +18,22 @@ for Q in q_values:
     tf_values = []
 
     for run in range(1, num_runs + 1):
-        # Archivos: preferimos el que NO termina en -b.txt
         file_base = file_template.format(Q, run)
         file_path_clean = os.path.join(output_dir, file_base + ".txt")
         file_path_blocked = os.path.join(output_dir, file_base + "-b.txt")
 
+        # Si está bloqueado, agregar penalización
         if os.path.exists(file_path_blocked):
-            print(f"[Q={Q} | run={run}] Archivo bloqueado encontrado, se ignora.")
-            continue  # no considerar bloqueados
+            print(f"[Q={Q} | run={run}] Bloqueado → tf = {penalized_tf}")
+            tf_values.append(penalized_tf)
+            continue
 
+        # Si no existe ningún archivo, ignorar
         elif not os.path.exists(file_path_clean):
             print(f"[Q={Q} | run={run}] Archivo no encontrado.")
             continue
 
-        # Leer tiempo final de ese archivo
+        # Leer tiempo final
         last_time = None
         with open(file_path_clean, 'r') as f:
             for line in f:
@@ -45,12 +48,15 @@ for Q in q_values:
         if last_time is not None:
             tf_values.append(last_time)
 
-    if tf_values:
-        qins.append(Q)
-        tf_means.append(np.mean(tf_values))
-        tf_errors.append(np.std(tf_values) / np.sqrt(len(tf_values)))
-    else:
-        print(f"Q={Q}: no se pudieron leer tiempos finales válidos.")
+    # Rellenar con penalizaciones si hay menos de 10
+    while len(tf_values) < num_runs:
+        print(f"[Q={Q}] Rellenando con tf = {penalized_tf}")
+        tf_values.append(penalized_tf)
+
+    # Guardar promedio y error estándar
+    qins.append(Q)
+    tf_means.append(np.mean(tf_values))
+    tf_errors.append(np.std(tf_values) / np.sqrt(len(tf_values)))
 
 # Graficar
 plt.figure(figsize=(10, 5))

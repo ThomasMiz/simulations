@@ -6,11 +6,11 @@ import numpy as np
 
 # Archivo por valor de Qin (renombrar según corresponda)
 qin_files = {
-    2: "../bin/Debug/net8.0/outputs/output-simple-Q2-beeman.txt",
-    4: "../bin/Debug/net8.0/outputs/output-simple-Q4-beeman.txt",
-    6: "../bin/Debug/net8.0/outputs/output-simple-Q6-beeman.txt",
-    8: "../bin/Debug/net8.0/outputs/output-simple-Q8-beeman.txt",
-    10: "../bin/Debug/net8.0/outputs/output-simple-Q10-beeman.txt",
+    2: "../bin/Debug/net8.0/outputs/vel_vs_t/output-simple-Q2-beeman-run.txt",
+    4: "../bin/Debug/net8.0/outputs/vel_vs_t/output-simple-Q4-beeman-run.txt",
+    6: "../bin/Debug/net8.0/q_vs_t/output-simple-Q6-beeman-run-2.txt",
+    8: "../bin/Debug/net8.0/q_vs_t/output-simple-Q8-beeman-run-9.txt",
+    10: "../bin/Debug/net8.0/outputs/vel_vs_t/output-simple-Q10-beeman-run.txt",
 }
 
 # Intervalo base
