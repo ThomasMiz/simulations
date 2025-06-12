@@ -19,6 +19,7 @@ class Program
         const double particleRadius = 0.25;
         const uint maxParticles = 100;
         const double targetVelocity = 1.5;
+        const double B = 0.08;
 
         const double spawnAreaLength = 1;
 
@@ -28,7 +29,7 @@ class Program
         {
             DeltaTime = 10e-4,
             //MaxSimulationTime = 25,
-            OutputFile = $"output-simple-Q{spawnRate}-{{type}}-run.txt",
+            OutputFile = $"output-simple-Q{spawnRate}-B{B}-{{type}}-run.txt",
             SavingDeltaTime = 0.1f,
             IntegrationMethod = new BeemanIntegration(),
             SimulationBounds = simulationBounds,
@@ -64,7 +65,7 @@ class Program
             Mass = 80,
             Tao = 0.5f,
             A = 2000,
-            B = 0.08,
+            B = B,
             Kn = 1.2e5,
         };
 
@@ -77,7 +78,7 @@ class Program
             Mass = 80,
             Tao = 0.5f,
             A = 2000,
-            B = 0.08,
+            B = B,
             Kn = 1.2e5,
         };
 
