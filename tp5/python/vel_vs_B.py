@@ -6,11 +6,11 @@ import numpy as np
 
 # Archivo por valor de B (renombrar según corresponda)
 B_files = {
-    0.02: "../bin/Debug/net8.0/output-simple-Q8-B0.02-beeman-run.txt",
-    0.04: "../bin/Debug/net8.0/output-simple-Q8-B0.04-beeman-run.txt",
-    0.06: "../bin/Debug/net8.0/output-simple-Q8-B0.06-beeman-run.txt",
-    0.08: "../bin/Debug/net8.0/output-simple-Q8-B0.08-beeman-run.txt",
-    0.10: "../bin/Debug/net8.0/output-simple-Q8-B0.10-beeman-run.txt",
+    0.02: "../bin/Debug/net8.0/output-simple-Q8-B0.02-beeman-run-1.txt",
+    0.04: "../bin/Debug/net8.0/output-simple-Q8-B0.04-beeman-run-1.txt",
+    0.06: "../bin/Debug/net8.0/output-simple-Q8-B0.06-beeman-run-1.txt",
+    0.08: "../bin/Debug/net8.0/output-simple-Q8-B0.08-beeman-run-1.txt",
+    0.1: "../bin/Debug/net8.0/output-simple-Q8-B0.1-beeman-run-1.txt",
 }
 
 # Intervalo base
@@ -89,6 +89,9 @@ plt.ylabel(r"$\langle |v_{x}| \rangle$ [m/s]", fontsize=20)
 plt.grid(True)
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
+
+# Aumentar el número de ticks en el eje Y
+plt.locator_params(axis='y', nbins=10)
 
 # Agregar notación científica
 plt.ticklabel_format(style='scientific', axis='x', scilimits=(0,0))

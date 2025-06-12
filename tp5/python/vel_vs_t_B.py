@@ -5,8 +5,8 @@ from collections import defaultdict
 import os
 
 # Lista de valores de B
-B_values = [ 0.08]
-file_template = "../bin/Debug/net8.0/output-simple-Q8-B{}-beeman-run.txt"
+B_values = [ 0.02, 0.08, 0.10]
+file_template = "../bin/Debug/net8.0/output-simple-Q8-B{}-beeman-run-1.txt"
 
 # Diccionario para almacenar curvas por B
 results = {}

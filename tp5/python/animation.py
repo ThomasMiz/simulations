@@ -38,7 +38,7 @@ def parse_output(filename):
                 frames.append(state)
     return frames, times
 
-frames, times = parse_output("../bin/Debug/net8.0/output-simple-Q8-B0.08-beeman-run.txt")
+frames, times = parse_output("../bin/Debug/net8.0/output-simple-Q8-B0.08-beeman-run-4.txt")
 
 fig, ax = plt.subplots(figsize=(12, 4))
 ax.set_xlim(0, HALLWAY_LENGTH)
@@ -80,6 +80,9 @@ def update(frame_idx):
         circles[i].set_visible(True)
     return circles + [time_text]
 
-ani = animation.FuncAnimation(fig, update, frames=len(frames), interval=40, blit=True)
+ani = animation.FuncAnimation(fig, update, frames=len(frames), interval=8, blit=True)
 
-plt.show()
+# Guardar como MP4 acelerado 5x (interval reducido de 40 a 8)
+ani.save('animacion_bloqueada.mp4', writer='ffmpeg', fps=30, dpi=100)
+
+print("Animación guardada como 'animacion_bloqueada.mp4'")

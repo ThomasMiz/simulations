@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 # Parámetros
 B_values = [0.02, 0.04, 0.06, 0.08, 0.10]
-num_runs = 8
+num_runs = 5
 output_dir = "../bin/Debug/net8.0/"
 file_template = "output-simple-Q8-B{}-beeman-run-{}.txt"
 
@@ -61,11 +61,12 @@ else:
     # Graficar
     plt.figure(figsize=(10, 5))
     plt.errorbar(B_list, tf_means, yerr=tf_errors, fmt='-o', capsize=5)
-    plt.xlabel(r"B [m]", fontsize=16)
+    plt.xlabel(r"$\langle B \rangle$ [m]", fontsize=16)
     plt.ylabel(r"$\langle t_f \rangle$ [s]", fontsize=16)
     #plt.title(r"Tiempo promedio de arribo $\langle t_f \rangle$ vs. $Q_{\mathrm{in}}$", fontsize=18)
-    # Agregar notación científica
-    plt.ticklabel_format(style='scientific', axis='x', scilimits=(0,0))
+    # Agregar notación científica - corregida para mostrar 10^-2 solo en eje X
+    plt.ticklabel_format(style='scientific', axis='x', scilimits=(-2,-2))
+    plt.ticklabel_format(style='plain', axis='y')  # Mantener formato normal en eje Y
     plt.gca().xaxis.major.formatter._useMathText = True
 
     # Aumentar tamaño de fuente de la notación científica
