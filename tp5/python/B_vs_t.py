@@ -61,13 +61,10 @@ else:
     # Graficar
     plt.figure(figsize=(10, 5))
     plt.errorbar(B_list, tf_means, yerr=tf_errors, fmt='-o', capsize=5)
-    plt.xlabel(r"$\langle B [m]", fontsize=20)
+    plt.xlabel(r"$B$ [m]", fontsize=20)
     plt.ylabel(r"$\langle t_f [s]", fontsize=20)
     #plt.title(r"Tiempo promedio de arribo $\langle t_f \rangle$ vs. $Q_{\mathrm{in}}$", fontsize=18)
-    # Agregar notación científica - corregida para mostrar 10^-2 solo en eje X
-    plt.ticklabel_format(style='scientific', axis='x', scilimits=(-2,-2))
-    plt.ticklabel_format(style='plain', axis='y')  # Mantener formato normal en eje Y
-    plt.gca().xaxis.major.formatter._useMathText = True
+   
 
     # Aumentar tamaño de fuente de la notación científica
     plt.tick_params(axis='both', which='major', labelsize=20)

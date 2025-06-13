@@ -6,7 +6,7 @@ import os
 
 # Lista de valores de B
 B_values = [ 0.02, 0.08, 0.10]
-file_template = "../bin/Debug/net8.0/output-simple-Q8-B{}-beeman-run-1.txt"
+file_template = "../bin/Debug/net8.0/probability/no_bloqueados/output-simple-Q8-B{}-beeman-run-5.txt"
 
 # Diccionario para almacenar curvas por B
 results = {}

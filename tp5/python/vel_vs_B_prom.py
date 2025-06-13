@@ -3,15 +3,10 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import glob
 
-# Archivo por valor de B (renombrar según corresponda)
-B_files = {
-    0.02: "../bin/Debug/net8.0/probability/no_bloqueados/output-simple-Q8-B0.02-beeman-run-5.txt",
-    0.04: "../bin/Debug/net8.0/probability/no_bloqueados/output-simple-Q8-B0.04-beeman-run-5.txt",
-    0.06: "../bin/Debug/net8.0/probability/no_bloqueados/output-simple-Q8-B0.06-beeman-run-5.txt",
-    0.08: "../bin/Debug/net8.0/probability/no_bloqueados/output-simple-Q8-B0.08-beeman-run-5.txt",
-    0.1: "../bin/Debug/net8.0/probability/no_bloqueados/output-simple-Q8-B0.1-beeman-run-5.txt",
-}
+# Valores de B a procesar
+B_values = [0.02, 0.04, 0.06, 0.08, 0.1]
 
 # Intervalo base
 t1 = 10.0
@@ -52,30 +47,42 @@ def parse_output_file(filepath):
 
     return frames
 
-for B, filename in B_files.items():
-    if not os.path.exists(filename):
-        print(f"Archivo no encontrado para B = {B}: {filename}")
+for B in B_values:
+    # Buscar todos los archivos que coincidan con el patrón para este B
+    pattern = f"../bin/Debug/net8.0/probability/output-simple-Q8-B{B}-beeman-run-*.txt"
+    matching_files = glob.glob(pattern)
+    
+    if not matching_files:
+        print(f"No se encontraron archivos para B = {B}")
         continue
 
-    frames = parse_output_file(filename)
-    if not frames:
-        continue
+    all_vx_means = []
+    
+    for filename in matching_files:
+        frames = parse_output_file(filename)
+        if not frames:
+            continue
 
-    t_max = max(f["time"] for f in frames)
-    t2 = min(t2_max, t_max)
+        t_max = max(f["time"] for f in frames)
+        t2 = min(t2_max, t_max)
 
-    vx_t = []
-    for frame in frames:
-        t = frame["time"]
-        if t1 <= t <= t2 and frame["particles"]:
-            vx_vals = [abs(p["vx"]) for p in frame["particles"]]
-            avg_vx = sum(vx_vals) / len(vx_vals)
-            vx_t.append(avg_vx)
+        vx_t = []
+        for frame in frames:
+            t = frame["time"]
+            if t1 <= t <= t2 and frame["particles"]:
+                vx_vals = [abs(p["vx"]) for p in frame["particles"]]
+                avg_vx = sum(vx_vals) / len(vx_vals)
+                vx_t.append(avg_vx)
 
-    if vx_t:
-        mean_vx = np.mean(vx_t)
-        std_vx = np.std(vx_t)
-        error = std_vx / np.sqrt(len(vx_t))
+        if vx_t:
+            mean_vx = np.mean(vx_t)
+            all_vx_means.append(mean_vx)
+
+    if all_vx_means:
+        # Calcular el promedio y error entre corridas
+        mean_vx = np.mean(all_vx_means)
+        std_vx = np.std(all_vx_means)
+        error = std_vx / np.sqrt(len(all_vx_means))
 
         B_vals.append(B)
         mean_vx_vals.append(mean_vx)
@@ -85,7 +92,6 @@ for B, filename in B_files.items():
 plt.errorbar(B_vals, mean_vx_vals, yerr=error_vx_vals, fmt='o-', capsize=5, label="⟨|vx|⟩")
 plt.xlabel(r"$B$ [m]", fontsize=20)
 plt.ylabel(r"$\langle |v_{x}| \rangle$ [m/s]", fontsize=20)
-#plt.title("⟨|vx|⟩ vs B")
 plt.grid(True)
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
@@ -93,10 +99,7 @@ plt.yticks(fontsize=20)
 # Aumentar el número de ticks en el eje Y
 plt.locator_params(axis='y', nbins=10)
 
-
-# Aumentar tamaño de fuente de la notación científica
 plt.tick_params(axis='both', which='major', labelsize=20)
 plt.gca().xaxis.offsetText.set_fontsize(20)
-#plt.legend()
 plt.tight_layout()
 plt.show()

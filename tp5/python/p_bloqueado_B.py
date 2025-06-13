@@ -96,11 +96,11 @@ bars = plt.bar(B_values, B_probs, color='#FF4500', edgecolor='black', linewidth=
 for bar in bars:
     height = bar.get_height()
     plt.text(bar.get_x() + bar.get_width() / 2, height + 0.02, f"{height:.2f}",
-             ha='center', va='bottom', fontsize=14, fontweight='bold')
+             ha='center', va='bottom', fontsize=14)
 
 plt.ylim(0, 1.05)
-plt.xlabel(r"B [m]", fontsize=20, fontweight='bold')
-plt.ylabel(r"$P_{\mathrm{bloqueo}}$", fontsize=20, fontweight='bold')
+plt.xlabel(r"$B$ [m]", fontsize=20)
+plt.ylabel(r"$P_{\mathrm{bloqueo}}$", fontsize=20)
 #plt.title("Probabilidad de bloqueo vs B", fontsize=18, fontweight='bold', pad=20)
 
 # Configurar ejes con formato limpio
