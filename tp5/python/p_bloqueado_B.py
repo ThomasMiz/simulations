@@ -99,13 +99,13 @@ for bar in bars:
              ha='center', va='bottom', fontsize=14, fontweight='bold')
 
 plt.ylim(0, 1.05)
-plt.xlabel(r"B [m]", fontsize=16, fontweight='bold')
-plt.ylabel(r"$P_{\mathrm{bloqueo}}$", fontsize=16, fontweight='bold')
-plt.title("Probabilidad de bloqueo vs B", fontsize=18, fontweight='bold', pad=20)
+plt.xlabel(r"B [m]", fontsize=20, fontweight='bold')
+plt.ylabel(r"$P_{\mathrm{bloqueo}}$", fontsize=20, fontweight='bold')
+#plt.title("Probabilidad de bloqueo vs B", fontsize=18, fontweight='bold', pad=20)
 
 # Configurar ejes con formato limpio
-plt.xticks(B_values, [f"{B:.2f}" for B in B_values], fontsize=14)
-plt.yticks([0.00, 0.25, 0.50, 0.75, 1.00], fontsize=14)
+plt.xticks(B_values, [f"{B:.2f}" for B in B_values], fontsize=20)
+plt.yticks([0.00, 0.25, 0.50, 0.75, 1.00], fontsize=20)
 
 # Sin grilla para aspecto más limpio
 plt.grid(False)
@@ -117,7 +117,7 @@ plt.gca().spines['left'].set_linewidth(1)
 plt.gca().spines['bottom'].set_linewidth(1)
 
 # Agregar nota al pie
-plt.figtext(0.12, 0.02, "Se realizaron hasta 10 corridas por simulación", fontsize=12, style='italic')
+#plt.figtext(0.12, 0.02, "Se realizaron hasta 10 corridas por simulación", fontsize=12, style='italic')
 
 plt.tight_layout()
 plt.show()
