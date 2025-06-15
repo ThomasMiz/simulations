@@ -44,6 +44,7 @@ public class SimulationWindow : WindowBase
     protected override void OnUpdate(double dt)
     {
         base.OnUpdate(dt);
+        if (Window.Time < 3) return;
 
         if (!Simulation.HasStopped)
         {

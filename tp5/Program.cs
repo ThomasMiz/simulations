@@ -15,7 +15,7 @@ class Program
         const double HallwayWidth = 3.6f;
         const double HallwayLength = 16;
 
-        const double spawnRate = 8;
+        const double spawnRate = 4;
         const double particleRadius = 0.25;
         const uint maxParticles = 100;
         const double targetVelocity = 1.5;
